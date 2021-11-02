@@ -1,3 +1,4 @@
+//SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -8,7 +9,7 @@ interface ReceiverInterface {
         uint256[] calldata premiums,
         address initiator,
         bytes calldata _data
-    ) external returns (bool)
+    ) external returns (bool);
 }
 
 interface IndexInterface {
@@ -39,6 +40,7 @@ interface TokenInterface {
 
     function decimals() external view returns (uint256);
 }
+
 
 interface IAaveLending {
     function flashLoan(

@@ -1,3 +1,5 @@
+
+//SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -69,13 +71,14 @@ contract FlashResolver is Helper {
     }
 
     function routeAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory data) internal {
-        uint[] memory _modes = new uint[](1);
-
-        _modes[0] = 0;
-        
-        data = abi.encode(msg.sender, data);
 
         uint _length = _tokens.length;
+
+        uint[] memory _modes = new uint[](1);
+        for (uint i = 0; i < _length; i++) {
+            _modes[i]=0;
+        }
+
         uint[] memory iniBals = new uint[](_length);
         uint[] memory finBals = new uint[](_length);
         IERC20[] memory _tokenContracts = new IERC20[](_length);
@@ -106,6 +109,7 @@ contract FlashResolver is Helper {
         bytes calldata data_
     ) external {	
         if (route_ == 1) {
+            bytes memory data = abi.encode(msg.sender, data_);
             routeAave(tokens_, amounts_, data);	
         } else {
             require(false, "route-do-not-exist");
