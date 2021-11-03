@@ -74,7 +74,7 @@ contract FlashResolver is Helper {
 
         uint _length = _tokens.length;
 
-        uint[] memory _modes = new uint[](1);
+        uint[] memory _modes = new uint[](_length);
         for (uint i = 0; i < _length; i++) {
             _modes[i]=0;
         }
