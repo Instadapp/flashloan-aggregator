@@ -30,9 +30,7 @@ contract FlashReceiver {
     ) external returns (bool) {
         // Do something
         for (uint i = 0; i < tokens.length; i++) {
-            console.log(IERC20(tokens[i]).balanceOf(address(this)));
-            IERC20(tokens[i]).transfer(address(flashloan), amounts[i] + premiums[i]);
-            console.log(IERC20(tokens[i]).balanceOf(address(this)));
+            IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
         }
     }
 
