@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "hardhat/console.sol";
 import { Helper } from "./helpers.sol";
 
 import { 
@@ -50,7 +51,6 @@ contract FlashResolver is Helper {
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
 
         ExecuteOperationVariables memory e;
-
         e._length = assets.length;
         e._tokenContracts = new IERC20[](e._length);
 
@@ -61,7 +61,7 @@ contract FlashResolver is Helper {
 
         for (uint i = 0; i < e._length; i++) {
             e._tokenContracts[i] = IERC20(assets[i]);
-            e._tokenContracts[i].approve(aaveLendingAddr, amounts[i] + premiums[i]);
+            e._tokenContracts[i].safeApprove(aaveLendingAddr, amounts[i] + premiums[i]);
             e._tokenContracts[i].safeTransfer(sender_, amounts[i]);
         }
 
@@ -73,7 +73,6 @@ contract FlashResolver is Helper {
     function routeAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory data) internal {
 
         uint _length = _tokens.length;
-
         uint[] memory _modes = new uint[](_length);
         for (uint i = 0; i < _length; i++) {
             _modes[i]=0;
@@ -82,6 +81,7 @@ contract FlashResolver is Helper {
         uint[] memory iniBals = new uint[](_length);
         uint[] memory finBals = new uint[](_length);
         IERC20[] memory _tokenContracts = new IERC20[](_length);
+
         for (uint i = 0; i < _length; i++) {
             _tokenContracts[i] = IERC20(_tokens[i]);
             iniBals[i] = _tokenContracts[i].balanceOf(address(this));
@@ -114,7 +114,6 @@ contract FlashResolver is Helper {
         } else {
             require(false, "route-do-not-exist");
         }
-
     }
 }
 
