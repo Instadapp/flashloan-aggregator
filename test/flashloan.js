@@ -18,7 +18,7 @@ describe("FlashLoan AAVE", function () {
         resolver = await Resolver.deploy();
         await resolver.deployed();
 
-        Receiver = await ethers.getContractFactory("FlashReceiver");
+        Receiver = await ethers.getContractFactory("AaveReceiver");
         receiver = await Receiver.deploy(resolver.address);
         await receiver.deployed();
     });
@@ -100,8 +100,54 @@ describe("FlashLoan AAVE", function () {
             await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, 0);
 
         });
-    });
-    
-
-    
+    });   
 });
+
+describe("FlashLoan MakerDAO", function () {
+    let Resolver, resolver, Receiver, receiver;
+    const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
+    const ACC_DAI = "0x9a7a9d980ed6239b89232c012e21f4c210f4bef1";
+
+    const dai = ethers.utils.parseUnits("10", 18);
+    const Dai = ethers.utils.parseUnits("5000", 18);
+
+    beforeEach(async function() {
+        Resolver = await ethers.getContractFactory("InstaFlashloanAggregator");
+        resolver = await Resolver.deploy();
+        await resolver.deployed();
+
+        Receiver = await ethers.getContractFactory("MakerReceiver");
+        receiver = await Receiver.deploy(resolver.address);
+        await receiver.deployed();
+    });
+
+    describe("Single Token(DAI)", async function() {
+        it("Should be able to take flashLoan of DAI from MakerDAO", async function () {
+
+            const tokenArtifact = await artifacts.readArtifact("IERC20");
+            const token = new ethers.Contract(DAI, tokenArtifact.abi, ethers.provider);
+    
+            await network.provider.send("hardhat_setBalance", [
+                ACC_DAI,
+                ethers.utils.parseEther('10.0').toHexString(),
+            ]);
+    
+            await hre.network.provider.request({
+                method: "hardhat_impersonateAccount",
+                params: [ACC_DAI],
+            });
+    
+            const signer = await ethers.getSigner(ACC_DAI);
+            await token.connect(signer).transfer(receiver.address, dai);
+    
+            await hre.network.provider.request({
+                method: "hardhat_stopImpersonatingAccount",
+                params: [ACC_DAI],
+            });
+    
+            await receiver.flashBorrow(DAI, Dai, 2, 0);
+
+        });
+    });  
+});
+

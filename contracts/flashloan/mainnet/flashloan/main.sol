@@ -13,8 +13,9 @@ import {
     IndexInterface,
     ListInterface,
     TokenInterface,
-    ReceiverInterface,
-    IAaveLending
+    IAaveLending, 
+    AaveReceiverInterface,
+    MakerReceiverInterface
 } from "./interfaces.sol";
 
 
@@ -65,13 +66,37 @@ contract FlashResolver is Helper {
             e._tokenContracts[i].safeTransfer(sender_, amounts[i]);
         }
 
-        ReceiverInterface(sender_).executeOperation(assets, amounts, premiums, sender_, _data);
+        AaveReceiverInterface(sender_).executeOperation(assets, amounts, premiums, sender_, _data);
 
         return true;
     }
+    
+    function onFlashLoan(
+        address initiator,
+        address token,
+        uint256 amount,
+        uint256 fee,
+        bytes calldata data
+    ) external returns (bytes32) {
+
+        // require(initiator == address(this), "not-same-sender");
+        require(msg.sender == makerLendingAddr, "not-maker-sender");
+
+        (address sender_, bytes memory data_) = abi.decode(
+            data,
+            (address, bytes)
+        );
+
+        IERC20 _tokenContract = IERC20(token);
+        _tokenContract.safeApprove(makerLendingAddr, amount + fee);
+        _tokenContract.safeTransfer(sender_, amount);
+
+        MakerReceiverInterface(sender_).onFlashLoan(sender_, token, amount, fee, data);
+
+        return keccak256("ERC3156FlashBorrower.onFlashLoan");
+    }
 
     function routeAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory data) internal {
-
         uint _length = _tokens.length;
         uint[] memory _modes = new uint[](_length);
         for (uint i = 0; i < _length; i++) {
@@ -102,6 +127,28 @@ contract FlashResolver is Helper {
         );
     }
 
+    function routeMaker(address _token, uint256 _amount, bytes memory data) internal {
+        IERC20 _tokenContract = IERC20(_token);
+        uint iniBals = _tokenContract.balanceOf(address(this));
+        uint finBals;
+
+        makerLending.flashLoan(MakerReceiverInterface(address(this)), _token, _amount, data);
+
+        finBals = _tokenContract.balanceOf(address(this));
+        require(iniBals <= finBals, "amount-paid-less");
+
+        address[] memory tokens_ = new address[](1);
+        uint[] memory amounts_ = new uint[](1);
+        tokens_[0] = _token;
+        amounts_[0] = _amount;
+
+        emit LogFlashLoan(
+            msg.sender,
+            tokens_,
+            amounts_
+        );
+    }
+
     function flashLoan(	
         address[] memory tokens_,	
         uint256[] memory amounts_,
@@ -111,6 +158,9 @@ contract FlashResolver is Helper {
         if (route_ == 1) {
             bytes memory data = abi.encode(msg.sender, data_);
             routeAave(tokens_, amounts_, data);	
+        } else if (route_ == 2) {
+            bytes memory data = abi.encode(msg.sender, data_);
+            routeMaker(tokens_[0], amounts_[0], data);	
         } else {
             require(false, "route-do-not-exist");
         }
