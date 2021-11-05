@@ -22,6 +22,17 @@ interface MakerReceiverInterface{
     ) external returns (bytes32);
 }
 
+interface InstaFlashReceiverInterface {
+    // just following Aave's format here
+    function executeOperation(
+        address[] calldata assets,
+        uint256[] calldata amounts,
+        uint256[] calldata premiums,
+        address initiator,
+        bytes calldata _data
+    ) external returns (bool);
+}
+
 interface IndexInterface {
     function master() external view returns (address);
     function list() external view returns (address);

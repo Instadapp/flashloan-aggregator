@@ -15,7 +15,8 @@ import {
     TokenInterface,
     IAaveLending, 
     AaveReceiverInterface,
-    MakerReceiverInterface
+    MakerReceiverInterface,
+    InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
 
@@ -58,7 +59,7 @@ contract FlashResolver is Helper {
 
         SafeApprove(assets, amounts, premiums, aaveLendingAddr);
         SafeTransfer(assets, amounts, sender_);
-        AaveReceiverInterface(sender_).executeOperation(assets, amounts, premiums, sender_, _data);
+        InstaFlashReceiverInterface(sender_).executeOperation(assets, amounts, premiums, sender_, data_);
 
         return true;
     }
@@ -87,7 +88,7 @@ contract FlashResolver is Helper {
 
         SafeApprove(tokens, amounts, fees, aaveLendingAddr);
         SafeTransfer(tokens, amounts, sender_);
-        MakerReceiverInterface(sender_).onFlashLoan(sender_, token, amount, fee, data);
+        InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, fees, sender_, data_);
 
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
