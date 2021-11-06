@@ -81,17 +81,17 @@ contract FlashResolver is Helper {
             fees[i] = 0;
         }
         if(route == 2) {
-            SafeApprove(tokens, amounts, fees, aaveLendingAddr);
+            SafeApprove(tokens, amounts, fees, makerLendingAddr);
             SafeTransfer(tokens, amounts, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, fees, sender_, data_);
-            console.log("Dai Balance", TokenInterface(daiToken).balanceOf(address(this)));
-            console.log("Dai Allowance", TokenInterface(daiToken).allowance(address(this), aaveLendingAddr));
         } else {
             address[] memory dai = new address[](1);
             uint256[] memory daiAmount = new uint256[](1);
             dai[0] = token;
             daiAmount[0] = amount;
-            SafeApprove(dai, daiAmount, fees, aaveLendingAddr);
+            uint256[] memory fees_ = new uint256[](1);
+            fees_[0] = fee;
+            SafeApprove(dai, daiAmount, fees_, makerLendingAddr);
             CompoundSupplyDAI(amount);
             CompoundBorrow(tokens, amounts);
             SafeTransfer(tokens, amounts, sender_);

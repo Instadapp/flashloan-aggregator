@@ -37,6 +37,7 @@ contract Variables {
     mapping(address => address) public tokenToCToken;
 
     constructor() {
+        tokenToCToken[daiToken] = cDaiToken; // DAI
         tokenToCToken[0xdAC17F958D2ee523a2206206994597C13D831ec7] = 0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9; // USDT
         tokenToCToken[0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48] = 0x39AA39c021dfbaE8faC545936693aC917d5E7563; // USDC
         // TODO: need to add all tokens

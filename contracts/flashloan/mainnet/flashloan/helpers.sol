@@ -33,7 +33,7 @@ contract Helper is Variables {
         IERC20[] memory tokenContracts = new IERC20[](length);
         for (uint i = 0; i < length; i++) {
             tokenContracts[i] = IERC20(tokens[i]);
-            tokenContracts[i].safeApprove(receiver, amounts[i] + fees[i] + 10000000000);
+            tokenContracts[i].safeApprove(receiver, amounts[i] + fees[i]);
         }
     }
 

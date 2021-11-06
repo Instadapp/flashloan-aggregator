@@ -28,7 +28,6 @@ contract InstaFlashReceiver {
     ) external returns (bool) {
         // Do something
         for (uint i = 0; i < tokens.length; i++) {
-            console.log("amount + fee", (amounts[i] + premiums[i]));
             IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
         }
     }
