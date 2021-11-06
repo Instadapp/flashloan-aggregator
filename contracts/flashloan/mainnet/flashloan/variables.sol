@@ -7,7 +7,8 @@ import {
     ListInterface,
     TokenInterface,
     IAaveLending,
-    IERC3156FlashLender
+    IERC3156FlashLender, 
+    Comptroller
 } from "./interfaces.sol";
 
 contract Variables {
@@ -25,4 +26,19 @@ contract Variables {
 
     address public makerLendingAddr = 0x1EB4CF3A948E7D72A198fe073cCb8C7a948cD853;
     IERC3156FlashLender public makerLending = IERC3156FlashLender(makerLendingAddr);
+
+    address public daiToken = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    address public cDaiToken = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
+    uint256 public daiBorrowAmount = 500000000000000000000000000;
+
+    address public comptrollerAddr = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
+    Comptroller troller = Comptroller(comptrollerAddr);
+
+    mapping(address => address) public tokenToCToken;
+
+    constructor() {
+        tokenToCToken[0xdAC17F958D2ee523a2206206994597C13D831ec7] = 0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9; // USDT
+        tokenToCToken[0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48] = 0x39AA39c021dfbaE8faC545936693aC917d5E7563; // USDC
+        // TODO: need to add all tokens
+    }
 }

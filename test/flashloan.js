@@ -18,7 +18,7 @@ describe("FlashLoan AAVE", function () {
         resolver = await Resolver.deploy();
         await resolver.deployed();
 
-        Receiver = await ethers.getContractFactory("AaveReceiver");
+        Receiver = await ethers.getContractFactory("InstaFlashReceiver");
         receiver = await Receiver.deploy(resolver.address);
         await receiver.deployed();
     });
@@ -46,7 +46,6 @@ describe("FlashLoan AAVE", function () {
                 method: "hardhat_stopImpersonatingAccount",
                 params: [ACC_DAI],
             });
-    
             await receiver.flashBorrow([DAI], [Dai], 1, 0);
 
         });
@@ -109,6 +108,7 @@ describe("FlashLoan MakerDAO", function () {
     const ACC_DAI = "0x9a7a9d980ed6239b89232c012e21f4c210f4bef1";
 
     const dai = ethers.utils.parseUnits("10", 18);
+    const sDai = ethers.utils.parseUnits("1", 18);
     const Dai = ethers.utils.parseUnits("5000", 18);
 
     beforeEach(async function() {
@@ -116,7 +116,7 @@ describe("FlashLoan MakerDAO", function () {
         resolver = await Resolver.deploy();
         await resolver.deployed();
 
-        Receiver = await ethers.getContractFactory("MakerReceiver");
+        Receiver = await ethers.getContractFactory("InstaFlashReceiver");
         receiver = await Receiver.deploy(resolver.address);
         await receiver.deployed();
     });
@@ -139,13 +139,14 @@ describe("FlashLoan MakerDAO", function () {
     
             const signer = await ethers.getSigner(ACC_DAI);
             await token.connect(signer).transfer(receiver.address, dai);
+            await token.connect(signer).transfer(resolver.address, sDai);
     
             await hre.network.provider.request({
                 method: "hardhat_stopImpersonatingAccount",
                 params: [ACC_DAI],
             });
     
-            await receiver.flashBorrow(DAI, Dai, 2, 0);
+            await receiver.flashBorrow([DAI], [Dai], 2, 0);
 
         });
     });  

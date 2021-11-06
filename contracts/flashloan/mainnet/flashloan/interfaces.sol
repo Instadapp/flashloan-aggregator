@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-interface AaveReceiverInterface {
+interface InstaFlashReceiverInterface {
     function executeOperation(
         address[] calldata assets,
         uint256[] calldata amounts,
@@ -10,16 +10,6 @@ interface AaveReceiverInterface {
         address initiator,
         bytes calldata _data
     ) external returns (bool);
-}
-
-interface MakerReceiverInterface{
-    function onFlashLoan(
-        address initiator,
-        address token,
-        uint256 amount,
-        uint256 fee,
-        bytes calldata data
-    ) external returns (bytes32);
 }
 
 interface IndexInterface {
@@ -49,6 +39,30 @@ interface TokenInterface {
     function balanceOf(address) external view returns (uint256);
 
     function decimals() external view returns (uint256);
+
+    function allowance(address, address) external view returns (uint256);
+}
+
+interface CTokenInterface {
+
+    function mint(uint) external returns (uint);
+
+    function balanceOfUnderlying(address) external returns (uint);
+
+    function redeem(uint) external returns (uint);
+
+    function redeemUnderlying(uint) external returns (uint);
+
+    function borrow(uint) external returns (uint);
+
+    function borrowBalanceCurrent(address) external returns (uint);
+
+    function repayBorrow(uint) external returns (uint);
+
+}
+
+interface Comptroller {
+    function enterMarkets(address[] calldata) external returns (uint[] memory);
 }
 
 interface IAaveLending {
@@ -76,7 +90,7 @@ interface IERC3156FlashLender {
     ) external view returns (uint256);
 
     function flashLoan(
-        MakerReceiverInterface receiver,
+        InstaFlashReceiverInterface receiver,
         address token,
         uint256 amount,
         bytes calldata data

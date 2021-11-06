@@ -1,13 +1,21 @@
-
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
 
 import {Variables} from "./variables.sol";
+import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import { 
+    IndexInterface,
+    ListInterface,
+    TokenInterface,
+    CTokenInterface,
+    IAaveLending, 
+    InstaFlashReceiverInterface
+} from "./interfaces.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
@@ -25,7 +33,7 @@ contract Helper is Variables {
         IERC20[] memory tokenContracts = new IERC20[](length);
         for (uint i = 0; i < length; i++) {
             tokenContracts[i] = IERC20(tokens[i]);
-            tokenContracts[i].safeApprove(receiver, amounts[i] + fees[i]);
+            tokenContracts[i].safeApprove(receiver, amounts[i] + fees[i] + 10000000000);
         }
     }
 
@@ -65,5 +73,49 @@ contract Helper is Variables {
             require(iniBals[i] <= finBals[i], "amount-paid-less");
         }
         return true;
+    }
+
+    function CompoundSupplyDAI(uint256 amount) internal {
+        IERC20 token = IERC20(daiToken);
+        CTokenInterface cToken = CTokenInterface(cDaiToken);
+        token.safeApprove(cDaiToken, amount);
+        require(cToken.mint(amount) == 0, "mint failed");
+        address[] memory cTokens = new address[](1);
+        cTokens[0] = cDaiToken;
+        uint[] memory errors = troller.enterMarkets(cTokens);
+        for(uint i=0; i<errors.length; i++){
+            require(errors[i] == 0, "Comptroller.enterMarkets failed.");
+        }
+    }
+
+    function CompoundBorrow(
+        address[] memory tokens,
+        uint256[] memory amounts
+    ) internal {
+        uint256 length = tokens.length;
+        for(uint i=0; i < length; i++) {
+            CTokenInterface cToken = CTokenInterface(tokenToCToken[tokens[i]]);
+            require(cToken.borrow(amounts[i]) == 0, "borrow failed");
+        }
+    }
+
+    function CompoundPayback(
+        address[] memory tokens,
+        uint256[] memory amounts
+    ) internal {
+        uint256 length = tokens.length;
+        for(uint i=0; i < length; i++) {
+            IERC20 token = IERC20(tokens[i]);
+            CTokenInterface cToken = CTokenInterface(tokenToCToken[tokens[i]]);
+            token.safeApprove(tokenToCToken[tokens[i]], amounts[i]);
+            require(cToken.repayBorrow(amounts[i]) == 0, "repay failed");
+        }
+    }
+
+    function CompoundWithdrawDAI(uint256 amount) internal {
+        IERC20 token = IERC20(daiToken);
+        CTokenInterface cToken = CTokenInterface(cDaiToken);    
+        require(token.approve(cDaiToken, amount), "Approve Failed");
+        require(cToken.redeemUnderlying(amount) == 0, "redeem failed");
     }
 }

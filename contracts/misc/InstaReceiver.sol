@@ -1,4 +1,3 @@
-
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
@@ -10,30 +9,28 @@ interface IFlashLoan {
     function flashLoan(address[] memory tokens_, uint[] memory amts_,uint256 route, bytes calldata data_) external;
 }
 
-contract MakerReceiver {
+contract InstaFlashReceiver {
     using SafeERC20 for IERC20;
 
     IFlashLoan internal immutable flashloan; // TODO: Contract/Protocol address to get flashloan
 
-    function flashBorrow(address token_, uint amt_, uint256 route, bytes calldata data_) public {
-        address[] memory tokens_ = new address[](1);
-        uint[] memory amts_ = new uint[](1);
-        tokens_[0] = token_;
+    function flashBorrow(address[] calldata tokens_, uint[] calldata amts_, uint256 route, bytes calldata data_) public {
         flashloan.flashLoan(tokens_, amts_, route, data_);
     }
 
     // Function which
-    function onFlashLoan(
+    function executeOperation(
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        uint256[] calldata premiums,
         address initiator,
-        address token,
-        uint256 amount,
-        uint256 fee,
-        bytes calldata data
-    ) external returns (bytes32) {
+        bytes calldata params
+    ) external returns (bool) {
         // Do something
-        IERC20(token).safeTransfer(address(flashloan), amount + fee);
-
-        return keccak256("ERC3156FlashBorrower.onFlashLoan");
+        for (uint i = 0; i < tokens.length; i++) {
+            console.log("amount + fee", (amounts[i] + premiums[i]));
+            IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
+        }
     }
 
     constructor(address flashloan_) {
