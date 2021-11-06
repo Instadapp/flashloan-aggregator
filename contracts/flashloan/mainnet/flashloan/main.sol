@@ -84,7 +84,7 @@ contract FlashResolver is Helper {
             SafeApprove(tokens, amounts, fees, makerLendingAddr);
             SafeTransfer(tokens, amounts, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, fees, sender_, data_);
-        } else {
+        } else if (route == 3) {
             address[] memory dai = new address[](1);
             uint256[] memory daiAmount = new uint256[](1);
             dai[0] = token;
@@ -98,6 +98,20 @@ contract FlashResolver is Helper {
             InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, fees, sender_, data_);
             CompoundPayback(tokens, amounts);
             CompoundWithdrawDAI(amount);
+        } else {
+            address[] memory dai = new address[](1);
+            uint256[] memory daiAmount = new uint256[](1);
+            dai[0] = token;
+            daiAmount[0] = amount;
+            uint256[] memory fees_ = new uint256[](1);
+            fees_[0] = fee;
+            SafeApprove(dai, daiAmount, fees_, makerLendingAddr);
+            AaveSupplyDAI(amount);
+            AaveBorrow(tokens, amounts);
+            SafeTransfer(tokens, amounts, sender_);
+            InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, fees, sender_, data_);
+            AavePayback(tokens, amounts);
+            AaveWithdrawDAI(amount);
         }
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
@@ -121,8 +135,13 @@ contract FlashResolver is Helper {
         makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), _token, _amount, data);
     }
 
-    function routeCompound(address[] memory _tokens, uint256[] memory _amounts, bytes memory data_) internal {
+    function routeMakerCompound(address[] memory _tokens, uint256[] memory _amounts, bytes memory data_) internal {
         bytes memory data = abi.encode(3, _tokens, _amounts, msg.sender, data_);
+        makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), daiToken, daiBorrowAmount, data);
+    }
+    
+    function routeMakerAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory data_) internal {
+        bytes memory data = abi.encode(4, _tokens, _amounts, msg.sender, data_);
         makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), daiToken, daiBorrowAmount, data);
     }
 
@@ -132,7 +151,7 @@ contract FlashResolver is Helper {
         uint256 route_,
         bytes calldata data_
     ) external {
-        require(route_ == 1 || route_ == 2 || route_ == 3, "route-does-not-exist");
+        require(route_ == 1 || route_ == 2 || route_ == 3 || route_ == 4, "route-does-not-exist");
         uint[] memory iniBals = CalculateBalances(address(this), tokens_);
 
         if (route_ == 1) {
@@ -140,7 +159,9 @@ contract FlashResolver is Helper {
         } else if (route_ == 2) {
             routeMaker(tokens_[0], amounts_[0], data_);	
         } else if (route_ == 3) {
-            routeCompound(tokens_, amounts_, data_);
+            routeMakerCompound(tokens_, amounts_, data_);
+        } else if (route_ == 4) {
+            routeMakerAave(tokens_, amounts_, data_);
         }
 
         uint[] memory finBals = CalculateBalances(address(this), tokens_);

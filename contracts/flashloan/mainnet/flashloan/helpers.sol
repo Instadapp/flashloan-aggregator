@@ -118,4 +118,39 @@ contract Helper is Variables {
         require(token.approve(cDaiToken, amount), "Approve Failed");
         require(cToken.redeemUnderlying(amount) == 0, "redeem failed");
     }
+
+    function AaveSupplyDAI(uint256 amount) internal {
+        IERC20 token = IERC20(daiToken);
+        token.safeApprove(aaveLendingAddr, amount);
+        aaveLending.deposit(daiToken, amount, address(this), 3228);
+        aaveLending.setUserUseReserveAsCollateral(daiToken, true);
+    }
+
+    function AaveBorrow(
+        address[] memory tokens,
+        uint256[] memory amounts
+    ) internal {
+        uint256 length = tokens.length;
+        for(uint i=0; i < length; i++) {
+            aaveLending.borrow(tokens[i], amounts[i], 2, 3228, address(this));
+        }
+    }
+
+    function AavePayback(
+        address[] memory tokens,
+        uint256[] memory amounts
+    ) internal {
+        uint256 length = tokens.length;
+        for(uint i=0; i < length; i++) {
+            IERC20 token = IERC20(tokens[i]);
+            token.safeApprove(aaveLendingAddr, amounts[i]);
+            aaveLending.repay(tokens[i], amounts[i], 2, address(this));
+        }
+    }
+
+    function AaveWithdrawDAI(uint256 amount) internal {
+        IERC20 token = IERC20(daiToken);   
+        require(token.approve(aaveLendingAddr, amount), "Approve Failed");
+        aaveLending.withdraw(daiToken, amount, address(this));
+    }
 }

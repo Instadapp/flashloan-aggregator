@@ -77,6 +77,12 @@ interface IAaveLending {
     ) external;
 
     function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint);
+
+    function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
+    function withdraw(address asset, uint256 amount, address to) external;
+    function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf) external;
+    function repay(address asset, uint256 amount, uint256 rateMode, address onBehalfOf) external;
+    function setUserUseReserveAsCollateral(address asset, bool useAsCollateral) external;
 }
 
 interface IERC3156FlashLender {
