@@ -82,7 +82,7 @@ contract FlashResolver is Helper {
         if (route == 2) {
             SafeTransfer(tokens, amounts, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, fees, sender_, data_);
-        } else if (route == 3 && route == 4) {
+        } else if (route == 3 || route == 4) {
             require(fee == 0, "flash-DAI-fee-not-0");
             if (route == 3) {
                 CompoundSupplyDAI(amount);
