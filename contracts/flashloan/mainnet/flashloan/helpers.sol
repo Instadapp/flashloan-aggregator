@@ -67,7 +67,7 @@ contract Helper is Variables {
     function Validate(
         uint256[] memory iniBals,
         uint256[] memory finBals
-    ) internal returns (bool) {
+    ) internal pure returns (bool) {
         uint256 _length = iniBals.length;
         for (uint i = 0; i < _length; i++) {
             require(iniBals[i] <= finBals[i], "amount-paid-less");
