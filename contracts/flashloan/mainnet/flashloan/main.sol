@@ -62,7 +62,7 @@ contract FlashResolver is Helper {
     
     function onFlashLoan(
         address initiator,
-        address token,
+        address,
         uint256 amount,
         uint256 fee,
         bytes calldata data
@@ -76,22 +76,13 @@ contract FlashResolver is Helper {
         );
         uint256 length = tokens.length;
         uint256[] memory fees = new uint256[](length);
-        fees[0] = fee;
-        for (uint i = 1; i < length; i++) {
+        for (uint i = 0; i < length; i++) {
             fees[i] = 0;
         }
-        if(route == 2) {
-            SafeApprove(tokens, amounts, fees, makerLendingAddr);
+        if (route == 2) {
             SafeTransfer(tokens, amounts, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, fees, sender_, data_);
         } else if (route == 3) {
-            address[] memory dai = new address[](1);
-            uint256[] memory daiAmount = new uint256[](1);
-            dai[0] = token;
-            daiAmount[0] = amount;
-            uint256[] memory fees_ = new uint256[](1);
-            fees_[0] = fee;
-            SafeApprove(dai, daiAmount, fees_, makerLendingAddr);
             CompoundSupplyDAI(amount);
             CompoundBorrow(tokens, amounts);
             SafeTransfer(tokens, amounts, sender_);
@@ -99,13 +90,6 @@ contract FlashResolver is Helper {
             CompoundPayback(tokens, amounts);
             CompoundWithdrawDAI(amount);
         } else {
-            address[] memory dai = new address[](1);
-            uint256[] memory daiAmount = new uint256[](1);
-            dai[0] = token;
-            daiAmount[0] = amount;
-            uint256[] memory fees_ = new uint256[](1);
-            fees_[0] = fee;
-            SafeApprove(dai, daiAmount, fees_, makerLendingAddr);
             AaveSupplyDAI(amount);
             AaveBorrow(tokens, amounts);
             SafeTransfer(tokens, amounts, sender_);
@@ -175,6 +159,10 @@ contract FlashResolver is Helper {
 }
 
 contract InstaFlashloanAggregator is FlashResolver {
+
+    constructor() {
+        TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);
+    }
 
     receive() external payable {}
 
