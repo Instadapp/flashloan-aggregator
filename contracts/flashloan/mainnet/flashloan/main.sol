@@ -52,7 +52,6 @@ contract FlashResolver is Helper {
             _data,
             (address, bytes)
         );
-        uint256 length = assets.length;
         uint256[] memory InstaFees = calculateFees(amounts, calculateFeeBPS(1));
         SafeApprove(assets, amounts, premiums, aaveLendingAddr);
         SafeTransfer(assets, amounts, sender_);

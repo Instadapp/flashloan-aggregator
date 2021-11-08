@@ -52,14 +52,15 @@ contract Helper is Variables {
     function CalculateBalances(
         address account,
         address[] memory tokens
-    ) internal returns (uint256[] memory) {
+    ) internal view returns (uint256[] memory) {
         uint256 _length = tokens.length;
         IERC20[] memory _tokenContracts = new IERC20[](_length);
         uint256[] memory balances = new uint256[](_length);
         for (uint i = 0; i < _length; i++) {
             _tokenContracts[i] = IERC20(tokens[i]);
-            balances[i] = _tokenContracts[i].balanceOf(address(this));
+            balances[i] = _tokenContracts[i].balanceOf(account);
         }
+        return balances;
     }
 
     function Validate(
@@ -152,8 +153,7 @@ contract Helper is Variables {
         aaveLending.withdraw(daiToken, amount, address(this));
     }
 
-    function calculateFeeBPS(uint256 route) internal returns(uint256 BPS){
-        uint256 BPS;
+    function calculateFeeBPS(uint256 route) internal view returns(uint256 BPS){
         if(route == 1) {
             BPS = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
         } else if(route == 2 || route == 3 || route == 4) {
@@ -167,7 +167,7 @@ contract Helper is Variables {
         }
     }
 
-    function calculateFees(uint256[] memory amounts, uint256 BPS) internal returns (uint256[] memory) {
+    function calculateFees(uint256[] memory amounts, uint256 BPS) internal pure returns (uint256[] memory) {
         uint256 length = amounts.length;
         uint256[] memory InstaFees = new uint256[](length);
         for (uint i = 0; i < length; i++) {
