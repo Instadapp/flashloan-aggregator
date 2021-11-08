@@ -156,8 +156,6 @@ contract Helper is Variables {
     function calculateFeeBPS(uint256 route) internal view returns(uint256 BPS){
         if(route == 1) {
             BPS = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
-        } else if(route == 2 || route == 3 || route == 4) {
-            BPS = (makerLending.toll()) / (10 ** 18);
         } else {
             require(false, "Invalid source");
         }

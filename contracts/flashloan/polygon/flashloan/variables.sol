@@ -34,7 +34,7 @@ contract Variables {
 
     // mapping(address => address) public tokenToCToken;
 
-    uint256 InstaFee = 5; // in BPS; 1 BPS = 0.01%
+    uint256 InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 
     constructor() {
         // tokenToCToken[daiToken] = cDaiToken; // DAI
