@@ -77,7 +77,7 @@ contract FlashResolver is Helper {
         uint256 length = tokens.length;
         uint256[] memory fees = new uint256[](length);
         for (uint i = 0; i < length; i++) {
-            fees[i] = 0;
+            fees[i] = amounts[i] * InstaFee / (10 ** 4);
         }
         if (route == 2) {
             SafeTransfer(tokens, amounts, sender_);
