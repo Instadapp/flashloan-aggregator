@@ -30,10 +30,9 @@ contract Helper is Variables {
         require(tokens.length == amounts.length, "Lengths of parameters not same");
         require(tokens.length == fees.length, "Lengths of parameters not same");
         uint256 length = tokens.length;
-        IERC20[] memory tokenContracts = new IERC20[](length);
         for (uint i = 0; i < length; i++) {
-            tokenContracts[i] = IERC20(tokens[i]);
-            tokenContracts[i].safeApprove(receiver, amounts[i] + fees[i]);
+            IERC20 token = IERC20(tokens[i]);
+            token.safeApprove(receiver, amounts[i] + fees[i]);
         }
     }
 
@@ -44,10 +43,9 @@ contract Helper is Variables {
     ) internal {
         require(tokens.length == amounts.length, "Lengths of parameters not same");
         uint256 length = tokens.length;
-        IERC20[] memory tokenContracts = new IERC20[](length);
         for (uint i = 0; i < length; i++) {
-            tokenContracts[i] = IERC20(tokens[i]);
-            tokenContracts[i].safeTransfer(receiver, amounts[i]);
+            IERC20 token = IERC20(tokens[i]);
+            token.safeTransfer(receiver, amounts[i]);
         }
     }
 
@@ -152,5 +150,29 @@ contract Helper is Variables {
         IERC20 token = IERC20(daiToken);   
         require(token.approve(aaveLendingAddr, amount), "Approve Failed");
         aaveLending.withdraw(daiToken, amount, address(this));
+    }
+
+    function calculateFeeBPS(uint256 route) internal returns(uint256 BPS){
+        uint256 BPS;
+        if(route == 1) {
+            BPS = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
+        } else if(route == 2 || route == 3 || route == 4) {
+            BPS = (makerLending.toll()) / (10 ** 18);
+        } else {
+            require(false, "Invalid source");
+        }
+        
+        if(BPS < InstaFeeBPS) {
+            BPS = InstaFeeBPS;
+        }
+    }
+
+    function calculateFees(uint256[] memory amounts, uint256 BPS) internal returns (uint256[] memory) {
+        uint256 length = amounts.length;
+        uint256[] memory InstaFees = new uint256[](length);
+        for (uint i = 0; i < length; i++) {
+            InstaFees[i] = (amounts[i] * BPS) / (10 ** 4);
+        }
+        return InstaFees;
     }
 }

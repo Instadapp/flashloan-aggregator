@@ -14,6 +14,7 @@ interface InstaFlashReceiverInterface {
 
 interface IndexInterface {
     function master() external view returns (address);
+
     function list() external view returns (address);
 }
 
@@ -44,25 +45,25 @@ interface TokenInterface {
 }
 
 interface CTokenInterface {
+    function mint(uint256) external returns (uint256);
 
-    function mint(uint) external returns (uint);
+    function balanceOfUnderlying(address) external returns (uint256);
 
-    function balanceOfUnderlying(address) external returns (uint);
+    function redeem(uint256) external returns (uint256);
 
-    function redeem(uint) external returns (uint);
+    function redeemUnderlying(uint256) external returns (uint256);
 
-    function redeemUnderlying(uint) external returns (uint);
+    function borrow(uint256) external returns (uint256);
 
-    function borrow(uint) external returns (uint);
+    function borrowBalanceCurrent(address) external returns (uint256);
 
-    function borrowBalanceCurrent(address) external returns (uint);
-
-    function repayBorrow(uint) external returns (uint);
-
+    function repayBorrow(uint256) external returns (uint256);
 }
 
 interface Comptroller {
-    function enterMarkets(address[] calldata) external returns (uint[] memory);
+    function enterMarkets(address[] calldata)
+        external
+        returns (uint256[] memory);
 }
 
 interface IAaveLending {
@@ -76,24 +77,47 @@ interface IAaveLending {
         uint16 referralCode
     ) external;
 
-    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint);
+    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint256);
 
-    function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
-    function withdraw(address asset, uint256 amount, address to) external;
-    function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf) external;
-    function repay(address asset, uint256 amount, uint256 rateMode, address onBehalfOf) external;
-    function setUserUseReserveAsCollateral(address asset, bool useAsCollateral) external;
+    function deposit(
+        address asset,
+        uint256 amount,
+        address onBehalfOf,
+        uint16 referralCode
+    ) external;
+
+    function withdraw(
+        address asset,
+        uint256 amount,
+        address to
+    ) external;
+
+    function borrow(
+        address asset,
+        uint256 amount,
+        uint256 interestRateMode,
+        uint16 referralCode,
+        address onBehalfOf
+    ) external;
+
+    function repay(
+        address asset,
+        uint256 amount,
+        uint256 rateMode,
+        address onBehalfOf
+    ) external;
+
+    function setUserUseReserveAsCollateral(address asset, bool useAsCollateral)
+        external;
 }
 
 interface IERC3156FlashLender {
-    function maxFlashLoan(
-        address token
-    ) external view returns (uint256);
+    function maxFlashLoan(address token) external view returns (uint256);
 
-    function flashFee(
-        address token,
-        uint256 amount
-    ) external view returns (uint256);
+    function flashFee(address token, uint256 amount)
+        external
+        view
+        returns (uint256);
 
     function flashLoan(
         InstaFlashReceiverInterface receiver,
@@ -101,4 +125,6 @@ interface IERC3156FlashLender {
         uint256 amount,
         bytes calldata data
     ) external returns (bool);
+
+    function toll() external view returns (uint256);
 }

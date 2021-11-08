@@ -48,15 +48,15 @@ contract FlashResolver is Helper {
     ) external returns (bool) {
         require(initiator == address(this), "not-same-sender");
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
-
         (address sender_, bytes memory data_) = abi.decode(
             _data,
             (address, bytes)
         );
+        uint256 length = assets.length;
+        uint256[] memory InstaFees = calculateFees(amounts, calculateFeeBPS(1));
         SafeApprove(assets, amounts, premiums, aaveLendingAddr);
         SafeTransfer(assets, amounts, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(assets, amounts, premiums, sender_, data_);
-
+        InstaFlashReceiverInterface(sender_).executeOperation(assets, amounts, InstaFees, sender_, data_);
         return true;
     }
     
@@ -74,14 +74,12 @@ contract FlashResolver is Helper {
             data,
             (uint, address[], uint256[], address, bytes)
         );
-        uint256 length = tokens.length;
-        uint256[] memory fees = new uint256[](length);
-        for (uint i = 0; i < length; i++) {
-            fees[i] = amounts[i] * InstaFee / (10 ** 4);
-        }
+
+        uint256[] memory InstaFees = calculateFees(amounts, calculateFeeBPS(route));
+
         if (route == 2) {
             SafeTransfer(tokens, amounts, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, fees, sender_, data_);
+            InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, InstaFees, sender_, data_);
         } else if (route == 3 || route == 4) {
             require(fee == 0, "flash-DAI-fee-not-0");
             if (route == 3) {
@@ -92,7 +90,7 @@ contract FlashResolver is Helper {
                 AaveBorrow(tokens, amounts);
             }
             SafeTransfer(tokens, amounts, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, fees, sender_, data_);
+            InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, InstaFees, sender_, data_);
             if (route == 3) {
                 CompoundPayback(tokens, amounts);
                 CompoundWithdrawDAI(amount);
