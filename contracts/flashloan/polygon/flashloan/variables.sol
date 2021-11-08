@@ -6,9 +6,7 @@ import {
     IndexInterface,
     ListInterface,
     TokenInterface,
-    IAaveLending,
-    IERC3156FlashLender, 
-    Comptroller
+    IAaveLending
 } from "./interfaces.sol";
 
 contract Variables {
@@ -21,7 +19,7 @@ contract Variables {
     
     // TokenInterface public wchainContract = TokenInterface(wchainToken);
 
-    address public constant aaveLendingAddr = 0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf;
+    address public constant aaveLendingAddr = 0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf;
     IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
 
     // address public constant makerLendingAddr = 0x1EB4CF3A948E7D72A198fe073cCb8C7a948cD853;

@@ -6,9 +6,7 @@ import {
     IndexInterface,
     ListInterface,
     TokenInterface,
-    IAaveLending,
-    IERC3156FlashLender, 
-    Comptroller
+    IAaveLending
 } from "./interfaces.sol";
 
 contract Variables {

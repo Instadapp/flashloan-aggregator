@@ -48,15 +48,14 @@ contract FlashResolver is Helper {
     ) external returns (bool) {
         require(initiator == address(this), "not-same-sender");
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
-
         (address sender_, bytes memory data_) = abi.decode(
             _data,
             (address, bytes)
         );
+        uint256[] memory InstaFees = calculateFees(amounts, calculateFeeBPS(1));
         SafeApprove(assets, amounts, premiums, aaveLendingAddr);
         SafeTransfer(assets, amounts, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(assets, amounts, premiums, sender_, data_);
-
+        InstaFlashReceiverInterface(sender_).executeOperation(assets, amounts, InstaFees, sender_, data_);
         return true;
     }
     
