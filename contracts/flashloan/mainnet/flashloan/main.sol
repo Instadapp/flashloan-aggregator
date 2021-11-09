@@ -17,7 +17,24 @@ import {
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
-contract FlashResolver is Helper {
+
+contract Setups is Helper {
+
+    function addTokenToCtoken(address[] memory ctokens_) external {
+        for (uint i = 0; i < ctokens_.length; i++) {
+            (bool isMarket_,,) = troller.markets(ctokens_[i]);
+            require(isMarket_, "unvalid-ctoken");
+            address token_ = CTokenInterface(ctokens_[i]).underlying();
+            require(tokenToCToken[token_] == address((0)), "already-unabled");
+            tokenToCToken[token_] = ctokens_[i];
+            // TODO: address type(uint).max of token to the ctoken address to save gas and remove extra approves from helpers
+        }
+        // TODO: enter market once here.
+    }
+
+}
+
+contract FlashResolver is Setups {
     using SafeERC20 for IERC20;
 
     event LogFlashLoan(
@@ -25,14 +42,6 @@ contract FlashResolver is Helper {
         address[] tokens,
         uint256[] amounts
     );
-
-    // function calFee(uint[] memory amts_) external view returns (uint[] memory finalAmts_, uint[] memory premiums_, uint fee_) {
-    //     fee_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
-    //     for (uint i = 0; i < amts_.length; i++) {
-    //         premiums_[i] = (amts_[i] * fee_) / 10000;
-    //         finalAmts_[i] = finalAmts_[i] + premiums_[i];
-    //     }
-    // }
 
     struct ExecuteOperationVariables {
         uint256 _length;

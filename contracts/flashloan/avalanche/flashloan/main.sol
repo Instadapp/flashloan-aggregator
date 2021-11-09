@@ -12,7 +12,6 @@ import {
     IndexInterface,
     ListInterface,
     TokenInterface,
-    CTokenInterface,
     IAaveLending, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";

@@ -58,12 +58,15 @@ interface CTokenInterface {
     function borrowBalanceCurrent(address) external returns (uint256);
 
     function repayBorrow(uint256) external returns (uint256);
+
+    function underlying() external view returns (address);
 }
 
 interface Comptroller {
     function enterMarkets(address[] calldata)
         external
         returns (uint256[] memory);
+    function markets(address) external view returns (bool, uint, bool);
 }
 
 interface IAaveLending {

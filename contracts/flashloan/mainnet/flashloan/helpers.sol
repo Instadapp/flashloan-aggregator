@@ -66,9 +66,11 @@ contract Helper is Variables {
     function Validate(
         uint256[] memory iniBals,
         uint256[] memory finBals
+        // TODO: add fee array as well
     ) internal pure returns (bool) {
         uint256 _length = iniBals.length;
         for (uint i = 0; i < _length; i++) {
+            // TODO: verify below as iniBal + fee <= finBal
             require(iniBals[i] <= finBals[i], "amount-paid-less");
         }
         return true;
@@ -154,15 +156,15 @@ contract Helper is Variables {
     }
 
     function calculateFeeBPS(uint256 route) internal view returns(uint256 BPS){
-        if(route == 1) {
+        if (route == 1) {
             BPS = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
-        } else if(route == 2 || route == 3 || route == 4) {
+        } else if (route == 2 || route == 3 || route == 4) {
             BPS = (makerLending.toll()) / (10 ** 14);
         } else {
             require(false, "Invalid source");
         }
         
-        if(BPS < InstaFeeBPS) {
+        if (BPS < InstaFeeBPS) {
             BPS = InstaFeeBPS;
         }
     }
