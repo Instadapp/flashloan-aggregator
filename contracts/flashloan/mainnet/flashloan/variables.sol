@@ -36,6 +36,6 @@ contract Variables {
 
     mapping(address => address) public tokenToCToken;
 
-    uint256 InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
+    uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 
 }

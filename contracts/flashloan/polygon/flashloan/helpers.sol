@@ -21,75 +21,75 @@ contract Helper is Variables {
 
     // Helpers
     function safeApprove(
-        address[] memory tokens,
-        uint256[] memory amounts,
-        uint256[] memory fees,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256[] memory _fees,
         address receiver
     ) internal {
-        require(tokens.length == amounts.length, "Lengths of parameters not same");
-        require(tokens.length == fees.length, "Lengths of parameters not same");
-        uint256 length = tokens.length;
+        require(_tokens.length == _amounts.length, "Lengths of parameters not same");
+        require(_tokens.length == _fees.length, "Lengths of parameters not same");
+        uint256 length = _tokens.length;
         for (uint i = 0; i < length; i++) {
-            IERC20 token = IERC20(tokens[i]);
-            token.safeApprove(receiver, amounts[i] + fees[i]);
+            IERC20 token = IERC20(_tokens[i]);
+            token.safeApprove(receiver, _amounts[i] + _fees[i]);
         }
     }
 
     function safeTransfer(
-        address[] memory tokens,
-        uint256[] memory amounts,
-        address receiver
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        address _receiver
     ) internal {
-        require(tokens.length == amounts.length, "Lengths of parameters not same");
-        uint256 length = tokens.length;
-        for (uint i = 0; i < length; i++) {
-            IERC20 token = IERC20(tokens[i]);
-            token.safeTransfer(receiver, amounts[i]);
+        require(_tokens.length == _amounts.length, "Lengths of parameters not same");
+        uint256 length_ = _tokens.length;
+        for (uint i = 0; i < length_; i++) {
+            IERC20 token = IERC20(_tokens[i]);
+            token.safeTransfer(_receiver, _amounts[i]);
         }
     }
 
     function calculateBalances(
-        address account,
-        address[] memory tokens
+        address[] memory _tokens,
+        address _account
     ) internal view returns (uint256[] memory) {
-        uint256 _length = tokens.length;
-        IERC20[] memory _tokenContracts = new IERC20[](_length);
-        uint256[] memory balances = new uint256[](_length);
+        uint256 _length = _tokens.length;
+        uint256[] memory balances_ = new uint256[](_length);
         for (uint i = 0; i < _length; i++) {
-            _tokenContracts[i] = IERC20(tokens[i]);
-            balances[i] = _tokenContracts[i].balanceOf(account);
+            IERC20 token = IERC20(_tokens[i]);
+            balances_[i] = token.balanceOf(_account);
         }
-        return balances;
+        return balances_;
     }
 
     function validate(
-        uint256[] memory iniBals,
-        uint256[] memory finBals,
-        uint256[] memory fees
+        uint256[] memory _iniBals,
+        uint256[] memory _finBals,
+        uint256[] memory _fees
     ) internal pure returns (bool) {
-        uint256 _length = iniBals.length;
-        for (uint i = 0; i < _length; i++) {
-            require(iniBals[i] + fees[i] <= finBals[i], "amount-paid-less");
+        uint256 length_ = _iniBals.length;
+        for (uint i = 0; i < length_; i++) {
+            require(_iniBals[i] + _fees[i] <= _finBals[i], "amount-paid-less");
         }
         return true;
     }
 
-    function calculateFeeBPS(uint256 route) internal view returns(uint256 BPS){
-        if(route == 1) {
-            BPS = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
+    function calculateFeeBPS(uint256 _route) internal view returns(uint256 BPS_){
+        if (_route == 1) {
+            BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
         } else {
             require(false, "Invalid source");
         }
-        if(BPS < InstaFeeBPS) {
-            BPS = InstaFeeBPS;
+        
+        if (BPS_ < InstaFeeBPS) {
+            BPS_ = InstaFeeBPS;
         }
     }
 
-    function calculateFees(uint256[] memory amounts, uint256 BPS) internal pure returns (uint256[] memory) {
-        uint256 length = amounts.length;
-        uint256[] memory InstaFees = new uint256[](length);
-        for (uint i = 0; i < length; i++) {
-            InstaFees[i] = (amounts[i] * BPS) / (10 ** 4);
+    function calculateFees(uint256[] memory _amounts, uint256 _BPS) internal pure returns (uint256[] memory) {
+        uint256 length_ = _amounts.length;
+        uint256[] memory InstaFees = new uint256[](length_);
+        for (uint i = 0; i < length_; i++) {
+            InstaFees[i] = (_amounts[i] * _BPS) / (10 ** 4);
         }
         return InstaFees;
     }

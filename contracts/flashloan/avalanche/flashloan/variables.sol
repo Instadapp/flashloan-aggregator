@@ -21,5 +21,5 @@ contract Variables {
     address public constant aaveLendingAddr = 0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
     IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
 
-    uint256 InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
+    uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 }
