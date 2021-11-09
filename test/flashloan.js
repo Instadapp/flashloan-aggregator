@@ -18,6 +18,8 @@ describe("FlashLoan", function () {
         resolver = await Resolver.deploy();
         await resolver.deployed();
 
+        await resolver.addTokenToCtoken(['0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643', '0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9', '0x39AA39c021dfbaE8faC545936693aC917d5E7563']); // DAI, USDT, USDC
+
         Receiver = await ethers.getContractFactory("InstaFlashReceiver");
         receiver = await Receiver.deploy(resolver.address);
         await receiver.deployed();

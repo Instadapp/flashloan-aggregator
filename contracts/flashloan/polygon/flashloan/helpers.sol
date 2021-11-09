@@ -12,7 +12,6 @@ import {
     IndexInterface,
     ListInterface,
     TokenInterface,
-    CTokenInterface,
     IAaveLending, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
@@ -21,7 +20,7 @@ contract Helper is Variables {
     using SafeERC20 for IERC20;
 
     // Helpers
-    function SafeApprove(
+    function safeApprove(
         address[] memory tokens,
         uint256[] memory amounts,
         uint256[] memory fees,
@@ -36,7 +35,7 @@ contract Helper is Variables {
         }
     }
 
-    function SafeTransfer(
+    function safeTransfer(
         address[] memory tokens,
         uint256[] memory amounts,
         address receiver
@@ -49,7 +48,7 @@ contract Helper is Variables {
         }
     }
 
-    function CalculateBalances(
+    function calculateBalances(
         address account,
         address[] memory tokens
     ) internal view returns (uint256[] memory) {
@@ -63,95 +62,17 @@ contract Helper is Variables {
         return balances;
     }
 
-    function Validate(
+    function validate(
         uint256[] memory iniBals,
-        uint256[] memory finBals
+        uint256[] memory finBals,
+        uint256[] memory fees
     ) internal pure returns (bool) {
         uint256 _length = iniBals.length;
         for (uint i = 0; i < _length; i++) {
-            require(iniBals[i] <= finBals[i], "amount-paid-less");
+            require(iniBals[i] + fees[i] <= finBals[i], "amount-paid-less");
         }
         return true;
     }
-
-    // function CompoundSupplyDAI(uint256 amount) internal {
-    //     IERC20 token = IERC20(daiToken);
-    //     CTokenInterface cToken = CTokenInterface(cDaiToken);
-    //     token.safeApprove(cDaiToken, amount);
-    //     require(cToken.mint(amount) == 0, "mint failed");
-    //     address[] memory cTokens = new address[](1);
-    //     cTokens[0] = cDaiToken;
-    //     uint[] memory errors = troller.enterMarkets(cTokens);
-    //     for(uint i=0; i<errors.length; i++){
-    //         require(errors[i] == 0, "Comptroller.enterMarkets failed.");
-    //     }
-    // }
-
-    // function CompoundBorrow(
-    //     address[] memory tokens,
-    //     uint256[] memory amounts
-    // ) internal {
-    //     uint256 length = tokens.length;
-    //     for(uint i=0; i < length; i++) {
-    //         CTokenInterface cToken = CTokenInterface(tokenToCToken[tokens[i]]);
-    //         require(cToken.borrow(amounts[i]) == 0, "borrow failed");
-    //     }
-    // }
-
-    // function CompoundPayback(
-    //     address[] memory tokens,
-    //     uint256[] memory amounts
-    // ) internal {
-    //     uint256 length = tokens.length;
-    //     for(uint i=0; i < length; i++) {
-    //         IERC20 token = IERC20(tokens[i]);
-    //         CTokenInterface cToken = CTokenInterface(tokenToCToken[tokens[i]]);
-    //         token.safeApprove(tokenToCToken[tokens[i]], amounts[i]);
-    //         require(cToken.repayBorrow(amounts[i]) == 0, "repay failed");
-    //     }
-    // }
-
-    // function CompoundWithdrawDAI(uint256 amount) internal {
-    //     IERC20 token = IERC20(daiToken);
-    //     CTokenInterface cToken = CTokenInterface(cDaiToken);    
-    //     require(token.approve(cDaiToken, amount), "Approve Failed");
-    //     require(cToken.redeemUnderlying(amount) == 0, "redeem failed");
-    // }
-
-    // function AaveSupplyDAI(uint256 amount) internal {
-    //     IERC20 token = IERC20(daiToken);
-    //     token.safeApprove(aaveLendingAddr, amount);
-    //     aaveLending.deposit(daiToken, amount, address(this), 3228);
-    //     aaveLending.setUserUseReserveAsCollateral(daiToken, true);
-    // }
-
-    // function AaveBorrow(
-    //     address[] memory tokens,
-    //     uint256[] memory amounts
-    // ) internal {
-    //     uint256 length = tokens.length;
-    //     for(uint i=0; i < length; i++) {
-    //         aaveLending.borrow(tokens[i], amounts[i], 2, 3228, address(this));
-    //     }
-    // }
-
-    // function AavePayback(
-    //     address[] memory tokens,
-    //     uint256[] memory amounts
-    // ) internal {
-    //     uint256 length = tokens.length;
-    //     for(uint i=0; i < length; i++) {
-    //         IERC20 token = IERC20(tokens[i]);
-    //         token.safeApprove(aaveLendingAddr, amounts[i]);
-    //         aaveLending.repay(tokens[i], amounts[i], 2, address(this));
-    //     }
-    // }
-
-    // function AaveWithdrawDAI(uint256 amount) internal {
-    //     IERC20 token = IERC20(daiToken);   
-    //     require(token.approve(aaveLendingAddr, amount), "Approve Failed");
-    //     aaveLending.withdraw(daiToken, amount, address(this));
-    // }
 
     function calculateFeeBPS(uint256 route) internal view returns(uint256 BPS){
         if(route == 1) {
@@ -159,7 +80,6 @@ contract Helper is Variables {
         } else {
             require(false, "Invalid source");
         }
-        
         if(BPS < InstaFeeBPS) {
             BPS = InstaFeeBPS;
         }

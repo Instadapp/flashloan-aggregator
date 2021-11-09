@@ -27,11 +27,8 @@ contract Setups is Helper {
             address token_ = CTokenInterface(ctokens_[i]).underlying();
             require(tokenToCToken[token_] == address((0)), "already-unabled");
             tokenToCToken[token_] = ctokens_[i];
-            // TODO: address type(uint).max of token to the ctoken address to save gas and remove extra approves from helpers
         }
-        // TODO: enter market once here.
     }
-
 }
 
 contract FlashResolver is Setups {
@@ -57,14 +54,21 @@ contract FlashResolver is Setups {
     ) external returns (bool) {
         require(initiator == address(this), "not-same-sender");
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
+
+        uint[] memory iniBals = calculateBalances(assets, address(this));
+
         (address sender_, bytes memory data_) = abi.decode(
             _data,
             (address, bytes)
         );
         uint256[] memory InstaFees = calculateFees(amounts, calculateFeeBPS(1));
-        SafeApprove(assets, amounts, premiums, aaveLendingAddr);
-        SafeTransfer(assets, amounts, sender_);
+        safeApprove(assets, amounts, premiums, aaveLendingAddr);
+        safeTransfer(assets, amounts, sender_);
         InstaFlashReceiverInterface(sender_).executeOperation(assets, amounts, InstaFees, sender_, data_);
+
+        uint[] memory finBals = calculateBalances(assets, address(this));
+        require(validate(iniBals, finBals, InstaFees) == true, "amount-paid-less");
+
         return true;
     }
     
@@ -78,6 +82,10 @@ contract FlashResolver is Setups {
         require(initiator == address(this), "not-same-sender");
         require(msg.sender == makerLendingAddr, "not-maker-sender");
 
+        address[] memory token = new address[](1);
+        token[0] = daiToken;
+        uint[] memory iniBals = calculateBalances(token, address(this));
+
         (uint route, address[] memory tokens, uint256[] memory amounts, address sender_, bytes memory data_) = abi.decode(
             data,
             (uint, address[], uint256[], address, bytes)
@@ -86,29 +94,33 @@ contract FlashResolver is Setups {
         uint256[] memory InstaFees = calculateFees(amounts, calculateFeeBPS(route));
 
         if (route == 2) {
-            SafeTransfer(tokens, amounts, sender_);
+            safeTransfer(tokens, amounts, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, InstaFees, sender_, data_);
         } else if (route == 3 || route == 4) {
             require(fee == 0, "flash-DAI-fee-not-0");
             if (route == 3) {
-                CompoundSupplyDAI(amount);
-                CompoundBorrow(tokens, amounts);
+                compoundSupplyDAI(amount);
+                compoundBorrow(tokens, amounts);
             } else {
-                AaveSupplyDAI(amount);
-                AaveBorrow(tokens, amounts);
+                aaveSupplyDAI(amount);
+                aaveBorrow(tokens, amounts);
             }
-            SafeTransfer(tokens, amounts, sender_);
+            safeTransfer(tokens, amounts, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens, amounts, InstaFees, sender_, data_);
             if (route == 3) {
-                CompoundPayback(tokens, amounts);
-                CompoundWithdrawDAI(amount);
+                compoundPayback(tokens, amounts);
+                compoundWithdrawDAI(amount);
             } else {
-                AavePayback(tokens, amounts);
-                AaveWithdrawDAI(amount);
+                aavePayback(tokens, amounts);
+                aaveWithdrawDAI(amount);
             }
         } else {
             require(false, "wrong-route");
         }
+
+        uint[] memory finBals = calculateBalances(token, address(this));
+        require(validate(iniBals, finBals, InstaFees) == true, "amount-paid-less");
+
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
 
@@ -148,7 +160,6 @@ contract FlashResolver is Setups {
         bytes calldata data_
     ) external {
         require(route_ == 1 || route_ == 2 || route_ == 3 || route_ == 4, "route-does-not-exist");
-        uint[] memory iniBals = CalculateBalances(address(this), tokens_);
 
         if (route_ == 1) {
             routeAave(tokens_, amounts_, data_);	
@@ -160,8 +171,6 @@ contract FlashResolver is Setups {
             routeMakerAave(tokens_, amounts_, data_);
         }
 
-        uint[] memory finBals = CalculateBalances(address(this), tokens_);
-        require(Validate(iniBals, finBals) == true, "amount-paid-less");
         emit LogFlashLoan(
             msg.sender,
             tokens_,

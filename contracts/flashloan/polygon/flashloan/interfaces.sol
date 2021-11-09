@@ -44,28 +44,6 @@ interface TokenInterface {
     function allowance(address, address) external view returns (uint256);
 }
 
-interface CTokenInterface {
-    function mint(uint256) external returns (uint256);
-
-    function balanceOfUnderlying(address) external returns (uint256);
-
-    function redeem(uint256) external returns (uint256);
-
-    function redeemUnderlying(uint256) external returns (uint256);
-
-    function borrow(uint256) external returns (uint256);
-
-    function borrowBalanceCurrent(address) external returns (uint256);
-
-    function repayBorrow(uint256) external returns (uint256);
-}
-
-interface Comptroller {
-    function enterMarkets(address[] calldata)
-        external
-        returns (uint256[] memory);
-}
-
 interface IAaveLending {
     function flashLoan(
         address receiverAddress,
@@ -109,22 +87,4 @@ interface IAaveLending {
 
     function setUserUseReserveAsCollateral(address asset, bool useAsCollateral)
         external;
-}
-
-interface IERC3156FlashLender {
-    function maxFlashLoan(address token) external view returns (uint256);
-
-    function flashFee(address token, uint256 amount)
-        external
-        view
-        returns (uint256);
-
-    function flashLoan(
-        InstaFlashReceiverInterface receiver,
-        address token,
-        uint256 amount,
-        bytes calldata data
-    ) external returns (bool);
-
-    function toll() external view returns (uint256);
 }

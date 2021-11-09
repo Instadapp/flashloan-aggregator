@@ -21,7 +21,7 @@ contract Helper is Variables {
     using SafeERC20 for IERC20;
 
     // Helpers
-    function SafeApprove(
+    function safeApprove(
         address[] memory tokens,
         uint256[] memory amounts,
         uint256[] memory fees,
@@ -36,7 +36,7 @@ contract Helper is Variables {
         }
     }
 
-    function SafeTransfer(
+    function safeTransfer(
         address[] memory tokens,
         uint256[] memory amounts,
         address receiver
@@ -49,34 +49,32 @@ contract Helper is Variables {
         }
     }
 
-    function CalculateBalances(
-        address account,
-        address[] memory tokens
+    function calculateBalances(
+        address[] memory tokens,
+        address account
     ) internal view returns (uint256[] memory) {
         uint256 _length = tokens.length;
-        IERC20[] memory _tokenContracts = new IERC20[](_length);
         uint256[] memory balances = new uint256[](_length);
         for (uint i = 0; i < _length; i++) {
-            _tokenContracts[i] = IERC20(tokens[i]);
-            balances[i] = _tokenContracts[i].balanceOf(account);
+            IERC20 token = IERC20(tokens[i]);
+            balances[i] = token.balanceOf(account);
         }
         return balances;
     }
 
-    function Validate(
+    function validate(
         uint256[] memory iniBals,
-        uint256[] memory finBals
-        // TODO: add fee array as well
+        uint256[] memory finBals,
+        uint256[] memory fees
     ) internal pure returns (bool) {
         uint256 _length = iniBals.length;
         for (uint i = 0; i < _length; i++) {
-            // TODO: verify below as iniBal + fee <= finBal
-            require(iniBals[i] <= finBals[i], "amount-paid-less");
+            require(iniBals[i] + fees[i] <= finBals[i], "amount-paid-less");
         }
         return true;
     }
 
-    function CompoundSupplyDAI(uint256 amount) internal {
+    function compoundSupplyDAI(uint256 amount) internal {
         IERC20 token = IERC20(daiToken);
         CTokenInterface cToken = CTokenInterface(cDaiToken);
         token.safeApprove(cDaiToken, amount);
@@ -89,7 +87,7 @@ contract Helper is Variables {
         }
     }
 
-    function CompoundBorrow(
+    function compoundBorrow(
         address[] memory tokens,
         uint256[] memory amounts
     ) internal {
@@ -100,7 +98,7 @@ contract Helper is Variables {
         }
     }
 
-    function CompoundPayback(
+    function compoundPayback(
         address[] memory tokens,
         uint256[] memory amounts
     ) internal {
@@ -113,21 +111,21 @@ contract Helper is Variables {
         }
     }
 
-    function CompoundWithdrawDAI(uint256 amount) internal {
+    function compoundWithdrawDAI(uint256 amount) internal {
         IERC20 token = IERC20(daiToken);
         CTokenInterface cToken = CTokenInterface(cDaiToken);    
         require(token.approve(cDaiToken, amount), "Approve Failed");
         require(cToken.redeemUnderlying(amount) == 0, "redeem failed");
     }
 
-    function AaveSupplyDAI(uint256 amount) internal {
+    function aaveSupplyDAI(uint256 amount) internal {
         IERC20 token = IERC20(daiToken);
         token.safeApprove(aaveLendingAddr, amount);
         aaveLending.deposit(daiToken, amount, address(this), 3228);
         aaveLending.setUserUseReserveAsCollateral(daiToken, true);
     }
 
-    function AaveBorrow(
+    function aaveBorrow(
         address[] memory tokens,
         uint256[] memory amounts
     ) internal {
@@ -137,7 +135,7 @@ contract Helper is Variables {
         }
     }
 
-    function AavePayback(
+    function aavePayback(
         address[] memory tokens,
         uint256[] memory amounts
     ) internal {
@@ -149,7 +147,7 @@ contract Helper is Variables {
         }
     }
 
-    function AaveWithdrawDAI(uint256 amount) internal {
+    function aaveWithdrawDAI(uint256 amount) internal {
         IERC20 token = IERC20(daiToken);   
         require(token.approve(aaveLendingAddr, amount), "Approve Failed");
         aaveLending.withdraw(daiToken, amount, address(this));
