@@ -75,9 +75,8 @@ contract Helper is Variables {
     }
 
     function compoundSupplyDAI(uint256 amount) internal {
-        IERC20 token = IERC20(daiToken);
         CTokenInterface cToken = CTokenInterface(cDaiToken);
-        token.safeApprove(cDaiToken, amount);
+        // Approved already in addTokenToctoken function
         require(cToken.mint(amount) == 0, "mint failed");
         address[] memory cTokens = new address[](1);
         cTokens[0] = cDaiToken;
@@ -104,9 +103,8 @@ contract Helper is Variables {
     ) internal {
         uint256 length = tokens.length;
         for(uint i=0; i < length; i++) {
-            IERC20 token = IERC20(tokens[i]);
             CTokenInterface cToken = CTokenInterface(tokenToCToken[tokens[i]]);
-            token.safeApprove(tokenToCToken[tokens[i]], amounts[i]);
+            // Approved already in addTokenToctoken function
             require(cToken.repayBorrow(amounts[i]) == 0, "repay failed");
         }
     }

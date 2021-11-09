@@ -19,6 +19,7 @@ import {
 
 
 contract Setups is Helper {
+    using SafeERC20 for IERC20;
 
     function addTokenToCtoken(address[] memory ctokens_) external {
         for (uint i = 0; i < ctokens_.length; i++) {
@@ -27,6 +28,7 @@ contract Setups is Helper {
             address token_ = CTokenInterface(ctokens_[i]).underlying();
             require(tokenToCToken[token_] == address((0)), "already-unabled");
             tokenToCToken[token_] = ctokens_[i];
+            IERC20(token_).safeApprove(ctokens_[i], type(uint256).max);
         }
     }
 }
@@ -180,9 +182,10 @@ contract FlashResolver is Setups {
 }
 
 contract InstaFlashloanAggregator is FlashResolver {
+    using SafeERC20 for IERC20;
 
     constructor() {
-        TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);
+        IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
     }
 
     receive() external payable {}
