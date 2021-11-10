@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 const { ethers } = hre;
 
-describe("FlashLoan AAVE", function () {
+describe("FlashLoan", function () {
     let Resolver, resolver, Receiver, receiver;
     const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
     const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";
@@ -18,66 +18,53 @@ describe("FlashLoan AAVE", function () {
         resolver = await Resolver.deploy();
         await resolver.deployed();
 
-        Receiver = await ethers.getContractFactory("FlashReceiver");
+        await resolver.addTokenToCtoken(['0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643', '0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9', '0x39AA39c021dfbaE8faC545936693aC917d5E7563']); // DAI, USDT, USDC
+
+        Receiver = await ethers.getContractFactory("InstaFlashReceiver");
         receiver = await Receiver.deploy(resolver.address);
         await receiver.deployed();
+
+        const tokenArtifact = await artifacts.readArtifact("IERC20");
+        const token_dai = new ethers.Contract(DAI, tokenArtifact.abi, ethers.provider);
+    
+        await network.provider.send("hardhat_setBalance", [
+            ACC_DAI,
+            ethers.utils.parseEther('10.0').toHexString(),
+        ]);
+    
+        await hre.network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ACC_DAI],
+        });
+    
+        const signer_dai = await ethers.getSigner(ACC_DAI);
+        await token_dai.connect(signer_dai).transfer(receiver.address, dai);
+    
+        await hre.network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [ACC_DAI],
+        });
     });
 
     describe("Single token", async function() {
         it("Should be able to take flashLoan of a single token from AAVE", async function () {
-
-            const tokenArtifact = await artifacts.readArtifact("IERC20");
-            const token = new ethers.Contract(DAI, tokenArtifact.abi, ethers.provider);
-    
-            await network.provider.send("hardhat_setBalance", [
-                ACC_DAI,
-                ethers.utils.parseEther('10.0').toHexString(),
-            ]);
-    
-            await hre.network.provider.request({
-                method: "hardhat_impersonateAccount",
-                params: [ACC_DAI],
-            });
-    
-            const signer = await ethers.getSigner(ACC_DAI);
-            await token.connect(signer).transfer(receiver.address, dai);
-    
-            await hre.network.provider.request({
-                method: "hardhat_stopImpersonatingAccount",
-                params: [ACC_DAI],
-            });
-    
             await receiver.flashBorrow([DAI], [Dai], 1, 0);
-
+        });
+        it("Should be able to take flashLoan of a single token from MakerDAO", async function () {
+            await receiver.flashBorrow([DAI], [Dai], 2, 0);
+        });
+        it("Should be able to take flashLoan of a single token from Compound(MakerDAO)", async function () {
+            await receiver.flashBorrow([DAI], [Dai], 3, 0);
+        });
+        it("Should be able to take flashLoan of a single token from AAVE(MakerDAO)", async function () {
+            await receiver.flashBorrow([DAI], [Dai], 4, 0);
         });
     });
 
     describe("Multi token", async function() {
-        it("Should be able to take flashLoan of multiple tokens together from AAVE", async function () {
-
+        beforeEach(async function() {
             const tokenArtifact = await artifacts.readArtifact("IERC20");
-
-            const token_dai = new ethers.Contract(DAI, tokenArtifact.abi, ethers.provider);
-    
-            await network.provider.send("hardhat_setBalance", [
-                ACC_DAI,
-                ethers.utils.parseEther('10.0').toHexString(),
-            ]);
-    
-            await hre.network.provider.request({
-                method: "hardhat_impersonateAccount",
-                params: [ACC_DAI],
-            });
-    
-            const signer_dai = await ethers.getSigner(ACC_DAI);
-            await token_dai.connect(signer_dai).transfer(receiver.address, dai);
-    
-            await hre.network.provider.request({
-                method: "hardhat_stopImpersonatingAccount",
-                params: [ACC_DAI],
-            });
-
-            const token_usdt = new ethers.Contract(USDT, tokenArtifact.abi, ethers.provider);
+            const token = new ethers.Contract(USDT, tokenArtifact.abi, ethers.provider);
 
             await network.provider.send("hardhat_setBalance", [
                 ACC_USDT,
@@ -90,18 +77,24 @@ describe("FlashLoan AAVE", function () {
             });
 
             const signer_usdt = await ethers.getSigner(ACC_USDT);
-            await token_usdt.connect(signer_usdt).transfer(receiver.address, usdt);
+            await token.connect(signer_usdt).transfer(receiver.address, usdt);
 
             await hre.network.provider.request({
                 method: "hardhat_stopImpersonatingAccount",
                 params: [ACC_USDT],
             });
-
-            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, 0);
-
         });
-    });
-    
-
-    
+        it("Should be able to take flashLoan of multiple tokens together from AAVE", async function () {
+            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, 0);
+        });
+        it("Should be able to take flashLoan of multiple tokens together from MakerDAO", async function () {
+            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 2, 0);
+        });
+        it("Should be able to take flashLoan of multiple tokens together from Compound(MakerDAO)", async function () {
+            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 3, 0);
+        });
+        it("Should be able to take flashLoan of multiple tokens together from AAVE(MakerDAO)", async function () {
+            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 4, 0);
+        });
+    });   
 });
