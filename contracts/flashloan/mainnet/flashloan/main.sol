@@ -26,7 +26,7 @@ contract Setups is Helper {
             (bool isMarket_,,) = troller.markets(ctokens_[i]);
             require(isMarket_, "unvalid-ctoken");
             address token_ = CTokenInterface(ctokens_[i]).underlying();
-            require(tokenToCToken[token_] == address((0)), "already-unabled");
+            require(tokenToCToken[token_] == address((0)), "already-added");
             tokenToCToken[token_] = ctokens_[i];
             IERC20(token_).safeApprove(ctokens_[i], type(uint256).max);
         }
@@ -84,14 +84,12 @@ contract FlashResolver is Setups {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == makerLendingAddr, "not-maker-sender");
 
-        address[] memory token_ = new address[](1);
-        token_[0] = daiToken;
-        uint[] memory iniBals_ = calculateBalances(token_, address(this));
-
         (uint route_, address[] memory tokens_, uint256[] memory amounts_, address sender_, bytes memory data_) = abi.decode(
             _data,
             (uint, address[], uint256[], address, bytes)
         );
+
+        uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
 
         uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
@@ -120,8 +118,8 @@ contract FlashResolver is Setups {
             require(false, "wrong-route");
         }
 
-        uint[] memory finBals_ = calculateBalances(token_, address(this));
-        require(validate(iniBals_, finBals_, InstaFees_) == true, "amount-paid-less");
+        uint[] memory finBals_ = calculateBalances(tokens_, address(this));
+        require(validate(iniBals_, finBals_, InstaFees_), "amount-paid-less");
 
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
