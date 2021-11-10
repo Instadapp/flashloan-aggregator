@@ -2,9 +2,11 @@
   "name": "flashloan-aggregator",
   "version": "1.0.0",
   "description": "Flashloan aggregator on all major chains.",
-  "main": "index.js",
+  "main": "dist/index",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "hardhat compile",
+    "test": "hardhat run scripts/global-test.ts",
+    "test:runner": "hardhat run scripts/run-tests.ts"
   },
   "repository": {
     "type": "git",
@@ -24,13 +26,16 @@
     "@openzeppelin/contracts": "^4.3.2",
     "@openzeppelin/contracts-upgradeable": "^4.3.2",
     "@openzeppelin/upgrades": "^2.8.0",
+    "@typechain/ethers-v5": "^8.0.2",
+    "@typechain/hardhat": "^3.0.0",
     "chai": "^4.3.4",
-    "dotenv": "^7.0.0",
+    "dotenv": "^10.0.0",
     "ethereum-waffle": "^3.4.0",
     "ethereumjs-abi": "^0.6.8",
     "ethers": "^5.4.7",
     "hardhat-deploy": "^0.9.1",
     "hardhat-deploy-ethers": "^0.3.0-beta.10",
+    "inquirer": "^8.2.0",
     "replace-in-file": "^6.2.0",
     "solc": "^0.6.12"
   },
@@ -40,8 +45,12 @@
     "@openzeppelin/test-helpers": "^0.5.13",
     "@tenderly/hardhat-tenderly": "^1.0.12",
     "@types/dotenv": "^8.2.0",
+    "@types/fs-extra": "^9.0.13",
+    "@types/inquirer": "^8.1.3",
+    "@types/mocha": "^9.0.0",
     "hardhat": "^2.6.7",
     "hardhat-gas-reporter": "^1.0.4",
-    "solidity-coverage": "^0.7.17"
+    "solidity-coverage": "^0.7.17",
+    "ts-node": "^10.4.0"
   }
 }

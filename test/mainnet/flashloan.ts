@@ -1,8 +1,13 @@
 const hre = require("hardhat");
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
+import { InstaFlashloanAggregator, InstaFlashloanAggregator__factory, IERC20__factory, IERC20, InstaFlashReceiver__factory, InstaFlashReceiver} from "../../typechain";
+
 describe("FlashLoan", function () {
-    let Resolver, resolver, Receiver, receiver;
+    let Resolver: InstaFlashloanAggregator, Receiver, receiver: InstaFlashReceiver;
+    let signer: SignerWithAddress;
+
     const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
     const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";
     const ACC_DAI = "0x9a7a9d980ed6239b89232c012e21f4c210f4bef1";
@@ -14,20 +19,20 @@ describe("FlashLoan", function () {
     const Usdt = ethers.utils.parseUnits("5000", 6);
 
     beforeEach(async function() {
-        Resolver = await ethers.getContractFactory("InstaFlashloanAggregator");
-        resolver = await Resolver.deploy();
-        await resolver.deployed();
+        [signer] = await ethers.getSigners();
+        const deployer = new InstaFlashloanAggregator__factory(signer);
+        Resolver = await deployer.deploy();
+        await Resolver.deployed();
 
-        await resolver.addTokenToCtoken(['0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643', '0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9', '0x39AA39c021dfbaE8faC545936693aC917d5E7563']); // DAI, USDT, USDC
+        await Resolver.addTokenToCtoken(['0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643', '0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9', '0x39AA39c021dfbaE8faC545936693aC917d5E7563']); // DAI, USDT, USDC
 
-        Receiver = await ethers.getContractFactory("InstaFlashReceiver");
-        receiver = await Receiver.deploy(resolver.address);
+        Receiver = new InstaFlashReceiver__factory(signer);
+        receiver = await Receiver.deploy(Resolver.address);
         await receiver.deployed();
 
-        const tokenArtifact = await artifacts.readArtifact("IERC20");
-        const token_dai = new ethers.Contract(DAI, tokenArtifact.abi, ethers.provider);
+        const token_dai = new ethers.Contract(DAI, IERC20__factory.abi, ethers.provider);
     
-        await network.provider.send("hardhat_setBalance", [
+        await hre.network.provider.send("hardhat_setBalance", [
             ACC_DAI,
             ethers.utils.parseEther('10.0').toHexString(),
         ]);
@@ -48,25 +53,24 @@ describe("FlashLoan", function () {
 
     describe("Single token", async function() {
         it("Should be able to take flashLoan of a single token from AAVE", async function () {
-            await receiver.flashBorrow([DAI], [Dai], 1, 0);
+            await receiver.flashBorrow([DAI], [Dai], 1, "0x0000000000000000000000000000000000000000000000000000000000000000");
         });
         it("Should be able to take flashLoan of a single token from MakerDAO", async function () {
-            await receiver.flashBorrow([DAI], [Dai], 2, 0);
+            await receiver.flashBorrow([DAI], [Dai], 2, "0x0000000000000000000000000000000000000000000000000000000000000000");
         });
         it("Should be able to take flashLoan of a single token from Compound(MakerDAO)", async function () {
-            await receiver.flashBorrow([DAI], [Dai], 3, 0);
+            await receiver.flashBorrow([DAI], [Dai], 3, "0x0000000000000000000000000000000000000000000000000000000000000000");
         });
         it("Should be able to take flashLoan of a single token from AAVE(MakerDAO)", async function () {
-            await receiver.flashBorrow([DAI], [Dai], 4, 0);
+            await receiver.flashBorrow([DAI], [Dai], 4, "0x0000000000000000000000000000000000000000000000000000000000000000");
         });
     });
 
     describe("Multi token", async function() {
         beforeEach(async function() {
-            const tokenArtifact = await artifacts.readArtifact("IERC20");
-            const token = new ethers.Contract(USDT, tokenArtifact.abi, ethers.provider);
+            const token = new ethers.Contract(USDT, IERC20__factory.abi, ethers.provider);
 
-            await network.provider.send("hardhat_setBalance", [
+            await hre.network.provider.send("hardhat_setBalance", [
                 ACC_USDT,
                 ethers.utils.parseEther('10.0').toHexString(),
             ]);
@@ -85,16 +89,16 @@ describe("FlashLoan", function () {
             });
         });
         it("Should be able to take flashLoan of multiple tokens together from AAVE", async function () {
-            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, 0);
+            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, "0x0000000000000000000000000000000000000000000000000000000000000000");
         });
         it("Should be able to take flashLoan of multiple tokens together from MakerDAO", async function () {
-            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 2, 0);
+            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 2, "0x0000000000000000000000000000000000000000000000000000000000000000");
         });
         it("Should be able to take flashLoan of multiple tokens together from Compound(MakerDAO)", async function () {
-            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 3, 0);
+            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 3, "0x0000000000000000000000000000000000000000000000000000000000000000");
         });
         it("Should be able to take flashLoan of multiple tokens together from AAVE(MakerDAO)", async function () {
-            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 4, 0);
+            await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 4, "0x0000000000000000000000000000000000000000000000000000000000000000");
         });
     });   
 });
