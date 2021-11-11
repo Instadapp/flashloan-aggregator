@@ -57,6 +57,37 @@ contract FlashResolver is Helper {
         return true;
     }
 
+    function receiveFlashLoan(
+        IERC20[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256[] memory _fees,
+        bytes memory _data
+    ) external {
+        require(msg.sender == balancerLendingAddr, "not-aave-sender");
+
+        uint256 length_ = _tokens.length;
+        address[] memory tokens_ = new address[](length_);
+        for(uint256 i = 0; i < length_ ; i++) {
+            tokens_[i] = address(_tokens[i]);
+        }
+
+        uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
+
+        (address sender_, bytes memory data_) = abi.decode(
+            _data,
+            (address, bytes)
+        );
+        uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(2));
+
+        safeTransfer(tokens_, _amounts, sender_);
+        InstaFlashReceiverInterface(sender_).executeOperation(tokens_, _amounts, InstaFees_, sender_, data_);
+        
+        uint[] memory finBals = calculateBalances(tokens_, address(this));
+        require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+
+        safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
+    }
+
     function routeAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(msg.sender, _data);
         uint length_ = _tokens.length;
@@ -67,16 +98,29 @@ contract FlashResolver is Helper {
         aaveLending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
     }
 
+    function routeBalancer(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
+        bytes memory data_ = abi.encode(msg.sender, _data);
+        uint256 length_ = _tokens.length;
+        IERC20[] memory tokens_ = new IERC20[](length_);
+        for(uint256 i = 0 ; i < length_ ; i++) {
+            tokens_[i] = IERC20(_tokens[i]);
+        }
+ 
+        balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
+    }
+
     function flashLoan(	
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data
     ) external {
-        require(_route == 1, "route-does-not-exist");
+        require(_route == 1 || _route == 2, "route-does-not-exist");
 
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);	
+        } else if (_route == 2) {
+            routeBalancer(_tokens, _amounts, _data);
         }
 
         emit LogFlashLoan(

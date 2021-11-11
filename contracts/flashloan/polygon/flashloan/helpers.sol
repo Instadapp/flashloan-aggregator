@@ -24,14 +24,14 @@ contract Helper is Variables {
         address[] memory _tokens,
         uint256[] memory _amounts,
         uint256[] memory _fees,
-        address receiver
+        address _receiver
     ) internal {
         require(_tokens.length == _amounts.length, "Lengths of parameters not same");
         require(_tokens.length == _fees.length, "Lengths of parameters not same");
-        uint256 length = _tokens.length;
-        for (uint i = 0; i < length; i++) {
+        uint256 length_ = _tokens.length;
+        for (uint i = 0; i < length_; i++) {
             IERC20 token = IERC20(_tokens[i]);
-            token.safeApprove(receiver, _amounts[i] + _fees[i]);
+            token.safeApprove(_receiver, _amounts[i] + _fees[i]);
         }
     }
 
@@ -45,6 +45,21 @@ contract Helper is Variables {
         for (uint i = 0; i < length_; i++) {
             IERC20 token = IERC20(_tokens[i]);
             token.safeTransfer(_receiver, _amounts[i]);
+        }
+    }
+
+    function safeTransferWithFee(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256[] memory _fees,
+        address _receiver
+    ) internal {
+        require(_tokens.length == _amounts.length, "Lengths of parameters not same");
+        require(_tokens.length == _fees.length, "Lengths of parameters not same");
+        uint256 length_ = _tokens.length;
+        for (uint i = 0; i < length_; i++) {
+            IERC20 token = IERC20(_tokens[i]);
+            token.safeTransfer(_receiver, _amounts[i] + _fees[i]);
         }
     }
 
@@ -76,6 +91,8 @@ contract Helper is Variables {
     function calculateFeeBPS(uint256 _route) internal view returns(uint256 BPS_){
         if (_route == 1) {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
+        } else if (_route == 2) {
+            BPS_ = (balancerLending.getProtocolFeesCollector().getFlashLoanFeePercentage()) * 100;
         } else {
             require(false, "Invalid source");
         }

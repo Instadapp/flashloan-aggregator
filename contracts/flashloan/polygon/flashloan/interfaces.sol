@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface InstaFlashReceiverInterface {
     function executeOperation(
@@ -87,4 +88,18 @@ interface IAaveLending {
 
     function setUserUseReserveAsCollateral(address asset, bool useAsCollateral)
         external;
+}
+
+interface ProtocolFeesCollector {
+    function getFlashLoanFeePercentage() external view returns (uint256);
+}
+
+interface IBalancerLending {
+    function flashLoan(
+        InstaFlashReceiverInterface recipient,
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        bytes memory userData
+    ) external;
+    function getProtocolFeesCollector() external view returns (ProtocolFeesCollector);
 }
