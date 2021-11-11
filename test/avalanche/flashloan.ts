@@ -15,10 +15,10 @@ describe("FlashLoan", function () {
   let Resolver, resolver, Receiver, receiver: InstaFlashReceiver;
   let signer: SignerWithAddress;
 
-  const DAI = "0xbA7dEebBFC5fA1100Fb055a87773e1E99Cd3507a";
-  const USDT = "0xde3A24028580884448a5397872046a019649b084";
-  const ACC_DAI = "0x82269802d729a1f6b7b4523c5d3f80881e807904";
-  const ACC_USDT = "0xde3a24028580884448a5397872046a019649b084";
+  const DAI = "0xd586e7f844cea2f87f50152665bcbc2c279d8d70";
+  const USDT = "0xc7198437980c041c805a1edcba50c1ce5db95118";
+  const ACC_DAI = "0xed2a7edd7413021d440b09d654f3b87712abab66";
+  const ACC_USDT = "0xed2a7edd7413021d440b09d654f3b87712abab66";
 
   const dai = ethers.utils.parseUnits("10", 18);
   const usdt = ethers.utils.parseUnits("10", 6);
