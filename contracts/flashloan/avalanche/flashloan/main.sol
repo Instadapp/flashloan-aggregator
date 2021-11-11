@@ -87,7 +87,7 @@ contract FlashResolver is Helper {
     }
 }
 
-contract InstaFlashloanAggregator is FlashResolver {
+contract InstaFlashloanAggregatorAvalanche is FlashResolver {
 
     // constructor() {
     //     TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);
