@@ -5,7 +5,7 @@
   "main": "dist/index",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat run scripts/global-test.ts",
+    "test": "hardhat run scripts/global-tests.ts",
     "test:runner": "hardhat run scripts/run-tests.ts"
   },
   "repository": {
