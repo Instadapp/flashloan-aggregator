@@ -3,8 +3,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-  InstaFlashloanAggregator,
-  InstaFlashloanAggregator__factory,
+  InstaFlashloanAggregatorPolygon,
+  InstaFlashloanAggregatorPolygon__factory,
   IERC20__factory,
   IERC20,
   InstaFlashReceiver__factory,
@@ -15,15 +15,16 @@ describe("FlashLoan", function () {
   let Resolver, resolver, Receiver, receiver: InstaFlashReceiver;
   let signer: SignerWithAddress;
 
-  const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
-  const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-  const ACC_DAI = "0x9a7a9d980ed6239b89232c012e21f4c210f4bef1";
-  const ACC_USDT = "0x6D5Be15f9Aa170e207C043CDf8E0BaDbF2A48ed0";
+  const DAI = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063";
+  const USDT = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
+  const ACC_DAI = "0x4a35582a710e1f4b2030a3f826da20bfb6703c09";
+  const ACC_USDT = "0x0d0707963952f2fba59dd06f2b425ace40b492fe";
 
   const dai = ethers.utils.parseUnits("10", 18);
   const usdt = ethers.utils.parseUnits("10", 6);
   const Dai = ethers.utils.parseUnits("5000", 18);
   const Usdt = ethers.utils.parseUnits("5000", 6);
+  
   const zeroAddr =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -32,12 +33,6 @@ describe("FlashLoan", function () {
     Resolver = new InstaFlashloanAggregatorPolygon__factory(signer);
     resolver = await Resolver.deploy();
     await resolver.deployed();
-
-    await resolver.addTokenToCtoken([
-      "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-      "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
-      "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
-    ]); // DAI, USDT, USDC
 
     Receiver = new InstaFlashReceiver__factory(signer);
     receiver = await Receiver.deploy(resolver.address);
@@ -72,15 +67,6 @@ describe("FlashLoan", function () {
     it("Should be able to take flashLoan of a single token from AAVE", async function () {
       await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr);
     });
-    it("Should be able to take flashLoan of a single token from MakerDAO", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 2, zeroAddr);
-    });
-    it("Should be able to take flashLoan of a single token from Compound(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 3, zeroAddr);
-    });
-    it("Should be able to take flashLoan of a single token from AAVE(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 4, zeroAddr);
-    });
   });
 
   describe("Multi token", async function () {
@@ -111,15 +97,6 @@ describe("FlashLoan", function () {
     });
     it("Should be able to take flashLoan of multiple tokens together from AAVE", async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr);
-    });
-    it("Should be able to take flashLoan of multiple tokens together from MakerDAO", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 2, zeroAddr);
-    });
-    it("Should be able to take flashLoan of multiple tokens together from Compound(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 3, zeroAddr);
-    });
-    it("Should be able to take flashLoan of multiple tokens together from AAVE(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 4, zeroAddr);
     });
   });
 });

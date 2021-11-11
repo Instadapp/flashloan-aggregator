@@ -15,10 +15,10 @@ describe("FlashLoan", function () {
   let Resolver, resolver, Receiver, receiver: InstaFlashReceiver;
   let signer: SignerWithAddress;
 
-  const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
-  const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-  const ACC_DAI = "0x9a7a9d980ed6239b89232c012e21f4c210f4bef1";
-  const ACC_USDT = "0x6D5Be15f9Aa170e207C043CDf8E0BaDbF2A48ed0";
+  const DAI = "0xbA7dEebBFC5fA1100Fb055a87773e1E99Cd3507a";
+  const USDT = "0xde3A24028580884448a5397872046a019649b084";
+  const ACC_DAI = "0x82269802d729a1f6b7b4523c5d3f80881e807904";
+  const ACC_USDT = "0xde3a24028580884448a5397872046a019649b084";
 
   const dai = ethers.utils.parseUnits("10", 18);
   const usdt = ethers.utils.parseUnits("10", 6);
@@ -67,15 +67,6 @@ describe("FlashLoan", function () {
     it("Should be able to take flashLoan of a single token from AAVE", async function () {
       await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr);
     });
-    it("Should be able to take flashLoan of a single token from MakerDAO", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 2, zeroAddr);
-    });
-    it("Should be able to take flashLoan of a single token from Compound(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 3, zeroAddr);
-    });
-    it("Should be able to take flashLoan of a single token from AAVE(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 4, zeroAddr);
-    });
   });
 
   describe("Multi token", async function () {
@@ -106,15 +97,6 @@ describe("FlashLoan", function () {
     });
     it("Should be able to take flashLoan of multiple tokens together from AAVE", async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr);
-    });
-    it("Should be able to take flashLoan of multiple tokens together from MakerDAO", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 2, zeroAddr);
-    });
-    it("Should be able to take flashLoan of multiple tokens together from Compound(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 3, zeroAddr);
-    });
-    it("Should be able to take flashLoan of multiple tokens together from AAVE(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 4, zeroAddr);
     });
   });
 });

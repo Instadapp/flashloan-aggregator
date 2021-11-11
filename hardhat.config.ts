@@ -60,8 +60,8 @@ function getNetworkUrl(networkType: string) {
 }
 
 function getBlockNumber(networkType: string) {
-  if (networkType === "avalanche") return 123; // TODO
-  else if (networkType === "polygon") return 456; // TODO
+  if (networkType === "avalanche") return 6802000;
+  else if (networkType === "polygon") return 21244400;
   // else if (networkType === "arbitrum") return 789;
   else return 13405033;
 }
@@ -126,7 +126,7 @@ const config: HardhatUserConfig = {
     target: "ethers-v5",
   },
   mocha: {
-    timeout: 10000 * 1000,
+    timeout: 10000 * 10000,
   },
 };
 
