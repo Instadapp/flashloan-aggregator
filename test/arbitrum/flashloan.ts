@@ -95,8 +95,11 @@ describe("FlashLoan", function () {
         params: [ACC_USDT],
       });
     });
-    it("Should be able to take flashLoan of multiple tokens together from Balancer", async function () {
+    it("Should be able to take flashLoan of multiple sorted tokens together from Balancer", async function () {
       await receiver.flashBorrow([USDT, USDC], [Usdt, Usdc], 1, zeroAddr);
+    });
+    it("Should be able to take flashLoan of multiple unsorted tokens together from Balancer", async function () {
+      await receiver.flashBorrow([USDC, USDT], [Usdc, Usdt], 1, zeroAddr);
     });
   });
 });
