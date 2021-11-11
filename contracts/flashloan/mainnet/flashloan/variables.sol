@@ -8,7 +8,8 @@ import {
     TokenInterface,
     IAaveLending,
     IERC3156FlashLender, 
-    Comptroller
+    Comptroller,
+    IBalancerLending
 } from "./interfaces.sol";
 
 contract Variables {
@@ -26,6 +27,9 @@ contract Variables {
 
     address public constant makerLendingAddr = 0x1EB4CF3A948E7D72A198fe073cCb8C7a948cD853;
     IERC3156FlashLender public constant makerLending = IERC3156FlashLender(makerLendingAddr);
+
+    address public constant balancerLendingAddr = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
+    IBalancerLending public constant balancerLending = IBalancerLending(balancerLendingAddr);
 
     address public constant daiToken = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public constant cDaiToken = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
