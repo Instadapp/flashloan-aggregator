@@ -6,7 +6,8 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat run scripts/global-test.ts",
-    "test:runner": "hardhat run scripts/run-tests.ts"
+    "test:runner": "hardhat run scripts/run-tests.ts",
+    "typechain": "hardhat typechain"
   },
   "repository": {
     "type": "git",
