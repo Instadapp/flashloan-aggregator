@@ -5,14 +5,9 @@
   "main": "dist/index",
   "scripts": {
     "compile": "hardhat compile",
-<<<<<<< HEAD
-    "test": "hardhat run scripts/global-tests.ts",
-    "test:runner": "hardhat run scripts/run-tests.ts"
-=======
     "test": "hardhat run scripts/global-test.ts",
     "test:runner": "hardhat run scripts/run-tests.ts",
     "typechain": "hardhat typechain"
->>>>>>> 067484128d1b05bb92a7b9f43910dd5edf395826
   },
   "repository": {
     "type": "git",
