@@ -11,8 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { 
     IndexInterface,
     ListInterface,
-    TokenInterface,
-    IAaveLending, 
+    TokenInterface, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
@@ -90,8 +89,6 @@ contract Helper is Variables {
 
     function calculateFeeBPS(uint256 _route) internal view returns (uint256 BPS_) {
         if (_route == 1) {
-            BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
-        } else if (_route == 2) {
             BPS_ = (balancerLending.getProtocolFeesCollector().getFlashLoanFeePercentage()) * 100;
         } else {
             require(false, "Invalid source");

@@ -3,8 +3,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-  InstaFlashloanAggregatorPolygon,
-  InstaFlashloanAggregatorPolygon__factory,
+  InstaFlashloanAggregatorArbitrum,
+  InstaFlashloanAggregatorArbitrum__factory,
   IERC20__factory,
   IERC20,
   InstaFlashReceiver__factory,
@@ -15,14 +15,14 @@ describe("FlashLoan", function () {
   let Resolver, resolver, Receiver, receiver: InstaFlashReceiver;
   let signer: SignerWithAddress;
 
-  const DAI = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063";
-  const USDT = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
-  const ACC_DAI = "0x4a35582a710e1f4b2030a3f826da20bfb6703c09";
-  const ACC_USDT = "0x0d0707963952f2fba59dd06f2b425ace40b492fe";
+  const USDC = "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8";
+  const USDT = "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9";
+  const ACC_USDC = "0xce2cc46682e9c6d5f174af598fb4931a9c0be68e";
+  const ACC_USDT = "0x0db3fe3b770c95a0b99d1ed6f2627933466c0dd8";
 
-  const dai = ethers.utils.parseUnits("10", 18);
+  const usdc = ethers.utils.parseUnits("10", 6);
   const usdt = ethers.utils.parseUnits("10", 6);
-  const Dai = ethers.utils.parseUnits("5000", 18);
+  const Usdc = ethers.utils.parseUnits("5000", 6);
   const Usdt = ethers.utils.parseUnits("5000", 6);
   
   const zeroAddr =
@@ -30,7 +30,7 @@ describe("FlashLoan", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
-    Resolver = new InstaFlashloanAggregatorPolygon__factory(signer);
+    Resolver = new InstaFlashloanAggregatorArbitrum__factory(signer);
     resolver = await Resolver.deploy();
     await resolver.deployed();
 
@@ -38,37 +38,34 @@ describe("FlashLoan", function () {
     receiver = await Receiver.deploy(resolver.address);
     await receiver.deployed();
 
-    const token_dai = new ethers.Contract(
-      DAI,
+    const token_usdc = new ethers.Contract(
+      USDC,
       IERC20__factory.abi,
       ethers.provider
     );
 
     await hre.network.provider.send("hardhat_setBalance", [
-      ACC_DAI,
+      ACC_USDC,
       ethers.utils.parseEther("10.0").toHexString(),
     ]);
 
     await hre.network.provider.request({
       method: "hardhat_impersonateAccount",
-      params: [ACC_DAI],
+      params: [ACC_USDC],
     });
 
-    const signer_dai = await ethers.getSigner(ACC_DAI);
-    await token_dai.connect(signer_dai).transfer(receiver.address, dai);
+    const signer_usdc = await ethers.getSigner(ACC_USDC);
+    await token_usdc.connect(signer_usdc).transfer(receiver.address, usdc);
 
     await hre.network.provider.request({
       method: "hardhat_stopImpersonatingAccount",
-      params: [ACC_DAI],
+      params: [ACC_USDC],
     });
   });
 
   describe("Single token", async function () {
-    it("Should be able to take flashLoan of a single token from AAVE", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr);
-    });
     it("Should be able to take flashLoan of a single token from Balancer", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 2, zeroAddr);
+      await receiver.flashBorrow([USDC], [Usdc], 1, zeroAddr);
     });
   });
 
@@ -98,14 +95,11 @@ describe("FlashLoan", function () {
         params: [ACC_USDT],
       });
     });
-    it("Should be able to take flashLoan of multiple tokens together from AAVE", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr);
-    });
     it("Should be able to take flashLoan of multiple sorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 2, zeroAddr);
+      await receiver.flashBorrow([USDT, USDC], [Usdt, Usdc], 1, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple unsorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([USDT, DAI], [Usdt, Dai], 2, zeroAddr);
+      await receiver.flashBorrow([USDC, USDT], [Usdc, Usdt], 1, zeroAddr);
     });
   });
 });

@@ -81,6 +81,9 @@ describe("FlashLoan", function () {
     it("Should be able to take flashLoan of a single token from AAVE(MakerDAO)", async function () {
       await receiver.flashBorrow([DAI], [Dai], 4, zeroAddr);
     });
+    it("Should be able to take flashLoan of a single token from Balancer", async function () {
+      await receiver.flashBorrow([DAI], [Dai], 5, zeroAddr);
+    });
   });
 
   describe("Multi token", async function () {
@@ -120,6 +123,12 @@ describe("FlashLoan", function () {
     });
     it("Should be able to take flashLoan of multiple tokens together from AAVE(MakerDAO)", async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 4, zeroAddr);
+    });
+    it("Should be able to take flashLoan of multiple sorted tokens together from Balancer", async function () {
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 5, zeroAddr);
+    });
+    it("Should be able to take flashLoan of multiple unsorted tokens together from Balancer", async function () {
+      await receiver.flashBorrow([USDT, DAI], [Usdt, Dai], 5, zeroAddr);
     });
   });
 });

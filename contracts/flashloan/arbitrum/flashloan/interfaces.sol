@@ -45,51 +45,6 @@ interface TokenInterface {
     function allowance(address, address) external view returns (uint256);
 }
 
-interface IAaveLending {
-    function flashLoan(
-        address receiverAddress,
-        address[] calldata assets,
-        uint256[] calldata amounts,
-        uint256[] calldata modes,
-        address onBehalfOf,
-        bytes calldata params,
-        uint16 referralCode
-    ) external;
-
-    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint256);
-
-    function deposit(
-        address asset,
-        uint256 amount,
-        address onBehalfOf,
-        uint16 referralCode
-    ) external;
-
-    function withdraw(
-        address asset,
-        uint256 amount,
-        address to
-    ) external;
-
-    function borrow(
-        address asset,
-        uint256 amount,
-        uint256 interestRateMode,
-        uint16 referralCode,
-        address onBehalfOf
-    ) external;
-
-    function repay(
-        address asset,
-        uint256 amount,
-        uint256 rateMode,
-        address onBehalfOf
-    ) external;
-
-    function setUserUseReserveAsCollateral(address asset, bool useAsCollateral)
-        external;
-}
-
 interface ProtocolFeesCollector {
     function getFlashLoanFeePercentage() external view returns (uint256);
 }
