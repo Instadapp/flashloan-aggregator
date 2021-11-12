@@ -13,6 +13,8 @@ import {
     ListInterface,
     TokenInterface,
     CTokenInterface,
+    CEthInterface,
+    IWETH,
     IAaveLending, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
@@ -89,12 +91,20 @@ contract Helper is Variables {
         return true;
     }
 
-    function compoundSupplyDAI(uint256 _amount) internal {
-        CTokenInterface cToken_ = CTokenInterface(cDaiToken);
-        // Approved already in addTokenToctoken function
-        require(cToken_.mint(_amount) == 0, "mint failed");
+    function compoundSupply(address _token, uint256 _amount) internal {
         address[] memory cTokens_ = new address[](1);
-        cTokens_[0] = cDaiToken;
+        if (_token == chainToken) {
+            IWETH wEth_ = IWETH(wEthToken);
+            wEth_.withdraw(_amount);
+            CEthInterface cEth_ = CEthInterface(cEthToken);
+            cEth_.mint{value: _amount}();
+            cTokens_[0] = cEthToken;
+        } else {
+            CTokenInterface cToken_ = CTokenInterface(tokenToCToken[_token]);
+            // Approved already in addTokenToctoken function
+            require(cToken_.mint(_amount) == 0, "mint failed");
+            cTokens_[0] = tokenToCToken[_token];
+        }
         uint[] memory errors_ = troller.enterMarkets(cTokens_);
         for(uint i=0; i < errors_.length; i++){
             require(errors_[i] == 0, "Comptroller.enterMarkets failed.");
@@ -124,18 +134,23 @@ contract Helper is Variables {
         }
     }
 
-    function compoundWithdrawDAI(uint256 _amount) internal {
-        IERC20 token_ = IERC20(daiToken);
-        CTokenInterface cToken_ = CTokenInterface(cDaiToken);    
-        require(token_.approve(cDaiToken, _amount), "Approve Failed");
-        require(cToken_.redeemUnderlying(_amount) == 0, "redeem failed");
+    function compoundWithdraw(address _token, uint256 _amount) internal {
+        if (_token == chainToken) {
+            IWETH wEth_ = IWETH(wEthToken);
+            wEth_.deposit{value: _amount}();
+            CEthInterface cEth_ = CEthInterface(cEthToken);  
+            require(cEth_.redeemUnderlying(_amount) == 0, "redeem failed");
+        } else {
+            CTokenInterface cToken_ = CTokenInterface(tokenToCToken[_token]);    
+            require(cToken_.redeemUnderlying(_amount) == 0, "redeem failed");
+        }
     }
 
-    function aaveSupplyDAI(uint256 _amount) internal {
-        IERC20 token_ = IERC20(daiToken);
+    function aaveSupply(address _token, uint256 _amount) internal {
+        IERC20 token_ = IERC20(_token);
         token_.safeApprove(aaveLendingAddr, _amount);
-        aaveLending.deposit(daiToken, _amount, address(this), 3228);
-        aaveLending.setUserUseReserveAsCollateral(daiToken, true);
+        aaveLending.deposit(_token, _amount, address(this), 3228);
+        aaveLending.setUserUseReserveAsCollateral(_token, true);
     }
 
     function aaveBorrow(
@@ -160,10 +175,8 @@ contract Helper is Variables {
         }
     }
 
-    function aaveWithdrawDAI(uint256 _amount) internal {
-        IERC20 token_ = IERC20(daiToken);   
-        require(token_.approve(aaveLendingAddr, _amount), "Approve Failed");
-        aaveLending.withdraw(daiToken, _amount, address(this));
+    function aaveWithdraw(address _token, uint256 _amount) internal {
+        aaveLending.withdraw(_token, _amount, address(this));
     }
 
     function calculateFeeBPS(uint256 _route) internal view returns (uint256 BPS_) {
@@ -171,7 +184,7 @@ contract Helper is Variables {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
         } else if (_route == 2 || _route == 3 || _route == 4) {
             BPS_ = (makerLending.toll()) / (10 ** 14);
-        } else if (_route == 5) {
+        } else if (_route == 5 || _route == 6 || _route == 7) {
             BPS_ = (balancerLending.getProtocolFeesCollector().getFlashLoanFeePercentage()) * 100;
         } else {
             require(false, "Invalid source");
@@ -200,5 +213,11 @@ contract Helper is Variables {
             }
         }
         return (_tokens, _amounts);
+    }
+
+    function getWEthBorrowAmount() internal view returns (uint256) {
+        IERC20 wEth = IERC20(wEthToken);
+        uint256 amount_ = wEth.balanceOf(balancerLendingAddr);
+        return (amount_ * wethBorrowAmountPercentage) / 100;
     }
 }

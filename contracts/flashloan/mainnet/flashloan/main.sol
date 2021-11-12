@@ -99,20 +99,20 @@ contract FlashResolver is Setups {
         } else if (route_ == 3 || route_ == 4) {
             require(_fee == 0, "flash-DAI-fee-not-0");
             if (route_ == 3) {
-                compoundSupplyDAI(_amount);
+                compoundSupply(daiToken, _amount);
                 compoundBorrow(tokens_, amounts_);
             } else {
-                aaveSupplyDAI(_amount);
+                aaveSupply(daiToken, _amount);
                 aaveBorrow(tokens_, amounts_);
             }
             safeTransfer(tokens_, amounts_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             if (route_ == 3) {
                 compoundPayback(tokens_, amounts_);
-                compoundWithdrawDAI(_amount);
+                compoundWithdraw(daiToken, _amount);
             } else {
                 aavePayback(tokens_, amounts_);
-                aaveWithdrawDAI(_amount);
+                aaveWithdraw(daiToken, _amount);
             }
         } else {
             require(false, "wrong-route");
@@ -125,34 +125,52 @@ contract FlashResolver is Setups {
     }
 
     function receiveFlashLoan(
-        IERC20[] memory _tokens,
+        IERC20[] memory,
         uint256[] memory _amounts,
         uint256[] memory _fees,
         bytes memory _data
     ) external {
         require(msg.sender == balancerLendingAddr, "not-aave-sender");
-        
-        uint256 length_ = _tokens.length;
-        address[] memory tokens_ = new address[](length_);
-        for(uint256 i = 0; i < length_ ; i++) {
-            tokens_[i] = address(_tokens[i]);
-        }
 
-        uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
-
-        (address sender_, bytes memory data_) = abi.decode(
+        (uint route_, address[] memory tokens_, uint256[] memory amounts_, address sender_, bytes memory data_) = abi.decode(
             _data,
-            (address, bytes)
+            (uint, address[], uint256[], address, bytes)
         );
-        uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(5));
-        // safeApprove(tokens_, _amounts, _fees, balancerLendingAddr);
-        safeTransfer(tokens_, _amounts, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(tokens_, _amounts, InstaFees_, sender_, data_);
-        
-        uint[] memory finBals = calculateBalances(tokens_, address(this));
-        require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+        uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
+        uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
-        safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
+        if (route_ == 5) {
+            safeTransfer(tokens_, amounts_, sender_);
+            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
+            uint[] memory finBals = calculateBalances(tokens_, address(this));
+            require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+            safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
+        } else if (route_ == 6 || route_ == 7) {
+            require(_fees[0] == 0, "flash-ETH-fee-not-0");
+            if (route_ == 6) {
+                compoundSupply(chainToken, _amounts[0]);
+                compoundBorrow(tokens_, amounts_);
+            } else {
+                aaveSupply(wEthToken, _amounts[0]);
+                aaveBorrow(tokens_, amounts_);
+            }
+            safeTransfer(tokens_, amounts_, sender_);
+            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
+            if (route_ == 6) {
+                compoundPayback(tokens_, amounts_);
+                compoundWithdraw(chainToken, _amounts[0]);
+            } else {
+                aavePayback(tokens_, amounts_);
+                aaveWithdraw(wEthToken, _amounts[0]);
+            }
+            uint[] memory finBals = calculateBalances(tokens_, address(this));
+            require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+            address[] memory wethTokenAddrList_ = new address[](1);
+            wethTokenAddrList_[0] = wEthToken;
+            safeTransferWithFee(wethTokenAddrList_, _amounts, _fees, balancerLendingAddr);
+        } else {
+            require(false, "wrong-route");
+        }
     }
 
     function routeAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
@@ -170,8 +188,8 @@ contract FlashResolver is Setups {
         uint256[] memory amounts_ = new uint256[](1);
         tokens_[0] = _token;
         amounts_[0] = _amount;
-        bytes memory data = abi.encode(2, tokens_, amounts_, msg.sender, _data);
-        makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), _token, _amount, data);
+        bytes memory data_ = abi.encode(2, tokens_, amounts_, msg.sender, _data);
+        makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), _token, _amount, data_);
     }
 
     function routeMakerCompound(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
@@ -185,14 +203,32 @@ contract FlashResolver is Setups {
     }
 
     function routeBalancer(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
-        bytes memory data_ = abi.encode(msg.sender, _data);
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         uint256 length_ = _tokens.length;
         IERC20[] memory tokens_ = new IERC20[](length_);
         for(uint256 i = 0 ; i < length_ ; i++) {
             tokens_[i] = IERC20(_tokens[i]);
         }
+        bytes memory data_ = abi.encode(5, _tokens, _amounts, msg.sender, _data);
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
+    }
+
+    function routeBalancerCompound(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
+        bytes memory data_ = abi.encode(6, _tokens, _amounts, msg.sender, _data);
+        IERC20[] memory wethTokenList_ = new IERC20[](1);
+        uint256[] memory wethAmountList_ = new uint256[](1);
+        wethTokenList_[0] = IERC20(wEthToken);
+        wethAmountList_[0] = getWEthBorrowAmount();
+        balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), wethTokenList_, wethAmountList_, data_);
+    }
+    
+    function routeBalancerAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
+        bytes memory data_ = abi.encode(7, _tokens, _amounts, msg.sender, _data);
+        IERC20[] memory wethTokenList_ = new IERC20[](1);
+        uint256[] memory wethAmountList_ = new uint256[](1);
+        wethTokenList_[0] = IERC20(wEthToken);
+        wethAmountList_[0] = getWEthBorrowAmount();
+        balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), wethTokenList_, wethAmountList_, data_);
     }
 
     function flashLoan(	
@@ -212,6 +248,10 @@ contract FlashResolver is Setups {
             routeMakerAave(_tokens, _amounts, _data);
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
+        } else if (_route == 6) {
+            routeBalancerCompound(_tokens, _amounts, _data);
+        } else if (_route == 7) {
+            routeBalancerAave(_tokens, _amounts, _data);
         } else {
             require(false, "route-does-not-exist");
         }

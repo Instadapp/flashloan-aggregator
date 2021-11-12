@@ -18,7 +18,7 @@ contract Variables {
     // ListInterface public immutable instaList = ListInterface(address(0)); // TODO: update at the time of deployment
 
     // address public immutable wchainToken = address(0); // TODO: update at the time of deployment
-    // address public constant chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address public constant chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     
     // TokenInterface public wchainContract = TokenInterface(wchainToken);
 
@@ -34,6 +34,10 @@ contract Variables {
     address public constant daiToken = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public constant cDaiToken = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
     uint256 public constant daiBorrowAmount = 500000000000000000000000000;
+
+    address public constant wEthToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public constant cEthToken = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
+    uint256 public constant wethBorrowAmountPercentage = 80;
 
     address public constant comptrollerAddr = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
     Comptroller public constant troller = Comptroller(comptrollerAddr);
