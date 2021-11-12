@@ -115,12 +115,7 @@ contract Helper is Variables {
         for (uint256 i = 0; i < _tokens.length - 1; i++) {
             for( uint256 j = 0; j < _tokens.length - i - 1 ; j++) {
                 if(_tokens[j] > _tokens[j+1]) {
-                    address tempAddr = _tokens[j];
-                    _tokens[j] = _tokens[j+1];
-                    _tokens[j+1] = tempAddr;
-                    uint256 tempAmount = _amounts[j];
-                    _amounts[j] = _amounts[j+1];
-                    _amounts[j+1] = tempAmount;
+                    (_tokens[j], _tokens[j+1], _amounts[j], _amounts[j+1]) = (_tokens[j+1], _tokens[j], _amounts[j+1], _amounts[j]);
                 }
             }
         }
