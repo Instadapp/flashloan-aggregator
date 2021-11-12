@@ -73,10 +73,11 @@ contract FlashResolver is Helper {
         uint256 _route,
         bytes calldata _data
     ) external {
-        require(_route == 1, "route-does-not-exist");
 
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);	
+        } else {
+            require(false, "route-does-not-exist");
         }
 
         emit LogFlashLoan(

@@ -201,7 +201,6 @@ contract FlashResolver is Setups {
         uint256 _route,
         bytes calldata _data
     ) external {
-        require(_route == 1 || _route == 2 || _route == 3 || _route == 4 || _route == 5, "route-does-not-exist");
 
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);	
@@ -213,6 +212,8 @@ contract FlashResolver is Setups {
             routeMakerAave(_tokens, _amounts, _data);
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
+        } else {
+            require(false, "route-does-not-exist");
         }
 
         emit LogFlashLoan(
