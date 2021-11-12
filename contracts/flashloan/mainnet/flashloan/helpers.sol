@@ -14,7 +14,7 @@ import {
     TokenInterface,
     CTokenInterface,
     CEthInterface,
-    IWETH,
+    IWeth,
     IAaveLending, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
@@ -94,7 +94,7 @@ contract Helper is Variables {
     function compoundSupply(address _token, uint256 _amount) internal {
         address[] memory cTokens_ = new address[](1);
         if (_token == chainToken) {
-            IWETH wEth_ = IWETH(wEthToken);
+            IWeth wEth_ = IWeth(wEthToken);
             wEth_.withdraw(_amount);
             CEthInterface cEth_ = CEthInterface(cEthToken);
             cEth_.mint{value: _amount}();
@@ -136,7 +136,7 @@ contract Helper is Variables {
 
     function compoundWithdraw(address _token, uint256 _amount) internal {
         if (_token == chainToken) {
-            IWETH wEth_ = IWETH(wEthToken);
+            IWeth wEth_ = IWeth(wEthToken);
             wEth_.deposit{value: _amount}();
             CEthInterface cEth_ = CEthInterface(cEthToken);  
             require(cEth_.redeemUnderlying(_amount) == 0, "redeem failed");

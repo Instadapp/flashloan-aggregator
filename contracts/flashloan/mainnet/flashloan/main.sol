@@ -14,7 +14,8 @@ import {
     TokenInterface,
     CTokenInterface,
     IAaveLending, 
-    InstaFlashReceiverInterface
+    InstaFlashReceiverInterface,
+    IWeth
 } from "./interfaces.sol";
 
 
@@ -269,6 +270,7 @@ contract InstaFlashloanAggregator is FlashResolver {
 
     constructor() {
         IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
+        IWeth(wEthToken).approve(wEthToken, type(uint256).max);
     }
 
     receive() external payable {}
