@@ -72,13 +72,13 @@ contract FlashResolver is Helper {
         uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
         uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
-        if (route_ == 2) {
+        if (route_ == 5) {
             safeTransfer(tokens_, amounts_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             uint[] memory finBals = calculateBalances(tokens_, address(this));
             require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
             safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
-        } else if (route_ == 3) {
+        } else if (route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
             aaveSupply(wEthToken, _amounts[0]);
             aaveBorrow(tokens_, amounts_);
@@ -113,12 +113,12 @@ contract FlashResolver is Helper {
         for(uint256 i = 0 ; i < length_ ; i++) {
             tokens_[i] = IERC20(_tokens[i]);
         }
-        bytes memory data_ = abi.encode(2, _tokens, _amounts, msg.sender, _data);
+        bytes memory data_ = abi.encode(5, _tokens, _amounts, msg.sender, _data);
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
     }
     
     function routeBalancerAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
-        bytes memory data_ = abi.encode(3, _tokens, _amounts, msg.sender, _data);
+        bytes memory data_ = abi.encode(7, _tokens, _amounts, msg.sender, _data);
         IERC20[] memory wethTokenList_ = new IERC20[](1);
         uint256[] memory wethAmountList_ = new uint256[](1);
         wethTokenList_[0] = IERC20(wEthToken);
@@ -136,12 +136,20 @@ contract FlashResolver is Helper {
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);	
         } else if (_route == 2) {
-            routeBalancer(_tokens, _amounts, _data);
+            require(false, "this route is only for mainnet");
         } else if (_route == 3) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 4) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 5) {
+            routeBalancer(_tokens, _amounts, _data);
+        } else if (_route == 6) {
+            require(false, "this is route only for mainnet");
+        } else if (_route == 7) {
             routeBalancerAave(_tokens, _amounts, _data);
         } else {
             require(false, "route-does-not-exist");
-        } 
+        }
 
         emit LogFlashLoan(
             msg.sender,

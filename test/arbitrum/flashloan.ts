@@ -65,7 +65,7 @@ describe("FlashLoan", function () {
 
   describe("Single token", async function () {
     it("Should be able to take flashLoan of a single token from Balancer", async function () {
-      await receiver.flashBorrow([USDC], [Usdc], 1, zeroAddr);
+      await receiver.flashBorrow([USDC], [Usdc], 5, zeroAddr);
     });
   });
 
@@ -96,10 +96,10 @@ describe("FlashLoan", function () {
       });
     });
     it("Should be able to take flashLoan of multiple sorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([USDT, USDC], [Usdt, Usdc], 1, zeroAddr);
+      await receiver.flashBorrow([USDT, USDC], [Usdt, Usdc], 5, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple unsorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([USDC, USDT], [Usdc, Usdt], 1, zeroAddr);
+      await receiver.flashBorrow([USDC, USDT], [Usdc, Usdt], 5, zeroAddr);
     });
   });
 });

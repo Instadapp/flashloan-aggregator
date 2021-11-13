@@ -88,7 +88,7 @@ contract Helper is Variables {
     }
 
     function calculateFeeBPS(uint256 _route) internal view returns (uint256 BPS_) {
-        if (_route == 1) {
+        if (_route == 5) {
             BPS_ = (balancerLending.getProtocolFeesCollector().getFlashLoanFeePercentage()) * 100;
         } else {
             require(false, "Invalid source");

@@ -68,10 +68,10 @@ describe("FlashLoan", function () {
       await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr);
     });
     it("Should be able to take flashLoan of a single token from Balancer", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 2, zeroAddr);
+      await receiver.flashBorrow([DAI], [Dai], 5, zeroAddr);
     });
     it("Should be able to take flashLoan of a single token from AAVE(Balancer)", async function () {
-      await receiver.flashBorrow([DAI], [Dai], 3, zeroAddr);
+      await receiver.flashBorrow([DAI], [Dai], 7, zeroAddr);
     });
   });
 
@@ -105,13 +105,13 @@ describe("FlashLoan", function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple sorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 2, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 5, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple unsorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([USDT, DAI], [Usdt, Dai], 2, zeroAddr);
+      await receiver.flashBorrow([USDT, DAI], [Usdt, Dai], 5, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple tokens together from AAVE(Balancer)", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 3, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 7, zeroAddr);
     });
   });
 });

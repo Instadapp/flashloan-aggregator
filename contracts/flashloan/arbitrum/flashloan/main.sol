@@ -44,7 +44,7 @@ contract FlashResolver is Helper {
             _data,
             (address, bytes)
         );
-        uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(1));
+        uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(5));
 
         safeTransfer(tokens_, _amounts, sender_);
         InstaFlashReceiverInterface(sender_).executeOperation(tokens_, _amounts, InstaFees_, sender_, data_);
@@ -74,7 +74,19 @@ contract FlashResolver is Helper {
     ) external {
 
         if (_route == 1) {
+            require(false, "this route is only for mainnet, polygon and avalanche");	
+        } else if (_route == 2) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 3) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 4) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
+        } else if (_route == 6) {
+            require(false, "this is route only for mainnet");
+        } else if (_route == 7) {
+            require(false, "this is route only for mainnet and polygon");
         } else {
             require(false, "route-does-not-exist");
         }
