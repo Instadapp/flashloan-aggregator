@@ -84,9 +84,9 @@ contract FlashResolver is Helper {
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
         } else if (_route == 6) {
-            require(false, "this is route only for mainnet");
+            require(false, "this route is only for mainnet");
         } else if (_route == 7) {
-            require(false, "this is route only for mainnet and polygon");
+            require(false, "this route is only for mainnet and polygon");
         } else {
             require(false, "route-does-not-exist");
         }
