@@ -94,8 +94,7 @@ contract Helper is Variables {
     function compoundSupply(address _token, uint256 _amount) internal {
         address[] memory cTokens_ = new address[](1);
         if (_token == chainToken) {
-            IWeth wEth_ = IWeth(wEthToken);
-            wEth_.withdraw(_amount);
+            wEth.withdraw(_amount);
             CEthInterface cEth_ = CEthInterface(cEthToken);
             cEth_.mint{value: _amount}();
             cTokens_[0] = cEthToken;
@@ -138,8 +137,7 @@ contract Helper is Variables {
         if (_token == chainToken) {
             CEthInterface cEth_ = CEthInterface(cEthToken);
             require(cEth_.redeemUnderlying(_amount) == 0, "redeem failed");
-            IWeth wEth_ = IWeth(wEthToken); 
-            wEth_.deposit{value: _amount}();
+            wEth.deposit{value: _amount}();
         } else {
             CTokenInterface cToken_ = CTokenInterface(tokenToCToken[_token]);    
             require(cToken_.redeemUnderlying(_amount) == 0, "redeem failed");
@@ -216,8 +214,23 @@ contract Helper is Variables {
     }
 
     function getWEthBorrowAmount() internal view returns (uint256) {
-        IERC20 wEth = IERC20(wEthToken);
         uint256 amount_ = wEth.balanceOf(balancerLendingAddr);
         return (amount_ * wethBorrowAmountPercentage) / 100;
+    }
+
+    modifier verityDataHash(bytes memory data_) {
+        bytes32 dataHash_ = keccak256(data_);
+        require(dataHash_ == dataHash && dataHash_ != bytes32(0), "invalid-data-hash");
+        require(status == 2, "already-entered");
+        dataHash = bytes32(0);
+        _;
+        status = 1;
+    }
+
+    modifier reentrancy {
+        require(status == 1, "already-entered");
+        status = 2;
+        _;
+        require(status == 1, "already-entered");
     }
 }

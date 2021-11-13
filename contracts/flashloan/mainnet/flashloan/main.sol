@@ -53,7 +53,7 @@ contract FlashResolver is Setups {
         uint256[] calldata _premiums,
         address _initiator,
         bytes calldata _data
-    ) external returns (bool) {
+    ) external verityDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
 
@@ -80,7 +80,7 @@ contract FlashResolver is Setups {
         uint256 _amount,
         uint256 _fee,
         bytes calldata _data
-    ) external returns (bytes32) {
+    ) external verityDataHash(_data) returns (bytes32) {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == makerLendingAddr, "not-maker-sender");
 
@@ -129,9 +129,9 @@ contract FlashResolver is Setups {
         uint256[] memory _amounts,
         uint256[] memory _fees,
         bytes memory _data
-    ) external {
+    ) external verityDataHash(_data) {
         require(msg.sender == balancerLendingAddr, "not-aave-sender");
-
+        require(bytes32(keccak256(_data)) == dataHash, "invalid-data-hash");
         (uint route_, address[] memory tokens_, uint256[] memory amounts_, address sender_, bytes memory data_) = abi.decode(
             _data,
             (uint, address[], uint256[], address, bytes)
@@ -180,6 +180,7 @@ contract FlashResolver is Setups {
         for (uint i = 0; i < length_; i++) {
             _modes[i]=0;
         }
+        dataHash = bytes32(keccak256(data_));
         aaveLending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
     }
 
@@ -189,16 +190,19 @@ contract FlashResolver is Setups {
         tokens_[0] = _token;
         amounts_[0] = _amount;
         bytes memory data_ = abi.encode(2, tokens_, amounts_, msg.sender, _data);
+        dataHash = bytes32(keccak256(data_));
         makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), _token, _amount, data_);
     }
 
     function routeMakerCompound(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(3, _tokens, _amounts, msg.sender, _data);
+        dataHash = bytes32(keccak256(data_));
         makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), daiToken, daiBorrowAmount, data_);
     }
     
     function routeMakerAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(4, _tokens, _amounts, msg.sender, _data);
+        dataHash = bytes32(keccak256(data_));
         makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), daiToken, daiBorrowAmount, data_);
     }
 
@@ -210,6 +214,7 @@ contract FlashResolver is Setups {
             tokens_[i] = IERC20(_tokens[i]);
         }
         bytes memory data_ = abi.encode(5, _tokens, _amounts, msg.sender, _data);
+        dataHash = bytes32(keccak256(data_));
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
     }
 
@@ -219,6 +224,7 @@ contract FlashResolver is Setups {
         uint256[] memory wethAmountList_ = new uint256[](1);
         wethTokenList_[0] = IERC20(wEthToken);
         wethAmountList_[0] = getWEthBorrowAmount();
+        dataHash = bytes32(keccak256(data_));
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), wethTokenList_, wethAmountList_, data_);
     }
     
@@ -228,6 +234,7 @@ contract FlashResolver is Setups {
         uint256[] memory wethAmountList_ = new uint256[](1);
         wethTokenList_[0] = IERC20(wEthToken);
         wethAmountList_[0] = getWEthBorrowAmount();
+        dataHash = bytes32(keccak256(data_));
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), wethTokenList_, wethAmountList_, data_);
     }
 
@@ -235,8 +242,9 @@ contract FlashResolver is Setups {
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
-        bytes calldata _data
-    ) external {
+        bytes calldata _data,
+        bytes calldata // adding this if we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
+    ) external reentrancy {
 
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);	
