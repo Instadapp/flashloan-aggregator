@@ -136,10 +136,10 @@ contract Helper is Variables {
 
     function compoundWithdraw(address _token, uint256 _amount) internal {
         if (_token == chainToken) {
-            IWeth wEth_ = IWeth(wEthToken);
-            wEth_.deposit{value: _amount}();
-            CEthInterface cEth_ = CEthInterface(cEthToken);  
+            CEthInterface cEth_ = CEthInterface(cEthToken);
             require(cEth_.redeemUnderlying(_amount) == 0, "redeem failed");
+            IWeth wEth_ = IWeth(wEthToken); 
+            wEth_.deposit{value: _amount}();
         } else {
             CTokenInterface cToken_ = CTokenInterface(tokenToCToken[_token]);    
             require(cToken_.redeemUnderlying(_amount) == 0, "redeem failed");
