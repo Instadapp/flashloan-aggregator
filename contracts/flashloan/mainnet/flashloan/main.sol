@@ -33,7 +33,7 @@ contract Setups is Helper {
     }
 }
 
-contract FlashResolver is Setups {
+contract FlashAggregator is Setups {
     using SafeERC20 for IERC20;
 
     event LogFlashLoan(
@@ -262,9 +262,20 @@ contract FlashResolver is Setups {
             _amounts
         );
     }
+
+    function getRoutes() public pure returns (uint8[] memory routes_) {
+        routes_ = new uint8[](7);
+        routes_[0] = 1;
+        routes_[1] = 2;
+        routes_[2] = 3;
+        routes_[3] = 4;
+        routes_[4] = 5;
+        routes_[5] = 6;
+        routes_[6] = 7;
+    }
 }
 
-contract InstaFlashloanAggregator is FlashResolver {
+contract InstaFlashloanAggregator is FlashAggregator {
     using SafeERC20 for IERC20;
 
     constructor() {

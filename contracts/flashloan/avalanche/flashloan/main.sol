@@ -16,7 +16,7 @@ import {
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
-contract FlashResolver is Helper {
+contract FlashAggregator is Helper {
     using SafeERC20 for IERC20;
 
     event LogFlashLoan(
@@ -100,7 +100,7 @@ contract FlashResolver is Helper {
     }
 }
 
-contract InstaFlashloanAggregatorAvalanche is FlashResolver {
+contract InstaFlashloanAggregatorAvalanche is FlashAggregator {
 
     // constructor() {
     //     TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);
