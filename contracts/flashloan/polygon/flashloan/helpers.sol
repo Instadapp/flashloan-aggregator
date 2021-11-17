@@ -121,7 +121,7 @@ contract Helper is Variables {
         aaveLending.withdraw(_token, _amount, address(this));
     }
 
-    function calculateFeeBPS(uint256 _route) internal view returns (uint256 BPS_) {
+    function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
         if (_route == 1) {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
         } else if (_route == 5 || _route == 7) {

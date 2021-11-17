@@ -16,7 +16,7 @@ import {
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
-contract FlashAggregator is Helper {
+contract FlashAggregatorPolygon is Helper {
     using SafeERC20 for IERC20;
 
     event LogFlashLoan(
@@ -157,9 +157,16 @@ contract FlashAggregator is Helper {
             _amounts
         );
     }
+
+    function getRoutes() public pure returns (uint16[] memory routes_) {
+        routes_ = new uint16[](3);
+        routes_[0] = 1;
+        routes_[1] = 5;
+        routes_[2] = 7;
+    }
 }
 
-contract InstaFlashloanAggregatorPolygon is FlashAggregator {
+contract InstaFlashloanAggregatorPolygon is FlashAggregatorPolygon {
 
     // constructor() {
     //     TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);
