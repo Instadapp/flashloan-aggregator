@@ -17,8 +17,9 @@ contract Helper is Variables {
         for(uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
             (,,,,,,,,bool isActive,) = aaveProtocolDataProvider.getReserveConfigurationData(_tokens[i]);
+            (address aTokenAddr,,) = aaveProtocolDataProvider.getReserveTokensAddresses(_tokens[i]);
             if(isActive == false) return false;
-            if(token_.balanceOf(aaveLendingAddr) < _amounts[i]) return false;
+            if(token_.balanceOf(aTokenAddr) < _amounts[i]) return false;
         }
         return true;
     }
@@ -32,7 +33,11 @@ contract Helper is Variables {
                 return false;
             }
         }
-        return true;
+        if(amountsSum_ <= daiBorrowAmount) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function getCompoundAvailability(address[] memory _tokens, uint256[] memory _amounts) internal view returns (bool) {
@@ -55,21 +60,22 @@ contract Helper is Variables {
             if (token_.balanceOf(balancerLendingAddr) < _amounts[i]) {
                 return false;
             }
-            if ((balancerWeightedPoolFactory.isPoolFromFactory(_tokens[i]) ||
-                balancerWeightedPool2TokensFactory.isPoolFromFactory(_tokens[i]) ||
-                balancerStablePoolFactory.isPoolFromFactory(_tokens[i]) ||
-                balancerLiquidityBootstrappingPoolFactory.isPoolFromFactory(_tokens[i]) ||
-                balancerMetaStablePoolFactory.isPoolFromFactory(_tokens[i]) ||
-                balancerInvestmentPoolFactory.isPoolFromFactory(_tokens[i])
-                ) == false) {
-                return false;
-            }
+            // console.log("hello");
+            // if ((balancerWeightedPoolFactory.isPoolFromFactory(_tokens[i]) ||
+            //     balancerWeightedPool2TokensFactory.isPoolFromFactory(_tokens[i]) ||
+            //     balancerStablePoolFactory.isPoolFromFactory(_tokens[i]) ||
+            //     balancerLiquidityBootstrappingPoolFactory.isPoolFromFactory(_tokens[i]) ||
+            //     balancerMetaStablePoolFactory.isPoolFromFactory(_tokens[i]) ||
+            //     balancerInvestmentPoolFactory.isPoolFromFactory(_tokens[i])
+            //     ) == false) {
+            //     return false;
+            // }
         }
         return true;
     }
 
-    function getRoutesWithAvailability(uint8[] memory _routes, address[] memory _tokens, uint256[] memory _amounts) internal view returns (uint8[] memory) {
-        uint8[] memory routesWithAvailability_ = new uint8[](7);
+    function getRoutesWithAvailability(uint16[] memory _routes, address[] memory _tokens, uint256[] memory _amounts) internal view returns (uint16[] memory) {
+        uint16[] memory routesWithAvailability_ = new uint16[](7);
         uint j = 0;
         for(uint256 i = 0; i < _routes.length; i++) {
             if (_routes[i] == 1 || _routes[i] == 4 || _routes[i] == 7) {

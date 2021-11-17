@@ -263,8 +263,8 @@ contract FlashAggregator is Setups {
         );
     }
 
-    function getRoutes() public pure returns (uint8[] memory routes_) {
-        routes_ = new uint8[](7);
+    function getRoutes() public pure returns (uint16[] memory routes_) {
+        routes_ = new uint16[](7);
         routes_[0] = 1;
         routes_[1] = 2;
         routes_[2] = 3;

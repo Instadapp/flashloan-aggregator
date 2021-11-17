@@ -15,13 +15,13 @@ import {
 contract FlashResolver is Helper {
     using SafeERC20 for IERC20;
 
-    function getBestRoutes(address[] memory _tokens, uint256[] memory _amounts) public view returns (uint8[] memory, uint256) {
-        uint8[] memory bRoutes_;
+    function getBestRoutes(address[] memory _tokens, uint256[] memory _amounts) public view returns (uint16[] memory, uint256) {
+        uint16[] memory bRoutes_;
         uint256 feeBPS_;
-        uint8[] memory routes_ = flashloanAggregator.getRoutes();
-        uint8[] memory routesWithAvailability_ = getRoutesWithAvailability(routes_, _tokens, _amounts);
-        uint8 j = 0;
-        bRoutes_ = new uint8[](routes_.length);
+        uint16[] memory routes_ = flashloanAggregator.getRoutes();
+        uint16[] memory routesWithAvailability_ = getRoutesWithAvailability(routes_, _tokens, _amounts);
+        uint16 j = 0;
+        bRoutes_ = new uint16[](routes_.length);
         feeBPS_ = type(uint256).max;
         for(uint256 i = 0; i < routesWithAvailability_.length; i++) {
             if(routesWithAvailability_[i] != 0) {
@@ -29,14 +29,14 @@ contract FlashResolver is Helper {
                 if(feeBPS_ > routeFeeBPS_) {
                     feeBPS_ = routeFeeBPS_;
                     bRoutes_[0] = routesWithAvailability_[i];
-                    j=0;
+                    j=1;
                 } else if (feeBPS_ == routeFeeBPS_) {
-                    j++;
                     bRoutes_[j] = routesWithAvailability_[i];
+                    j++;
                 }
             } 
         }
-        uint8[] memory bestRoutes_ = new uint8[](j);
+        uint16[] memory bestRoutes_ = new uint16[](j);
         for(uint256 i = 0; i < j ; i++) {
             bestRoutes_[i] = bRoutes_[i];
         }
