@@ -15,6 +15,14 @@ import {
 contract FlashResolver is Helper {
     using SafeERC20 for IERC20;
 
+    function getRoutesInfo() public view returns (uint16[] memory routes_, uint256[] memory fees_) {
+        routes_ = flashloanAggregator.getRoutes();
+        fees_ = new uint256[](routes_.length);
+        for(uint256 i = 0; i < routes_.length; i++) {
+            fees_[i] = flashloanAggregator.calculateFeeBPS(routes_[i]);
+        }
+    }
+
     function getBestRoutes(address[] memory _tokens, uint256[] memory _amounts) public view returns (uint16[] memory, uint256) {
         uint16[] memory bRoutes_;
         uint256 feeBPS_;

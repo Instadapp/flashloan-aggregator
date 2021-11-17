@@ -7,8 +7,6 @@ import {
   InstaFlashloanAggregator__factory,
   InstaFlashloanResolver,
   InstaFlashloanResolver__factory,
-  IERC20__factory,
-  IERC20,
 } from "../../typechain";
 
 describe("Resolver", function () {
@@ -17,15 +15,9 @@ describe("Resolver", function () {
 
   const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
   const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-  const ACC_DAI = "0x9a7a9d980ed6239b89232c012e21f4c210f4bef1";
-  const ACC_USDT = "0x6D5Be15f9Aa170e207C043CDf8E0BaDbF2A48ed0";
 
-  const dai = ethers.utils.parseUnits("10", 18);
-  const usdt = ethers.utils.parseUnits("10", 6);
   const Dai = ethers.utils.parseUnits("5000", 18);
   const Usdt = ethers.utils.parseUnits("5000", 6);
-  const zeroAddr =
-    "0x0000000000000000000000000000000000000000000000000000000000000000";
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
@@ -42,6 +34,10 @@ describe("Resolver", function () {
     Resolver = new InstaFlashloanResolver__factory(signer);
     resolver = await Resolver.deploy(aggregator.address);
     await aggregator.deployed()
+  });
+
+  it("Should be able to return routes info", async function () {
+    console.log(await resolver.getRoutesInfo());
   });
 
   it("Should be able to return the best route for flashloan", async function () {
