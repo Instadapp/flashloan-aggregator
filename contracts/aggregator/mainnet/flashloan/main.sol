@@ -33,7 +33,7 @@ contract Setups is Helper {
     }
 }
 
-contract FlashResolver is Setups {
+contract FlashAggregator is Setups {
     using SafeERC20 for IERC20;
 
     event LogFlashLoan(
@@ -69,7 +69,7 @@ contract FlashResolver is Setups {
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
 
         uint[] memory finBals = calculateBalances(_assets, address(this));
-        require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+        validateFlashloan(iniBals_, finBals, InstaFees_);
 
         return true;
     }
@@ -119,7 +119,7 @@ contract FlashResolver is Setups {
         }
 
         uint[] memory finBals_ = calculateBalances(tokens_, address(this));
-        require(validate(iniBals_, finBals_, InstaFees_), "amount-paid-less");
+        validateFlashloan(iniBals_, finBals_, InstaFees_);
 
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
@@ -143,7 +143,7 @@ contract FlashResolver is Setups {
             safeTransfer(tokens_, amounts_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             uint[] memory finBals = calculateBalances(tokens_, address(this));
-            require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+            validateFlashloan(iniBals_, finBals, InstaFees_);
             safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
         } else if (route_ == 6 || route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
@@ -164,7 +164,7 @@ contract FlashResolver is Setups {
                 aaveWithdraw(wEthToken, _amounts[0]);
             }
             uint[] memory finBals = calculateBalances(tokens_, address(this));
-            require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+            validateFlashloan(iniBals_, finBals, InstaFees_);
             address[] memory wethTokenAddrList_ = new address[](1);
             wethTokenAddrList_[0] = wEthToken;
             safeTransferWithFee(wethTokenAddrList_, _amounts, _fees, balancerLendingAddr);
@@ -203,7 +203,6 @@ contract FlashResolver is Setups {
     }
 
     function routeBalancer(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         uint256 length_ = _tokens.length;
         IERC20[] memory tokens_ = new IERC20[](length_);
         for(uint256 i = 0 ; i < length_ ; i++) {
@@ -238,6 +237,11 @@ contract FlashResolver is Setups {
         bytes calldata _data
     ) external {
 
+        require(_tokens.length == _amounts.length, "array-lengths-not-same");
+
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
+
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);	
         } else if (_route == 2) {
@@ -262,9 +266,20 @@ contract FlashResolver is Setups {
             _amounts
         );
     }
+
+    function getRoutes() public pure returns (uint16[] memory routes_) {
+        routes_ = new uint16[](7);
+        routes_[0] = 1;
+        routes_[1] = 2;
+        routes_[2] = 3;
+        routes_[3] = 4;
+        routes_[4] = 5;
+        routes_[5] = 6;
+        routes_[6] = 7;
+    }
 }
 
-contract InstaFlashloanAggregator is FlashResolver {
+contract InstaFlashloanAggregator is FlashAggregator {
     using SafeERC20 for IERC20;
 
     constructor() {

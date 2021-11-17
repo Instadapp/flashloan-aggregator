@@ -79,16 +79,20 @@ contract Helper is Variables {
         return balances_;
     }
 
-    function validate(
+    function validateFlashloan(
         uint256[] memory _iniBals,
         uint256[] memory _finBals,
         uint256[] memory _fees
-    ) internal pure returns (bool) {
-        uint256 length_ = _iniBals.length;
-        for (uint i = 0; i < length_; i++) {
+    ) internal pure {
+        for (uint i = 0; i < _iniBals.length; i++) {
             require(_iniBals[i] + _fees[i] <= _finBals[i], "amount-paid-less");
         }
-        return true;
+    }
+
+    function validateTokens(address[] memory _tokens) internal pure {
+        for (uint i = 0; i < _tokens.length - 1; i++) {
+            require(_tokens[i] != _tokens[i+1], "non-unique-tokens");
+        }
     }
 
     function compoundSupply(address _token, uint256 _amount) internal {
@@ -179,7 +183,7 @@ contract Helper is Variables {
         aaveLending.withdraw(_token, _amount, address(this));
     }
 
-    function calculateFeeBPS(uint256 _route) internal view returns (uint256 BPS_) {
+    function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
         if (_route == 1) {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
         } else if (_route == 2 || _route == 3 || _route == 4) {
