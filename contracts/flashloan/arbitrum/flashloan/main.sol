@@ -50,14 +50,13 @@ contract FlashAggregatorArbitrum is Helper {
         InstaFlashReceiverInterface(sender_).executeOperation(tokens_, _amounts, InstaFees_, sender_, data_);
         
         uint[] memory finBals = calculateBalances(tokens_, address(this));
-        require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+        validate(iniBals_, finBals, InstaFees_);
 
         safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
     }
 
     function routeBalancer(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(msg.sender, _data);
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         uint256 length_ = _tokens.length;
         IERC20[] memory tokens_ = new IERC20[](length_);
         for(uint256 i = 0 ; i < length_ ; i++) {
@@ -72,6 +71,9 @@ contract FlashAggregatorArbitrum is Helper {
         uint256 _route,
         bytes calldata _data
     ) external {
+
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
 
         if (_route == 1) {
             require(false, "this route is only for mainnet, polygon and avalanche");	

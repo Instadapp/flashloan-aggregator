@@ -69,7 +69,7 @@ contract FlashAggregator is Setups {
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
 
         uint[] memory finBals = calculateBalances(_assets, address(this));
-        require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+        validate(iniBals_, finBals, InstaFees_);
 
         return true;
     }
@@ -119,7 +119,7 @@ contract FlashAggregator is Setups {
         }
 
         uint[] memory finBals_ = calculateBalances(tokens_, address(this));
-        require(validate(iniBals_, finBals_, InstaFees_), "amount-paid-less");
+        validate(iniBals_, finBals_, InstaFees_);
 
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
@@ -143,7 +143,7 @@ contract FlashAggregator is Setups {
             safeTransfer(tokens_, amounts_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             uint[] memory finBals = calculateBalances(tokens_, address(this));
-            require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+            validate(iniBals_, finBals, InstaFees_);
             safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
         } else if (route_ == 6 || route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
@@ -164,7 +164,7 @@ contract FlashAggregator is Setups {
                 aaveWithdraw(wEthToken, _amounts[0]);
             }
             uint[] memory finBals = calculateBalances(tokens_, address(this));
-            require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+            validate(iniBals_, finBals, InstaFees_);
             address[] memory wethTokenAddrList_ = new address[](1);
             wethTokenAddrList_[0] = wEthToken;
             safeTransferWithFee(wethTokenAddrList_, _amounts, _fees, balancerLendingAddr);
@@ -203,7 +203,6 @@ contract FlashAggregator is Setups {
     }
 
     function routeBalancer(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         uint256 length_ = _tokens.length;
         IERC20[] memory tokens_ = new IERC20[](length_);
         for(uint256 i = 0 ; i < length_ ; i++) {
@@ -237,6 +236,9 @@ contract FlashAggregator is Setups {
         uint256 _route,
         bytes calldata _data
     ) external {
+
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
 
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);	

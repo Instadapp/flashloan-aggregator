@@ -52,7 +52,7 @@ contract FlashAggregatorAvalanche is Helper {
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
 
         uint[] memory finBals = calculateBalances(_assets, address(this));
-        require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+        validate(iniBals_, finBals, InstaFees_);
 
         return true;
     }
@@ -73,6 +73,9 @@ contract FlashAggregatorAvalanche is Helper {
         uint256 _route,
         bytes calldata _data
     ) external {
+
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
 
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);
