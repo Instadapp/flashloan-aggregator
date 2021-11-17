@@ -38,4 +38,21 @@ contract Helper is Variables {
         }
         return routesWithAvailability_;
     }
+
+    function bubbleSort(address[] memory _tokens, uint256[] memory _amounts) internal pure returns (address[] memory, uint256[] memory) {
+        for (uint256 i = 0; i < _tokens.length - 1; i++) {
+            for( uint256 j = 0; j < _tokens.length - i - 1 ; j++) {
+                if(_tokens[j] > _tokens[j+1]) {
+                    (_tokens[j], _tokens[j+1], _amounts[j], _amounts[j+1]) = (_tokens[j+1], _tokens[j], _amounts[j+1], _amounts[j]);
+                }
+            }
+        }
+        return (_tokens, _amounts);
+    }
+
+    function validateTokens(address[] memory _tokens) internal pure {
+        for (uint i = 0; i < _tokens.length - 1; i++) {
+            require(_tokens[i] != _tokens[i+1], "non-unique-tokens");
+        }
+    }
 }

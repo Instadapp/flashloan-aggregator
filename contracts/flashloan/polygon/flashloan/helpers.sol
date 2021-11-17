@@ -76,7 +76,7 @@ contract Helper is Variables {
         return balances_;
     }
 
-    function validate(
+    function validateFlashloan(
         uint256[] memory _iniBals,
         uint256[] memory _finBals,
         uint256[] memory _fees

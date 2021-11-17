@@ -52,7 +52,7 @@ contract FlashAggregatorPolygon is Helper {
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
 
         uint[] memory finBals = calculateBalances(_assets, address(this));
-        validate(iniBals_, finBals, InstaFees_);
+        validateFlashloan(iniBals_, finBals, InstaFees_);
 
         return true;
     }
@@ -76,7 +76,7 @@ contract FlashAggregatorPolygon is Helper {
             safeTransfer(tokens_, amounts_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             uint[] memory finBals = calculateBalances(tokens_, address(this));
-            validate(iniBals_, finBals, InstaFees_);
+            validateFlashloan(iniBals_, finBals, InstaFees_);
             safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
         } else if (route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
@@ -87,7 +87,7 @@ contract FlashAggregatorPolygon is Helper {
             aavePayback(tokens_, amounts_);
             aaveWithdraw(wEthToken, _amounts[0]);
             uint[] memory finBals = calculateBalances(tokens_, address(this));
-            validate(iniBals_, finBals, InstaFees_);
+            validateFlashloan(iniBals_, finBals, InstaFees_);
             address[] memory wethTokenAddrList_ = new address[](1);
             wethTokenAddrList_[0] = wEthToken;
             safeTransferWithFee(wethTokenAddrList_, _amounts, _fees, balancerLendingAddr);
@@ -131,6 +131,8 @@ contract FlashAggregatorPolygon is Helper {
         uint256 _route,
         bytes calldata _data
     ) external {
+
+        require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);

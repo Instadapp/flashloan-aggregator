@@ -50,7 +50,7 @@ contract FlashAggregatorArbitrum is Helper {
         InstaFlashReceiverInterface(sender_).executeOperation(tokens_, _amounts, InstaFees_, sender_, data_);
         
         uint[] memory finBals = calculateBalances(tokens_, address(this));
-        validate(iniBals_, finBals, InstaFees_);
+        validateFlashloan(iniBals_, finBals, InstaFees_);
 
         safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
     }
@@ -71,6 +71,8 @@ contract FlashAggregatorArbitrum is Helper {
         uint256 _route,
         bytes calldata _data
     ) external {
+
+        require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
