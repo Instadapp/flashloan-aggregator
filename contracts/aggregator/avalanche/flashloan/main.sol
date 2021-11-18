@@ -48,15 +48,17 @@ contract FlashAggregatorAvalanche is Helper {
         );
         uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(1));
 
-        FlashloanVariables memory instaLoanVariables_;
-        instaLoanVariables_._tokens = _assets;
-        instaLoanVariables_._amounts = _amounts;
-        
-        safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
-        safeTransfer(instaLoanVariables_, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(instaLoanVariables_._tokens, instaLoanVariables_._amounts, InstaFees_, sender_, data_);
+        {
+            FlashloanVariables memory instaLoanVariables_;
+            instaLoanVariables_._tokens = _assets;
+            instaLoanVariables_._amounts = _amounts;
+            
+            safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
+            safeTransfer(instaLoanVariables_, sender_);
+            InstaFlashReceiverInterface(sender_).executeOperation(instaLoanVariables_._tokens, instaLoanVariables_._amounts, InstaFees_, sender_, data_);
+        }
 
-        uint[] memory finBals = calculateBalances(instaLoanVariables_._tokens, address(this));
+        uint[] memory finBals = calculateBalances(_assets, address(this));
         validateFlashloan(iniBals_, finBals, InstaFees_);
 
         return true;
