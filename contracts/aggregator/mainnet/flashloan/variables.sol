@@ -27,6 +27,11 @@ contract Variables {
     
     // TokenInterface public wchainContract = TokenInterface(wchainToken);
 
+    struct FlashloanVariables {
+        address[] _tokens;
+        uint256[] _amounts;
+    }
+
     address public constant aaveLendingAddr = 0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9;
     IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
 

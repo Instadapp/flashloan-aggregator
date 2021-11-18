@@ -47,8 +47,9 @@ contract FlashAggregatorPolygon is Helper {
             (address, bytes)
         );
         uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(1));
-        safeApprove(_assets, _amounts, _premiums, aaveLendingAddr);
-        safeTransfer(_assets, _amounts, sender_);
+        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(_assets, _amounts);
+        safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
+        safeTransfer(instaLoanVariables_, sender_);
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
 
         uint[] memory finBals = calculateBalances(_assets, address(this));
@@ -72,17 +73,19 @@ contract FlashAggregatorPolygon is Helper {
         uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
         uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
+        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(tokens_, amounts_);
+
         if (route_ == 5) {
-            safeTransfer(tokens_, amounts_, sender_);
+            safeTransfer(instaLoanVariables_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             uint[] memory finBals = calculateBalances(tokens_, address(this));
             validateFlashloan(iniBals_, finBals, InstaFees_);
-            safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
+            safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else if (route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
             aaveSupply(wEthToken, _amounts[0]);
             aaveBorrow(tokens_, amounts_);
-            safeTransfer(tokens_, amounts_, sender_);
+            safeTransfer(instaLoanVariables_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             aavePayback(tokens_, amounts_);
             aaveWithdraw(wEthToken, _amounts[0]);
@@ -90,7 +93,7 @@ contract FlashAggregatorPolygon is Helper {
             validateFlashloan(iniBals_, finBals, InstaFees_);
             address[] memory wethTokenAddrList_ = new address[](1);
             wethTokenAddrList_[0] = wEthToken;
-            safeTransferWithFee(wethTokenAddrList_, _amounts, _fees, balancerLendingAddr);
+            safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else {
             require(false, "wrong-route");
         }

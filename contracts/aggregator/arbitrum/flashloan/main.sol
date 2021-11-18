@@ -46,13 +46,15 @@ contract FlashAggregatorArbitrum is Helper {
         );
         uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(5));
 
-        safeTransfer(tokens_, _amounts, sender_);
+        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(tokens_, _amounts);
+
+        safeTransfer(instaLoanVariables_, sender_);
         InstaFlashReceiverInterface(sender_).executeOperation(tokens_, _amounts, InstaFees_, sender_, data_);
         
         uint[] memory finBals = calculateBalances(tokens_, address(this));
         validateFlashloan(iniBals_, finBals, InstaFees_);
 
-        safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
+        safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
     }
 
     function routeBalancer(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {

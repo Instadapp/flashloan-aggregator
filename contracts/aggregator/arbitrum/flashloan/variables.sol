@@ -22,6 +22,11 @@ contract Variables {
     
     // TokenInterface public wchainContract = TokenInterface(wchainToken);
 
+    struct FlashloanVariables {
+        address[] _tokens;
+        uint256[] _amounts;
+    }
+
     address public constant balancerLendingAddr = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     IBalancerLending public constant balancerLending = IBalancerLending(balancerLendingAddr);
 

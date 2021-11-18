@@ -41,11 +41,6 @@ contract FlashAggregator is Setups {
         address[] tokens,
         uint256[] amounts
     );
-
-    // struct ExecuteOperationVariables {
-    //     uint256 _length;
-    //     IERC20[] _tokenContracts;
-    // }
     
     function executeOperation(
         address[] calldata _assets,
@@ -64,8 +59,9 @@ contract FlashAggregator is Setups {
             (address, bytes)
         );
         uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(1));
-        safeApprove(_assets, _amounts, _premiums, aaveLendingAddr);
-        safeTransfer(_assets, _amounts, sender_);
+        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(_assets, _amounts);
+        safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
+        safeTransfer(instaLoanVariables_, sender_);
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
 
         uint[] memory finBals = calculateBalances(_assets, address(this));
@@ -93,8 +89,10 @@ contract FlashAggregator is Setups {
 
         uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
+        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(tokens_, amounts_);
+
         if (route_ == 2) {
-            safeTransfer(tokens_, amounts_, sender_);
+            safeTransfer(instaLoanVariables_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
         } else if (route_ == 3 || route_ == 4) {
             require(_fee == 0, "flash-DAI-fee-not-0");
@@ -105,7 +103,7 @@ contract FlashAggregator is Setups {
                 aaveSupply(daiToken, _amount);
                 aaveBorrow(tokens_, amounts_);
             }
-            safeTransfer(tokens_, amounts_, sender_);
+            safeTransfer(instaLoanVariables_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             if (route_ == 3) {
                 compoundPayback(tokens_, amounts_);
@@ -139,12 +137,14 @@ contract FlashAggregator is Setups {
         uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
         uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
+        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(tokens_, amounts_);
+
         if (route_ == 5) {
-            safeTransfer(tokens_, amounts_, sender_);
+            safeTransfer(instaLoanVariables_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             uint[] memory finBals = calculateBalances(tokens_, address(this));
             validateFlashloan(iniBals_, finBals, InstaFees_);
-            safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
+            safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else if (route_ == 6 || route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
             if (route_ == 6) {
@@ -154,7 +154,7 @@ contract FlashAggregator is Setups {
                 aaveSupply(wEthToken, _amounts[0]);
                 aaveBorrow(tokens_, amounts_);
             }
-            safeTransfer(tokens_, amounts_, sender_);
+            safeTransfer(instaLoanVariables_, sender_);
             InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
             if (route_ == 6) {
                 compoundPayback(tokens_, amounts_);
@@ -167,7 +167,7 @@ contract FlashAggregator is Setups {
             validateFlashloan(iniBals_, finBals, InstaFees_);
             address[] memory wethTokenAddrList_ = new address[](1);
             wethTokenAddrList_[0] = wEthToken;
-            safeTransferWithFee(wethTokenAddrList_, _amounts, _fees, balancerLendingAddr);
+            safeTransferWithFee(FlashloanVariables(wethTokenAddrList_, _amounts), _fees, balancerLendingAddr);
         } else {
             require(false, "wrong-route");
         }
