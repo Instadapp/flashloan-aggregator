@@ -76,22 +76,59 @@ contract Helper is Variables {
         return balances_;
     }
 
-    function validate(
+    function validateFlashloan(
         uint256[] memory _iniBals,
         uint256[] memory _finBals,
         uint256[] memory _fees
-    ) internal pure returns (bool) {
-        uint256 length_ = _iniBals.length;
-        for (uint i = 0; i < length_; i++) {
+    ) internal pure {
+        for (uint i = 0; i < _iniBals.length; i++) {
             require(_iniBals[i] + _fees[i] <= _finBals[i], "amount-paid-less");
         }
-        return true;
     }
 
-    function calculateFeeBPS(uint256 _route) internal view returns (uint256 BPS_) {
+    function validateTokens(address[] memory _tokens) internal pure {
+        for (uint i = 0; i < _tokens.length - 1; i++) {
+            require(_tokens[i] != _tokens[i+1], "non-unique-tokens");
+        }
+    }
+
+    function aaveSupply(address _token, uint256 _amount) internal {
+        IERC20 token_ = IERC20(_token);
+        token_.safeApprove(aaveLendingAddr, _amount);
+        aaveLending.deposit(_token, _amount, address(this), 3228);
+        aaveLending.setUserUseReserveAsCollateral(_token, true);
+    }
+
+    function aaveBorrow(
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) internal {
+        uint256 length_ = _tokens.length;
+        for(uint i=0; i < length_; i++) {
+            aaveLending.borrow(_tokens[i], _amounts[i], 2, 3228, address(this));
+        }
+    }
+
+    function aavePayback(
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) internal {
+        uint256 length = _tokens.length;
+        for(uint i=0; i < length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            token_.safeApprove(aaveLendingAddr, _amounts[i]);
+            aaveLending.repay(_tokens[i], _amounts[i], 2, address(this));
+        }
+    }
+
+    function aaveWithdraw(address _token, uint256 _amount) internal {
+        aaveLending.withdraw(_token, _amount, address(this));
+    }
+
+    function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
         if (_route == 1) {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
-        } else if (_route == 2) {
+        } else if (_route == 5 || _route == 7) {
             BPS_ = (balancerLending.getProtocolFeesCollector().getFlashLoanFeePercentage()) * 100;
         } else {
             require(false, "Invalid source");
@@ -120,5 +157,11 @@ contract Helper is Variables {
             }
         }
         return (_tokens, _amounts);
+    }
+
+    function getWEthBorrowAmount() internal view returns (uint256) {
+        IERC20 wEth = IERC20(wEthToken);
+        uint256 amount_ = wEth.balanceOf(balancerLendingAddr);
+        return (amount_ * wethBorrowAmountPercentage) / 100;
     }
 }

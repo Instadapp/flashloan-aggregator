@@ -75,20 +75,24 @@ contract Helper is Variables {
         return balances_;
     }
 
-    function validate(
+    function validateFlashloan(
         uint256[] memory _iniBals,
         uint256[] memory _finBals,
         uint256[] memory _fees
-    ) internal pure returns (bool) {
-        uint256 length_ = _iniBals.length;
-        for (uint i = 0; i < length_; i++) {
+    ) internal pure {
+        for (uint i = 0; i < _iniBals.length; i++) {
             require(_iniBals[i] + _fees[i] <= _finBals[i], "amount-paid-less");
         }
-        return true;
     }
 
-    function calculateFeeBPS(uint256 _route) internal view returns (uint256 BPS_) {
-        if (_route == 1) {
+    function validateTokens(address[] memory _tokens) internal pure {
+        for (uint i = 0; i < _tokens.length - 1; i++) {
+            require(_tokens[i] != _tokens[i+1], "non-unique-tokens");
+        }
+    }
+
+    function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
+        if (_route == 5) {
             BPS_ = (balancerLending.getProtocolFeesCollector().getFlashLoanFeePercentage()) * 100;
         } else {
             require(false, "Invalid source");

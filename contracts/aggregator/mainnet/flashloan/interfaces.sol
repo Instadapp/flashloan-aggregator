@@ -63,6 +63,36 @@ interface CTokenInterface {
     function underlying() external view returns (address);
 }
 
+interface CEthInterface {
+    function balanceOf(address) external view returns (uint);
+
+    function mint() external payable;
+
+    function exchangeRateCurrent() external returns (uint);
+
+    function supplyRatePerBlock() external returns (uint);
+
+    function balanceOfUnderlying(address) external returns (uint);
+
+    function redeem(uint) external returns (uint);
+
+    function redeemUnderlying(uint) external returns (uint);
+
+    function borrow(uint) external returns (uint);
+
+    function borrowBalanceCurrent(address) external returns (uint);
+
+    function borrowRatePerBlock() external view returns (uint);
+
+    function repayBorrow() external payable;
+}
+
+interface IWeth is IERC20 {
+    function deposit() external payable;
+
+    function withdraw(uint256 amount) external;
+}
+
 interface Comptroller {
     function enterMarkets(address[] calldata)
         external

@@ -16,7 +16,7 @@ import {
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
-contract FlashResolver is Helper {
+contract FlashAggregatorAvalanche is Helper {
     using SafeERC20 for IERC20;
 
     event LogFlashLoan(
@@ -52,7 +52,7 @@ contract FlashResolver is Helper {
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
 
         uint[] memory finBals = calculateBalances(_assets, address(this));
-        require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+        validateFlashloan(iniBals_, finBals, InstaFees_);
 
         return true;
     }
@@ -74,8 +74,25 @@ contract FlashResolver is Helper {
         bytes calldata _data
     ) external {
 
+        require(_tokens.length == _amounts.length, "array-lengths-not-same");
+
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
+
         if (_route == 1) {
-            routeAave(_tokens, _amounts, _data);	
+            routeAave(_tokens, _amounts, _data);
+        } else if (_route == 2) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 3) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 4) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 5) {
+            require(false, "this route is only for mainnet, polygon and arbitrum");
+        } else if (_route == 6) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 7) {
+            require(false, "this route is only for mainnet and polygon");
         } else {
             require(false, "route-does-not-exist");
         }
@@ -86,9 +103,14 @@ contract FlashResolver is Helper {
             _amounts
         );
     }
+
+    function getRoutes() public pure returns (uint16[] memory routes_) {
+        routes_ = new uint16[](1);
+        routes_[0] = 1;
+    }
 }
 
-contract InstaFlashloanAggregatorAvalanche is FlashResolver {
+contract InstaFlashloanAggregatorAvalanche is FlashAggregatorAvalanche {
 
     // constructor() {
     //     TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);

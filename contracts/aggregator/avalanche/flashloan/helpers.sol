@@ -61,19 +61,23 @@ contract Helper is Variables {
         return balances_;
     }
 
-    function validate(
+    function validateFlashloan(
         uint256[] memory _iniBals,
         uint256[] memory _finBals,
         uint256[] memory _fees
-    ) internal pure returns (bool) {
-        uint256 length_ = _iniBals.length;
-        for (uint i = 0; i < length_; i++) {
+    ) internal pure {
+        for (uint i = 0; i < _iniBals.length; i++) {
             require(_iniBals[i] + _fees[i] <= _finBals[i], "amount-paid-less");
         }
-        return true;
     }
 
-    function calculateFeeBPS(uint256 _route) internal view returns(uint256 BPS_){
+    function validateTokens(address[] memory _tokens) internal pure {
+        for (uint i = 0; i < _tokens.length - 1; i++) {
+            require(_tokens[i] != _tokens[i+1], "non-unique-tokens");
+        }
+    }
+
+    function calculateFeeBPS(uint256 _route) public view returns(uint256 BPS_){
         if (_route == 1) {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
         } else {
@@ -92,5 +96,16 @@ contract Helper is Variables {
             InstaFees[i] = (_amounts[i] * _BPS) / (10 ** 4);
         }
         return InstaFees;
+    }
+
+    function bubbleSort(address[] memory _tokens, uint256[] memory _amounts) internal pure returns (address[] memory, uint256[] memory) {
+        for (uint256 i = 0; i < _tokens.length - 1; i++) {
+            for( uint256 j = 0; j < _tokens.length - i - 1 ; j++) {
+                if(_tokens[j] > _tokens[j+1]) {
+                    (_tokens[j], _tokens[j+1], _amounts[j], _amounts[j+1]) = (_tokens[j+1], _tokens[j], _amounts[j+1], _amounts[j]);
+                }
+            }
+        }
+        return (_tokens, _amounts);
     }
 }

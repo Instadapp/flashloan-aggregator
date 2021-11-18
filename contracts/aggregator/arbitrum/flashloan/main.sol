@@ -15,7 +15,7 @@ import {
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
-contract FlashResolver is Helper {
+contract FlashAggregatorArbitrum is Helper {
     using SafeERC20 for IERC20;
 
     event LogFlashLoan(
@@ -44,20 +44,19 @@ contract FlashResolver is Helper {
             _data,
             (address, bytes)
         );
-        uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(1));
+        uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(5));
 
         safeTransfer(tokens_, _amounts, sender_);
         InstaFlashReceiverInterface(sender_).executeOperation(tokens_, _amounts, InstaFees_, sender_, data_);
         
         uint[] memory finBals = calculateBalances(tokens_, address(this));
-        require(validate(iniBals_, finBals, InstaFees_) == true, "amount-paid-less");
+        validateFlashloan(iniBals_, finBals, InstaFees_);
 
         safeTransferWithFee(tokens_, _amounts, _fees, balancerLendingAddr);
     }
 
     function routeBalancer(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(msg.sender, _data);
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         uint256 length_ = _tokens.length;
         IERC20[] memory tokens_ = new IERC20[](length_);
         for(uint256 i = 0 ; i < length_ ; i++) {
@@ -73,8 +72,25 @@ contract FlashResolver is Helper {
         bytes calldata _data
     ) external {
 
+        require(_tokens.length == _amounts.length, "array-lengths-not-same");
+
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
+
         if (_route == 1) {
+            require(false, "this route is only for mainnet, polygon and avalanche");	
+        } else if (_route == 2) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 3) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 4) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
+        } else if (_route == 6) {
+            require(false, "this route is only for mainnet");
+        } else if (_route == 7) {
+            require(false, "this route is only for mainnet and polygon");
         } else {
             require(false, "route-does-not-exist");
         }
@@ -85,9 +101,14 @@ contract FlashResolver is Helper {
             _amounts
         );
     }
+
+    function getRoutes() public pure returns (uint16[] memory routes_) {
+        routes_ = new uint16[](1);
+        routes_[0] = 5;
+    }
 }
 
-contract InstaFlashloanAggregatorArbitrum is FlashResolver {
+contract InstaFlashloanAggregatorArbitrum is FlashAggregatorArbitrum {
 
     // constructor() {
     //     TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);
