@@ -9,10 +9,15 @@ import {
     IAaveLending,
     IERC3156FlashLender, 
     Comptroller,
-    IBalancerLending
+    IBalancerLending,
+    IWeth
 } from "./interfaces.sol";
 
 contract Variables {
+
+    bytes32 internal dataHash;
+    // if 1 then can enter flashlaon, if 2 then callback
+    uint internal status = 1;
 
     // IndexInterface public constant instaIndex = IndexInterface(address(0)); // TODO: update at the time of deployment
     // ListInterface public immutable instaList = ListInterface(address(0)); // TODO: update at the time of deployment
@@ -36,6 +41,7 @@ contract Variables {
     uint256 public constant daiBorrowAmount = 500000000000000000000000000;
 
     address public constant wEthToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    IWeth public constant wEth = IWeth(wEthToken);
     address public constant cEthToken = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
     uint256 public constant wethBorrowAmountPercentage = 80;
 
