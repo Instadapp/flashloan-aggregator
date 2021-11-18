@@ -36,7 +36,7 @@ contract FlashAggregatorAvalanche is Helper {
         uint256[] calldata _premiums,
         address _initiator,
         bytes calldata _data
-    ) external returns (bool) {
+    ) external verifyDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
 
@@ -64,6 +64,7 @@ contract FlashAggregatorAvalanche is Helper {
         for (uint i = 0; i < length_; i++) {
             _modes[i]=0;
         }
+        dataHash = bytes32(keccak256(data_));
         aaveLending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
     }
 
@@ -71,8 +72,9 @@ contract FlashAggregatorAvalanche is Helper {
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
-        bytes calldata _data
-    ) external {
+        bytes calldata _data,
+        bytes calldata
+    ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 

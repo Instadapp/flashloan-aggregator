@@ -36,7 +36,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256[] calldata _premiums,
         address _initiator,
         bytes calldata _data
-    ) external returns (bool) {
+    ) external verifyDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
 
@@ -62,7 +62,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256[] memory _amounts,
         uint256[] memory _fees,
         bytes memory _data
-    ) external {
+    ) external verifyDataHash(_data) {
         require(msg.sender == balancerLendingAddr, "not-aave-sender");
 
         (uint route_, address[] memory tokens_, uint256[] memory amounts_, address sender_, bytes memory data_) = abi.decode(
@@ -103,6 +103,7 @@ contract FlashAggregatorPolygon is Helper {
         for (uint i = 0; i < length_; i++) {
             _modes[i]=0;
         }
+        dataHash = bytes32(keccak256(data_));
         aaveLending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
     }
 
@@ -113,6 +114,7 @@ contract FlashAggregatorPolygon is Helper {
             tokens_[i] = IERC20(_tokens[i]);
         }
         bytes memory data_ = abi.encode(5, _tokens, _amounts, msg.sender, _data);
+        dataHash = bytes32(keccak256(data_));
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
     }
     
@@ -122,6 +124,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256[] memory wethAmountList_ = new uint256[](1);
         wethTokenList_[0] = IERC20(wEthToken);
         wethAmountList_[0] = getWEthBorrowAmount();
+        dataHash = bytes32(keccak256(data_));
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), wethTokenList_, wethAmountList_, data_);
     }
 
@@ -129,8 +132,9 @@ contract FlashAggregatorPolygon is Helper {
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
-        bytes calldata _data
-    ) external {
+        bytes calldata _data,
+        bytes calldata
+    ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 

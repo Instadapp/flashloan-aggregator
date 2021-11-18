@@ -10,6 +10,10 @@ import {
 
 contract Variables {
 
+    bytes32 internal dataHash;
+    // if 1 then can enter flashlaon, if 2 then callback
+    uint internal status = 1;
+
     // IndexInterface public constant instaIndex = IndexInterface(address(0)); // TODO: update at the time of deployment
     // ListInterface public immutable instaList = ListInterface(address(0)); // TODO: update at the time of deployment
 

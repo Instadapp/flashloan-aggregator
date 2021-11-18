@@ -29,7 +29,7 @@ contract FlashAggregatorArbitrum is Helper {
         uint256[] memory _amounts,
         uint256[] memory _fees,
         bytes memory _data
-    ) external {
+    ) external verifyDataHash(_data) {
         require(msg.sender == balancerLendingAddr, "not-aave-sender");
 
         uint256 length_ = _tokens.length;
@@ -62,6 +62,7 @@ contract FlashAggregatorArbitrum is Helper {
         for(uint256 i = 0 ; i < length_ ; i++) {
             tokens_[i] = IERC20(_tokens[i]);
         }
+        dataHash = bytes32(keccak256(data_));
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
     }
 
@@ -69,8 +70,9 @@ contract FlashAggregatorArbitrum is Helper {
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
-        bytes calldata _data
-    ) external {
+        bytes calldata _data,
+        bytes calldata
+    ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 

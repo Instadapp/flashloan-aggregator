@@ -53,7 +53,7 @@ contract FlashAggregator is Setups {
         uint256[] calldata _premiums,
         address _initiator,
         bytes calldata _data
-    ) external verityDataHash(_data) returns (bool) {
+    ) external verifyDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
 
@@ -80,7 +80,7 @@ contract FlashAggregator is Setups {
         uint256 _amount,
         uint256 _fee,
         bytes calldata _data
-    ) external verityDataHash(_data) returns (bytes32) {
+    ) external verifyDataHash(_data) returns (bytes32) {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == makerLendingAddr, "not-maker-sender");
 
@@ -129,9 +129,9 @@ contract FlashAggregator is Setups {
         uint256[] memory _amounts,
         uint256[] memory _fees,
         bytes memory _data
-    ) external verityDataHash(_data) {
+    ) external verifyDataHash(_data) {
         require(msg.sender == balancerLendingAddr, "not-aave-sender");
-        require(bytes32(keccak256(_data)) == dataHash, "invalid-data-hash");
+
         (uint route_, address[] memory tokens_, uint256[] memory amounts_, address sender_, bytes memory data_) = abi.decode(
             _data,
             (uint, address[], uint256[], address, bytes)

@@ -108,4 +108,20 @@ contract Helper is Variables {
         }
         return (_tokens, _amounts);
     }
+
+    modifier verifyDataHash(bytes memory data_) {
+        bytes32 dataHash_ = keccak256(data_);
+        require(dataHash_ == dataHash && dataHash_ != bytes32(0), "invalid-data-hash");
+        require(status == 2, "already-entered");
+        dataHash = bytes32(0);
+        _;
+        status = 1;
+    }
+
+    modifier reentrancy {
+        require(status == 1, "already-entered");
+        status = 2;
+        _;
+        require(status == 1, "already-entered");
+    }
 }

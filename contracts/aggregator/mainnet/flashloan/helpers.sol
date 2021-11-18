@@ -222,7 +222,7 @@ contract Helper is Variables {
         return (amount_ * wethBorrowAmountPercentage) / 100;
     }
 
-    modifier verityDataHash(bytes memory data_) {
+    modifier verifyDataHash(bytes memory data_) {
         bytes32 dataHash_ = keccak256(data_);
         require(dataHash_ == dataHash && dataHash_ != bytes32(0), "invalid-data-hash");
         require(status == 2, "already-entered");
