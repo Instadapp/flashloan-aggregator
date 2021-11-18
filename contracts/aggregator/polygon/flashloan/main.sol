@@ -47,7 +47,11 @@ contract FlashAggregatorPolygon is Helper {
             (address, bytes)
         );
         uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(1));
-        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(_assets, _amounts);
+
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = _assets;
+        instaLoanVariables_._amounts = _amounts;
+
         safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
@@ -73,7 +77,9 @@ contract FlashAggregatorPolygon is Helper {
         uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
         uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
-        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(tokens_, amounts_);
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = tokens_;
+        instaLoanVariables_._amounts = amounts_;
 
         if (route_ == 5) {
             safeTransfer(instaLoanVariables_, sender_);

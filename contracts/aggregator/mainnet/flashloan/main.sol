@@ -59,7 +59,10 @@ contract FlashAggregator is Setups {
             (address, bytes)
         );
         uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(1));
-        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(_assets, _amounts);
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = _assets;
+        instaLoanVariables_._amounts = _amounts;
+
         safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
@@ -89,7 +92,9 @@ contract FlashAggregator is Setups {
 
         uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
-        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(tokens_, amounts_);
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = tokens_;
+        instaLoanVariables_._amounts = amounts_;
 
         if (route_ == 2) {
             safeTransfer(instaLoanVariables_, sender_);
@@ -123,10 +128,10 @@ contract FlashAggregator is Setups {
     }
 
     function receiveFlashLoan(
-        IERC20[] memory,
-        uint256[] memory _amounts,
-        uint256[] memory _fees,
-        bytes memory _data
+        IERC20[] calldata,
+        uint256[] calldata _amounts,
+        uint256[] calldata _fees,
+        bytes calldata _data
     ) external verifyDataHash(_data) {
         require(msg.sender == balancerLendingAddr, "not-aave-sender");
 
@@ -137,7 +142,9 @@ contract FlashAggregator is Setups {
         uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
         uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
-        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(tokens_, amounts_);
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = tokens_;
+        instaLoanVariables_._amounts = amounts_;
 
         if (route_ == 5) {
             safeTransfer(instaLoanVariables_, sender_);

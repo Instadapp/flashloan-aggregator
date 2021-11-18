@@ -25,10 +25,10 @@ contract FlashAggregatorArbitrum is Helper {
     );    
 
     function receiveFlashLoan(
-        IERC20[] memory _tokens,
-        uint256[] memory _amounts,
-        uint256[] memory _fees,
-        bytes memory _data
+        IERC20[] calldata _tokens,
+        uint256[] calldata _amounts,
+        uint256[] calldata _fees,
+        bytes calldata _data
     ) external verifyDataHash(_data) {
         require(msg.sender == balancerLendingAddr, "not-aave-sender");
 
@@ -46,10 +46,12 @@ contract FlashAggregatorArbitrum is Helper {
         );
         uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(5));
 
-        FlashloanVariables memory instaLoanVariables_ = FlashloanVariables(tokens_, _amounts);
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = tokens_;
+        instaLoanVariables_._amounts = _amounts;
 
         safeTransfer(instaLoanVariables_, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(tokens_, _amounts, InstaFees_, sender_, data_);
+        InstaFlashReceiverInterface(sender_).executeOperation(instaLoanVariables_._tokens, instaLoanVariables_._amounts, InstaFees_, sender_, data_);
         
         uint[] memory finBals = calculateBalances(tokens_, address(this));
         validateFlashloan(iniBals_, finBals, InstaFees_);
