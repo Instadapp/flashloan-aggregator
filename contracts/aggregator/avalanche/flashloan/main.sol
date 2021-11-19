@@ -24,42 +24,35 @@ contract FlashAggregatorAvalanche is Helper {
         address[] tokens,
         uint256[] amounts
     );
-
-    // struct ExecuteOperationVariables {
-    //     uint256 _length;
-    //     IERC20[] _tokenContracts;
-    // }
     
     function executeOperation(
-        address[] calldata _assets,
-        uint256[] calldata _amounts,
-        uint256[] calldata _premiums,
+        address[] memory _assets,
+        uint256[] memory _amounts,
+        uint256[] memory _premiums,
         address _initiator,
-        bytes calldata _data
+        bytes memory _data
     ) external verifyDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
 
-        uint[] memory iniBals_ = calculateBalances(_assets, address(this));
+        FlashloanVariables memory instaLoanVariables_;
 
         (address sender_, bytes memory data_) = abi.decode(
             _data,
             (address, bytes)
         );
-        uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(1));
 
-        {
-            FlashloanVariables memory instaLoanVariables_;
-            instaLoanVariables_._tokens = _assets;
-            instaLoanVariables_._amounts = _amounts;
-            
-            safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
-            safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(instaLoanVariables_._tokens, instaLoanVariables_._amounts, InstaFees_, sender_, data_);
-        }
+        instaLoanVariables_._tokens = _assets;
+        instaLoanVariables_._amounts = _amounts;
+        instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(1));
+        instaLoanVariables_._iniBals = calculateBalances(_assets, address(this));
 
-        uint[] memory finBals = calculateBalances(_assets, address(this));
-        validateFlashloan(iniBals_, finBals, InstaFees_);
+        safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
+        safeTransfer(instaLoanVariables_, sender_);
+        InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+
+        instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
+        validateFlashloan(instaLoanVariables_);
 
         return true;
     }

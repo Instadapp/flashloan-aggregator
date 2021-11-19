@@ -43,32 +43,33 @@ contract FlashAggregator is Setups {
     );
     
     function executeOperation(
-        address[] calldata _assets,
-        uint256[] calldata _amounts,
-        uint256[] calldata _premiums,
+        address[] memory _assets,
+        uint256[] memory _amounts,
+        uint256[] memory _premiums,
         address _initiator,
-        bytes calldata _data
+        bytes memory _data
     ) external verifyDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == aaveLendingAddr, "not-aave-sender");
 
-        uint[] memory iniBals_ = calculateBalances(_assets, address(this));
+        FlashloanVariables memory instaLoanVariables_;
 
         (address sender_, bytes memory data_) = abi.decode(
             _data,
             (address, bytes)
         );
-        uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(1));
-        FlashloanVariables memory instaLoanVariables_;
+
         instaLoanVariables_._tokens = _assets;
         instaLoanVariables_._amounts = _amounts;
+        instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(1));
+        instaLoanVariables_._iniBals = calculateBalances(_assets, address(this));
 
         safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, InstaFees_, sender_, data_);
+        InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
 
-        uint[] memory finBals = calculateBalances(_assets, address(this));
-        validateFlashloan(iniBals_, finBals, InstaFees_);
+        instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
+        validateFlashloan(instaLoanVariables_);
 
         return true;
     }
@@ -83,22 +84,21 @@ contract FlashAggregator is Setups {
         require(_initiator == address(this), "not-same-sender");
         require(msg.sender == makerLendingAddr, "not-maker-sender");
 
+        FlashloanVariables memory instaLoanVariables_;
+
         (uint route_, address[] memory tokens_, uint256[] memory amounts_, address sender_, bytes memory data_) = abi.decode(
             _data,
             (uint, address[], uint256[], address, bytes)
         );
 
-        uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
-
-        uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
-
-        FlashloanVariables memory instaLoanVariables_;
         instaLoanVariables_._tokens = tokens_;
         instaLoanVariables_._amounts = amounts_;
+        instaLoanVariables_._iniBals = calculateBalances(tokens_, address(this));
+        instaLoanVariables_._instaFees = calculateFees(amounts_, calculateFeeBPS(route_));
 
         if (route_ == 2) {
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
+            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
         } else if (route_ == 3 || route_ == 4) {
             require(_fee == 0, "flash-DAI-fee-not-0");
             if (route_ == 3) {
@@ -109,7 +109,7 @@ contract FlashAggregator is Setups {
                 aaveBorrow(tokens_, amounts_);
             }
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
+            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
             if (route_ == 3) {
                 compoundPayback(tokens_, amounts_);
                 compoundWithdraw(daiToken, _amount);
@@ -121,36 +121,37 @@ contract FlashAggregator is Setups {
             require(false, "wrong-route");
         }
 
-        uint[] memory finBals_ = calculateBalances(tokens_, address(this));
-        validateFlashloan(iniBals_, finBals_, InstaFees_);
+        instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
+        validateFlashloan(instaLoanVariables_);
 
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
 
     function receiveFlashLoan(
-        IERC20[] calldata,
-        uint256[] calldata _amounts,
-        uint256[] calldata _fees,
-        bytes calldata _data
+        IERC20[] memory,
+        uint256[] memory _amounts,
+        uint256[] memory _fees,
+        bytes memory _data
     ) external verifyDataHash(_data) {
         require(msg.sender == balancerLendingAddr, "not-aave-sender");
+
+        FlashloanVariables memory instaLoanVariables_;
 
         (uint route_, address[] memory tokens_, uint256[] memory amounts_, address sender_, bytes memory data_) = abi.decode(
             _data,
             (uint, address[], uint256[], address, bytes)
         );
-        uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
-        uint256[] memory InstaFees_ = calculateFees(amounts_, calculateFeeBPS(route_));
 
-        FlashloanVariables memory instaLoanVariables_;
         instaLoanVariables_._tokens = tokens_;
         instaLoanVariables_._amounts = amounts_;
+        instaLoanVariables_._iniBals = calculateBalances(tokens_, address(this));
+        instaLoanVariables_._instaFees = calculateFees(amounts_, calculateFeeBPS(route_));
 
         if (route_ == 5) {
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
-            uint[] memory finBals = calculateBalances(tokens_, address(this));
-            validateFlashloan(iniBals_, finBals, InstaFees_);
+            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
+            validateFlashloan(instaLoanVariables_);
             safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else if (route_ == 6 || route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
@@ -162,7 +163,7 @@ contract FlashAggregator is Setups {
                 aaveBorrow(tokens_, amounts_);
             }
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, InstaFees_, sender_, data_);
+            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
             if (route_ == 6) {
                 compoundPayback(tokens_, amounts_);
                 compoundWithdraw(chainToken, _amounts[0]);
@@ -170,11 +171,12 @@ contract FlashAggregator is Setups {
                 aavePayback(tokens_, amounts_);
                 aaveWithdraw(wEthToken, _amounts[0]);
             }
-            uint[] memory finBals = calculateBalances(tokens_, address(this));
-            validateFlashloan(iniBals_, finBals, InstaFees_);
-            address[] memory wethTokenAddrList_ = new address[](1);
-            wethTokenAddrList_[0] = wEthToken;
-            safeTransferWithFee(FlashloanVariables(wethTokenAddrList_, _amounts), _fees, balancerLendingAddr);
+            instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
+            validateFlashloan(instaLoanVariables_);
+            instaLoanVariables_._amounts = _amounts;
+            instaLoanVariables_._tokens = new address[](1);
+            instaLoanVariables_._tokens[0] = wEthToken;
+            safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else {
             require(false, "wrong-route");
         }

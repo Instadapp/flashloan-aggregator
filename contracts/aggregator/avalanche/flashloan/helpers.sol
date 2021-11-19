@@ -60,12 +60,10 @@ contract Helper is Variables {
     }
 
     function validateFlashloan(
-        uint256[] memory _iniBals,
-        uint256[] memory _finBals,
-        uint256[] memory _fees
+        FlashloanVariables memory _instaLoanVariables
     ) internal pure {
-        for (uint i = 0; i < _iniBals.length; i++) {
-            require(_iniBals[i] + _fees[i] <= _finBals[i], "amount-paid-less");
+        for (uint i = 0; i < _instaLoanVariables._iniBals.length; i++) {
+            require(_instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i] <= _instaLoanVariables._finBals[i], "amount-paid-less");
         }
     }
 

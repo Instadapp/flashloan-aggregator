@@ -25,6 +25,9 @@ contract Variables {
     struct FlashloanVariables {
         address[] _tokens;
         uint256[] _amounts;
+        uint256[] _iniBals;
+        uint256[] _finBals;
+        uint256[] _instaFees;
     }
 
     address public constant aaveLendingAddr = 0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;

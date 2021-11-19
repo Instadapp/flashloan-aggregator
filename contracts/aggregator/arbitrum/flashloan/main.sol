@@ -25,36 +25,35 @@ contract FlashAggregatorArbitrum is Helper {
     );    
 
     function receiveFlashLoan(
-        IERC20[] calldata _tokens,
-        uint256[] calldata _amounts,
-        uint256[] calldata _fees,
-        bytes calldata _data
+        IERC20[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256[] memory _fees,
+        bytes memory _data
     ) external verifyDataHash(_data) {
         require(msg.sender == balancerLendingAddr, "not-aave-sender");
 
-        uint256 length_ = _tokens.length;
-        address[] memory tokens_ = new address[](length_);
-        for(uint256 i = 0; i < length_ ; i++) {
-            tokens_[i] = address(_tokens[i]);
-        }
+        FlashloanVariables memory instaLoanVariables_;
 
-        uint[] memory iniBals_ = calculateBalances(tokens_, address(this));
+        uint256 length_ = _tokens.length;
+        instaLoanVariables_._tokens = new address[](length_);
+        for(uint256 i = 0; i < length_ ; i++) {
+            instaLoanVariables_._tokens[i] = address(_tokens[i]);
+        }
 
         (address sender_, bytes memory data_) = abi.decode(
             _data,
             (address, bytes)
         );
-        uint256[] memory InstaFees_ = calculateFees(_amounts, calculateFeeBPS(5));
 
-        FlashloanVariables memory instaLoanVariables_;
-        instaLoanVariables_._tokens = tokens_;
         instaLoanVariables_._amounts = _amounts;
+        instaLoanVariables_._iniBals = calculateBalances(instaLoanVariables_._tokens, address(this));
+        instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(5));
 
         safeTransfer(instaLoanVariables_, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(instaLoanVariables_._tokens, instaLoanVariables_._amounts, InstaFees_, sender_, data_);
+        InstaFlashReceiverInterface(sender_).executeOperation(instaLoanVariables_._tokens, _amounts, instaLoanVariables_._instaFees, sender_, data_);
         
-        uint[] memory finBals = calculateBalances(tokens_, address(this));
-        validateFlashloan(iniBals_, finBals, InstaFees_);
+        instaLoanVariables_._finBals = calculateBalances(instaLoanVariables_._tokens, address(this));
+        validateFlashloan(instaLoanVariables_);
 
         safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
     }
