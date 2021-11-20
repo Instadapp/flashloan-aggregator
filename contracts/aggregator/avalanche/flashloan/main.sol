@@ -50,6 +50,12 @@ contract FlashAggregatorAvalanche is Helper {
         safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
         InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+        
+        if (checkIfDsa(msg.sender)) {
+            InstaFlashReceiverInterface(sender_).cast(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+        } else {
+            InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+        }
 
         instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
         validateFlashloan(instaLoanVariables_);

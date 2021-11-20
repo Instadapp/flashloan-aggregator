@@ -33,7 +33,8 @@ contract Variables {
     address public constant balancerLendingAddr = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     IBalancerLending public constant balancerLending = IBalancerLending(balancerLendingAddr);
 
-    address public constant treasuryAddr = address(0); // TODO: need to update this
+    address public constant treasuryAddr = 0xf81AB897E3940E95d749fF2e1F8D38f9b7cBe3cf;
+    address public constant instaListAddr = 0x3565F6057b7fFE36984779A507fC87b31EFb0f09;
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 }

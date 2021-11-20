@@ -66,7 +66,12 @@ contract FlashAggregator is Setups {
 
         safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+
+        if (checkIfDsa(msg.sender)) {
+            InstaFlashReceiverInterface(sender_).cast(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+        } else {
+            InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+        }
 
         instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
         validateFlashloan(instaLoanVariables_);
@@ -98,7 +103,13 @@ contract FlashAggregator is Setups {
 
         if (route_ == 2) {
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+
+            if (checkIfDsa(msg.sender)) {
+                InstaFlashReceiverInterface(sender_).cast(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            }
+            
         } else if (route_ == 3 || route_ == 4) {
             require(_fee == 0, "flash-DAI-fee-not-0");
             if (route_ == 3) {
@@ -109,7 +120,13 @@ contract FlashAggregator is Setups {
                 aaveBorrow(tokens_, amounts_);
             }
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+
+            if (checkIfDsa(msg.sender)) {
+                InstaFlashReceiverInterface(sender_).cast(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            }
+
             if (route_ == 3) {
                 compoundPayback(tokens_, amounts_);
                 compoundWithdraw(daiToken, _amount);
@@ -149,7 +166,13 @@ contract FlashAggregator is Setups {
 
         if (route_ == 5) {
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+
+            if (checkIfDsa(msg.sender)) {
+                InstaFlashReceiverInterface(sender_).cast(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            }
+
             instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
             validateFlashloan(instaLoanVariables_);
             safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
@@ -163,7 +186,13 @@ contract FlashAggregator is Setups {
                 aaveBorrow(tokens_, amounts_);
             }
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+
+            if (checkIfDsa(msg.sender)) {
+                InstaFlashReceiverInterface(sender_).cast(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            }
+
             if (route_ == 6) {
                 compoundPayback(tokens_, amounts_);
                 compoundWithdraw(chainToken, _amounts[0]);

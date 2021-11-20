@@ -160,6 +160,10 @@ contract Helper is Variables {
         return (amount_ * wethBorrowAmountPercentage) / 100;
     }
 
+    function checkIfDsa(address _account) internal view returns (bool) {
+        return ListInterface(instaListAddr).accountID(_account) > 0;
+    }
+
      modifier verifyDataHash(bytes memory data_) {
         bytes32 dataHash_ = keccak256(data_);
         require(dataHash_ == dataHash && dataHash_ != bytes32(0), "invalid-data-hash");

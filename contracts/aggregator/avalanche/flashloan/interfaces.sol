@@ -10,6 +10,14 @@ interface InstaFlashReceiverInterface {
         address initiator,
         bytes calldata _data
     ) external returns (bool);
+
+    function cast(
+        address[] calldata assets,
+        uint256[] calldata amounts,
+        uint256[] calldata premiums,
+        address initiator,
+        bytes calldata _data
+    ) external returns (bool);
 }
 
 interface IndexInterface {

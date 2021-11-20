@@ -57,6 +57,7 @@ contract Variables {
     Comptroller public constant troller = Comptroller(comptrollerAddr);
 
     address public constant treasuryAddr = address(0); // TODO: need to update this
+    address public constant instaListAddr = 0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb;
 
     mapping(address => address) public tokenToCToken;
 
