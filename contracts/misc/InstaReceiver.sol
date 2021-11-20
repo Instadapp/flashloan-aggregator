@@ -6,7 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "hardhat/console.sol";
 
 interface IFlashLoan {
-    function flashLoan(address[] memory tokens_, uint[] memory amts_,uint256 route, bytes calldata data_) external;
+    function flashLoan(address[] memory tokens_, uint[] memory amts_,uint256 route, bytes calldata data_, bytes calldata instaData_) external;
 }
 
 contract InstaFlashReceiver {
@@ -15,7 +15,8 @@ contract InstaFlashReceiver {
     IFlashLoan internal immutable flashloan; // TODO: Contract/Protocol address to get flashloan
 
     function flashBorrow(address[] calldata tokens_, uint[] calldata amts_, uint256 route, bytes calldata data_) public {
-        flashloan.flashLoan(tokens_, amts_, route, data_);
+        bytes memory _instaData;
+        flashloan.flashLoan(tokens_, amts_, route, data_, _instaData);
     }
 
     // Function which

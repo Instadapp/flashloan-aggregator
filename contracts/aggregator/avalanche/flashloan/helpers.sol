@@ -21,30 +21,28 @@ contract Helper is Variables {
 
     // Helpers
     function safeApprove(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
+        FlashloanVariables memory _instaLoanVariables,
         uint256[] memory _fees,
-        address receiver
+        address _receiver
     ) internal {
-        require(_tokens.length == _amounts.length, "Lengths of parameters not same");
-        require(_tokens.length == _fees.length, "Lengths of parameters not same");
-        uint256 length = _tokens.length;
-        for (uint i = 0; i < length; i++) {
-            IERC20 token = IERC20(_tokens[i]);
-            token.safeApprove(receiver, _amounts[i] + _fees[i]);
+        require(_instaLoanVariables._tokens.length == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
+        require(_instaLoanVariables._tokens.length == _fees.length, "Lengths of parameters not same");
+        uint256 length_ = _instaLoanVariables._tokens.length;
+        for (uint i = 0; i < length_; i++) {
+            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
+            token.safeApprove(_receiver, _instaLoanVariables._amounts[i] + _fees[i]);
         }
     }
 
     function safeTransfer(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
+        FlashloanVariables memory _instaLoanVariables,
         address _receiver
     ) internal {
-        require(_tokens.length == _amounts.length, "Lengths of parameters not same");
-        uint256 length_ = _tokens.length;
+        require(_instaLoanVariables._tokens.length == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
+        uint256 length_ = _instaLoanVariables._tokens.length;
         for (uint i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_tokens[i]);
-            token.safeTransfer(_receiver, _amounts[i]);
+            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
+            token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
         }
     }
 
@@ -62,12 +60,10 @@ contract Helper is Variables {
     }
 
     function validateFlashloan(
-        uint256[] memory _iniBals,
-        uint256[] memory _finBals,
-        uint256[] memory _fees
+        FlashloanVariables memory _instaLoanVariables
     ) internal pure {
-        for (uint i = 0; i < _iniBals.length; i++) {
-            require(_iniBals[i] + _fees[i] <= _finBals[i], "amount-paid-less");
+        for (uint i = 0; i < _instaLoanVariables._iniBals.length; i++) {
+            require(_instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i] <= _instaLoanVariables._finBals[i], "amount-paid-less");
         }
     }
 
@@ -107,5 +103,21 @@ contract Helper is Variables {
             }
         }
         return (_tokens, _amounts);
+    }
+
+    modifier verifyDataHash(bytes memory data_) {
+        bytes32 dataHash_ = keccak256(data_);
+        require(dataHash_ == dataHash && dataHash_ != bytes32(0), "invalid-data-hash");
+        require(status == 2, "already-entered");
+        dataHash = bytes32(0);
+        _;
+        status = 1;
+    }
+
+    modifier reentrancy {
+        require(status == 1, "already-entered");
+        status = 2;
+        _;
+        require(status == 1, "already-entered");
     }
 }
