@@ -294,6 +294,18 @@ contract FlashAggregator is Setups {
         routes_[5] = 6;
         routes_[6] = 7;
     }
+
+    function transferFeeToTreasury(address[] memory _tokens, uint256[] memory _amounts) public {
+        require(_tokens.length == _amounts.length, "length-not-same");
+        for(uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            if (_amounts[i] == type(uint).max) {
+                token_.transfer(treasuryAddr, token_.balanceOf(address(this)));
+            } else {
+                token_.transfer(treasuryAddr, _amounts[i]);
+            }
+        }
+    }
 }
 
 contract InstaFlashloanAggregator is FlashAggregator {

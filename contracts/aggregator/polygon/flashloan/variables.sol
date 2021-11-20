@@ -40,5 +40,7 @@ contract Variables {
     address public constant wEthToken = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
     uint256 public constant wethBorrowAmountPercentage = 80;
 
+    address public constant treasuryAddr = address(0); // TODO: need to update this
+
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 }

@@ -110,6 +110,18 @@ contract FlashAggregatorAvalanche is Helper {
         routes_ = new uint16[](1);
         routes_[0] = 1;
     }
+
+    function transferFeeToTreasury(address[] memory _tokens, uint256[] memory _amounts) public {
+        require(_tokens.length == _amounts.length, "length-not-same");
+        for(uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            if (_amounts[i] == type(uint).max) {
+                token_.transfer(treasuryAddr, token_.balanceOf(address(this)));
+            } else {
+                token_.transfer(treasuryAddr, _amounts[i]);
+            }
+        }
+    }
 }
 
 contract InstaFlashloanAggregatorAvalanche is FlashAggregatorAvalanche {

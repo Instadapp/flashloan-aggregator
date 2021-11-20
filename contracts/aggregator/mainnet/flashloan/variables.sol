@@ -56,6 +56,8 @@ contract Variables {
     address public constant comptrollerAddr = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
     Comptroller public constant troller = Comptroller(comptrollerAddr);
 
+    address public constant treasuryAddr = address(0); // TODO: need to update this
+
     mapping(address => address) public tokenToCToken;
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
