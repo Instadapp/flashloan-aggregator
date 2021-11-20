@@ -50,7 +50,6 @@ contract FlashAggregatorArbitrum is Helper {
         instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(5));
 
         safeTransfer(instaLoanVariables_, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(instaLoanVariables_._tokens, _amounts, instaLoanVariables_._instaFees, sender_, data_);
 
         if (checkIfDsa(msg.sender)) {
             InstaFlashReceiverInterface(sender_).cast(instaLoanVariables_._tokens, _amounts, instaLoanVariables_._instaFees, sender_, data_);
