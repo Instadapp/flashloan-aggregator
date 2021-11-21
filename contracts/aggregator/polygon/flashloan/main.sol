@@ -212,9 +212,9 @@ contract FlashAggregatorPolygon is Helper {
         for(uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
             if (_amounts[i] == type(uint).max) {
-                token_.transfer(treasuryAddr, token_.balanceOf(address(this)));
+                token_.safeTransfer(treasuryAddr, token_.balanceOf(address(this)));
             } else {
-                token_.transfer(treasuryAddr, _amounts[i]);
+                token_.safeTransfer(treasuryAddr, _amounts[i]);
             }
         }
     }
