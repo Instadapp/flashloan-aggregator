@@ -2,6 +2,11 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
+/**
+ * @title Flashloan.
+ * @dev Flashloan aggregator.
+ */
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -26,6 +31,15 @@ contract FlashAggregatorAvalanche is Helper {
         uint256[] amounts
     );
     
+    /**
+     * @dev Callback function for aave flashloan.
+     * @notice Callback function for aave flashloan.
+     * @param _assets list of asset addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets for flashloan.
+     * @param _premiums list of premiums/fees for the corresponding addresses for flashloan.
+     * @param _initiator initiator address for flashloan.
+     * @param _data extra data passed.
+    */
     function executeOperation(
         address[] memory _assets,
         uint256[] memory _amounts,
@@ -63,6 +77,13 @@ contract FlashAggregatorAvalanche is Helper {
         return true;
     }
 
+    /**
+     * @dev Middle function for route 1.
+     * @notice Middle function for route 1.
+     * @param _tokens list of token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+     * @param _data extra data passed.
+    */
     function routeAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(msg.sender, _data);
         uint length_ = _tokens.length;
@@ -74,12 +95,20 @@ contract FlashAggregatorAvalanche is Helper {
         aaveLending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
     }
 
+    /**
+     * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _route route for flashloan.
+     * @param _data extra data passed.
+    */
     function flashLoan(	
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata
+        bytes calldata // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
@@ -122,11 +151,21 @@ contract FlashAggregatorAvalanche is Helper {
         );
     }
 
+    /**
+     * @dev Function to get the list of available routes.
+     * @notice Function to get the list of available routes.
+    */
     function getRoutes() public pure returns (uint16[] memory routes_) {
         routes_ = new uint16[](1);
         routes_[0] = 1;
     }
 
+    /**
+     * @dev Function to transfer fee to the treasury.
+     * @notice Function to transfer fee to the treasury.
+     * @param _tokens token addresses for transferring fee to treasury.
+     * @param _amounts list of amounts for the corresponding tokens. If amount == type(uint).max, transfer the whole amount of that token this contract has.
+    */
     function transferFeeToTreasury(address[] memory _tokens, uint256[] memory _amounts) public {
         require(_tokens.length == _amounts.length, "length-not-same");
         for(uint256 i = 0; i < _tokens.length; i++) {
@@ -141,11 +180,5 @@ contract FlashAggregatorAvalanche is Helper {
 }
 
 contract InstaFlashloanAggregatorAvalanche is FlashAggregatorAvalanche {
-
-    // constructor() {
-    //     TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);
-    // }
-
     receive() external payable {}
-
 }

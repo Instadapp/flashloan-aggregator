@@ -25,6 +25,13 @@ contract FlashAggregatorArbitrum is Helper {
         uint256[] amounts
     ); 
 
+    /**
+     * @dev Fallback function for balancer flashloan.
+     * @notice Fallback function for balancer flashloan.
+     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+     * @param _fees list of fees for the corresponding addresses for flashloan.
+     * @param _data extra data passed.
+    */
     function receiveFlashLoan(
         IERC20[] memory _tokens,
         uint256[] memory _amounts,
@@ -64,6 +71,13 @@ contract FlashAggregatorArbitrum is Helper {
         safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
     }
 
+    /**
+     * @dev Middle function for route 5.
+     * @notice Middle function for route 5.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _data extra data passed.
+    */
     function routeBalancer(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(msg.sender, _data);
         uint256 length_ = _tokens.length;
@@ -75,12 +89,20 @@ contract FlashAggregatorArbitrum is Helper {
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
     }
 
+    /**
+     * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _route route for flashloan.
+     * @param _data extra data passed.
+    */
     function flashLoan(	
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata
+        bytes calldata // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
@@ -123,11 +145,21 @@ contract FlashAggregatorArbitrum is Helper {
         );
     }
 
+    /**
+     * @dev Function to get the list of available routes.
+     * @notice Function to get the list of available routes.
+    */
     function getRoutes() public pure returns (uint16[] memory routes_) {
         routes_ = new uint16[](1);
         routes_[0] = 5;
     }
 
+    /**
+     * @dev Function to transfer fee to the treasury.
+     * @notice Function to transfer fee to the treasury.
+     * @param _tokens token addresses for transferring fee to treasury.
+     * @param _amounts list of amounts for the corresponding tokens. If amount == type(uint).max, transfer the whole amount of that token this contract has.
+    */
     function transferFeeToTreasury(address[] memory _tokens, uint256[] memory _amounts) public {
         require(_tokens.length == _amounts.length, "length-not-same");
         for(uint256 i = 0; i < _tokens.length; i++) {
@@ -142,11 +174,5 @@ contract FlashAggregatorArbitrum is Helper {
 }
 
 contract InstaFlashloanAggregatorArbitrum is FlashAggregatorArbitrum {
-
-    // constructor() {
-    //     TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);
-    // }
-
     receive() external payable {}
-
 }
