@@ -18,11 +18,12 @@ import {
 contract FlashAggregatorArbitrum is Helper {
     using SafeERC20 for IERC20;
 
-    event LogFlashLoan(
-        address indexed dsa,
+    event LogFlashloan(
+        address indexed account,
+        uint256 indexed route,
         address[] tokens,
         uint256[] amounts
-    );    
+    ); 
 
     function receiveFlashLoan(
         IERC20[] memory _tokens,
@@ -105,8 +106,9 @@ contract FlashAggregatorArbitrum is Helper {
             require(false, "route-does-not-exist");
         }
 
-        emit LogFlashLoan(
+        emit LogFlashloan(
             msg.sender,
+            _route,
             _tokens,
             _amounts
         );

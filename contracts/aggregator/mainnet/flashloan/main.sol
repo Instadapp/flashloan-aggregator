@@ -38,7 +38,7 @@ contract FlashAggregator is Setups {
 
     event LogFlashloan(
         address indexed account,
-        uint256 route,
+        uint256 indexed route,
         address[] tokens,
         uint256[] amounts
     );
