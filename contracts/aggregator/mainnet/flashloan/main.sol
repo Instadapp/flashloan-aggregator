@@ -36,8 +36,9 @@ contract Setups is Helper {
 contract FlashAggregator is Setups {
     using SafeERC20 for IERC20;
 
-    event LogFlashLoan(
-        address indexed dsa,
+    event LogFlashloan(
+        address indexed account,
+        uint256 route,
         address[] tokens,
         uint256[] amounts
     );
@@ -306,8 +307,9 @@ contract FlashAggregator is Setups {
             require(false, "route-does-not-exist");
         }
 
-        emit LogFlashLoan(
+        emit LogFlashloan(
             msg.sender,
+            _route,
             _tokens,
             _amounts
         );
