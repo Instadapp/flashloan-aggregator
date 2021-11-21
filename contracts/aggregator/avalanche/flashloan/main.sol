@@ -105,6 +105,15 @@ contract FlashAggregatorAvalanche is Helper {
             require(false, "route-does-not-exist");
         }
 
+        uint256 length_ = _tokens.length;
+        uint256[] memory amounts_ = new uint256[](length_);
+
+        for(uint256 i = 0; i < length_; i++) {
+            amounts_[i] = type(uint).max;
+        }
+
+        transferFeeToTreasury(_tokens, amounts_);
+
         emit LogFlashloan(
             msg.sender,
             _route,
