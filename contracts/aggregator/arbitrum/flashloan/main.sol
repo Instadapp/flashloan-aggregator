@@ -60,7 +60,7 @@ contract FlashAggregatorArbitrum is Helper {
         safeTransfer(instaLoanVariables_, sender_);
 
         if (checkIfDsa(msg.sender)) {
-            InstaFlashReceiverInterface(sender_).cast(instaLoanVariables_._tokens, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+            Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
         } else {
             InstaFlashReceiverInterface(sender_).executeOperation(instaLoanVariables_._tokens, _amounts, instaLoanVariables_._instaFees, sender_, data_);
         }

@@ -106,7 +106,7 @@ contract Helper is Variables {
     }
 
     function checkIfDsa(address _account) internal view returns (bool) {
-        return ListInterface(instaListAddr).accountID(_account) > 0;
+        return instaList.accountID(_account) > 0;
     }
 
     modifier verifyDataHash(bytes memory data_) {

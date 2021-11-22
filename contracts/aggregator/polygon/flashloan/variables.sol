@@ -33,7 +33,8 @@ contract Variables {
     uint256 public constant wethBorrowAmountPercentage = 80;
 
     address public constant treasuryAddr = 0x6e9d36eaeC63Bc3aD4A47fb0d7826A9922AAfC22;
-    address public constant instaListAddr = 0x839c2D3aDe63DF5b0b8F3E57D5e145057Ab41556;
+    address private constant instaListAddr = 0x839c2D3aDe63DF5b0b8F3E57D5e145057Ab41556;
+    ListInterface public constant instaList = ListInterface(instaListAddr);
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 }

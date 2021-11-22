@@ -51,7 +51,8 @@ contract Variables {
     Comptroller public constant troller = Comptroller(comptrollerAddr);
 
     address public constant treasuryAddr = 0x28849D2b63fA8D361e5fc15cB8aBB13019884d09;
-    address public constant instaListAddr = 0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb;
+    address private constant instaListAddr = 0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb;
+    ListInterface public constant instaList = ListInterface(instaListAddr);
 
     mapping(address => address) public tokenToCToken;
 
