@@ -397,15 +397,6 @@ contract FlashAggregator is Setups {
         } else {
             require(false, "route-does-not-exist");
         }
-
-        uint256 length_ = _tokens.length;
-        uint256[] memory amounts_ = new uint256[](length_);
-
-        for(uint256 i = 0; i < length_; i++) {
-            amounts_[i] = type(uint).max;
-        }
-
-        transferFeeToTreasury(_tokens, amounts_);
         
         emit LogFlashloan(
             msg.sender,
@@ -432,7 +423,7 @@ contract FlashAggregator is Setups {
 
     /**
      * @dev Function to transfer fee to the treasury.
-     * @notice Function to transfer fee to the treasury.
+     * @notice Function to transfer fee to the treasury. Will be called manually.
      * @param _tokens token addresses for transferring fee to treasury.
      * @param _amounts list of amounts for the corresponding tokens. If amount == type(uint).max, transfer the whole amount of that token this contract has.
     */
