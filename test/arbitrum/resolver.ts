@@ -31,11 +31,11 @@ describe("Resolver", function () {
   });
 
   it("Should be able to return routes info", async function () {
-    console.log(await resolver.getRoutesInfo());
+    console.log((await resolver.getRoutesInfo()).toString());
   });
 
   it("Should be able to return the best route for flashloan", async function () {
-    console.log(await resolver.getBestRoutes([USDC, USDT], [Usdc, Usdt]));
+    console.log((await resolver.getBestRoutes([USDC, USDT], [Usdc, Usdt])).toString());
   });
 
   

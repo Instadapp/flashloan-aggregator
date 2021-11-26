@@ -19,13 +19,9 @@ contract Variables {
     // if 1 then can enter flashlaon, if 2 then callback
     uint internal status = 1;
 
-    // IndexInterface public constant instaIndex = IndexInterface(address(0)); // TODO: update at the time of deployment
-    // ListInterface public immutable instaList = ListInterface(address(0)); // TODO: update at the time of deployment
-
-    // address public immutable wchainToken = address(0); // TODO: update at the time of deployment
     address public constant chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    
-    // TokenInterface public wchainContract = TokenInterface(wchainToken);
+    address public constant wEthToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    IWeth public constant wEth = IWeth(wEthToken);
 
     struct FlashloanVariables {
         address[] _tokens;
@@ -48,13 +44,15 @@ contract Variables {
     address public constant cDaiToken = 0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
     uint256 public constant daiBorrowAmount = 500000000000000000000000000;
 
-    address public constant wEthToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    IWeth public constant wEth = IWeth(wEthToken);
     address public constant cEthToken = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
     uint256 public constant wethBorrowAmountPercentage = 80;
 
     address public constant comptrollerAddr = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
     Comptroller public constant troller = Comptroller(comptrollerAddr);
+
+    address public constant treasuryAddr = 0x28849D2b63fA8D361e5fc15cB8aBB13019884d09;
+    address private constant instaListAddr = 0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb;
+    ListInterface public constant instaList = ListInterface(instaListAddr);
 
     mapping(address => address) public tokenToCToken;
 

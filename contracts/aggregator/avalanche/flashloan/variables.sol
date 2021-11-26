@@ -14,14 +14,6 @@ contract Variables {
     // if 1 then can enter flashlaon, if 2 then callback
     uint internal status = 1;
 
-    // IndexInterface public constant instaIndex = IndexInterface(address(0)); // TODO: update at the time of deployment
-    // ListInterface public immutable instaList = ListInterface(address(0)); // TODO: update at the time of deployment
-
-    // address public immutable wchainToken = address(0); // TODO: update at the time of deployment
-    // address public constant chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    
-    // TokenInterface public wchainContract = TokenInterface(wchainToken);
-
     struct FlashloanVariables {
         address[] _tokens;
         uint256[] _amounts;
@@ -32,6 +24,10 @@ contract Variables {
 
     address public constant aaveLendingAddr = 0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
     IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
+
+    address public constant treasuryAddr = 0xE06d0b1752E60687C0EA5ABBe006d3368fdCDCC1; // TODO: need to update this
+    address private constant instaListAddr = 0x9926955e0Dd681Dc303370C52f4Ad0a4dd061687;
+    ListInterface public constant instaList = ListInterface(instaListAddr);
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 }

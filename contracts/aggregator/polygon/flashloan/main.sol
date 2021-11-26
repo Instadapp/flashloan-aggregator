@@ -19,12 +19,22 @@ import {
 contract FlashAggregatorPolygon is Helper {
     using SafeERC20 for IERC20;
 
-    event LogFlashLoan(
-        address indexed dsa,
+    event LogFlashloan(
+        address indexed account,
+        uint256 indexed route,
         address[] tokens,
         uint256[] amounts
     );
     
+    /**
+     * @dev Callback function for aave flashloan.
+     * @notice Callback function for aave flashloan.
+     * @param _assets list of asset addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets for flashloan.
+     * @param _premiums list of premiums/fees for the corresponding addresses for flashloan.
+     * @param _initiator initiator address for flashloan.
+     * @param _data extra data passed.
+    */
     function executeOperation(
         address[] memory _assets,
         uint256[] memory _amounts,
@@ -49,7 +59,12 @@ contract FlashAggregatorPolygon is Helper {
 
         safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
-        InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+
+        if (checkIfDsa(msg.sender)) {
+            Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
+        } else {
+            InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+        }
 
         instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
         validateFlashloan(instaLoanVariables_);
@@ -57,6 +72,13 @@ contract FlashAggregatorPolygon is Helper {
         return true;
     }
 
+    /**
+     * @dev Fallback function for balancer flashloan.
+     * @notice Fallback function for balancer flashloan.
+     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+     * @param _fees list of fees for the corresponding addresses for flashloan.
+     * @param _data extra data passed(includes route info aswell).
+    */
     function receiveFlashLoan(
         IERC20[] memory,
         uint256[] memory _amounts,
@@ -79,7 +101,13 @@ contract FlashAggregatorPolygon is Helper {
 
         if (route_ == 5) {
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+
+            if (checkIfDsa(msg.sender)) {
+                Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            }
+
             instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
             validateFlashloan(instaLoanVariables_);
             safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
@@ -88,7 +116,13 @@ contract FlashAggregatorPolygon is Helper {
             aaveSupply(wEthToken, _amounts[0]);
             aaveBorrow(tokens_, amounts_);
             safeTransfer(instaLoanVariables_, sender_);
-            InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+
+            if (checkIfDsa(msg.sender)) {
+                Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            }
+            
             aavePayback(tokens_, amounts_);
             aaveWithdraw(wEthToken, _amounts[0]);
             instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
@@ -102,6 +136,13 @@ contract FlashAggregatorPolygon is Helper {
         }
     }
 
+    /**
+     * @dev Middle function for route 1.
+     * @notice Middle function for route 1.
+     * @param _tokens list of token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+     * @param _data extra data passed.
+    */
     function routeAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(msg.sender, _data);
         uint length_ = _tokens.length;
@@ -113,6 +154,13 @@ contract FlashAggregatorPolygon is Helper {
         aaveLending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
     }
 
+    /**
+     * @dev Middle function for route 5.
+     * @notice Middle function for route 5.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _data extra data passed.
+    */
     function routeBalancer(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         uint256 length_ = _tokens.length;
         IERC20[] memory tokens_ = new IERC20[](length_);
@@ -124,6 +172,13 @@ contract FlashAggregatorPolygon is Helper {
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
     }
     
+    /**
+     * @dev Middle function for route 7.
+     * @notice Middle function for route 7.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _data extra data passed.
+    */
     function routeBalancerAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(7, _tokens, _amounts, msg.sender, _data);
         IERC20[] memory wethTokenList_ = new IERC20[](1);
@@ -134,12 +189,20 @@ contract FlashAggregatorPolygon is Helper {
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), wethTokenList_, wethAmountList_, data_);
     }
 
+    /**
+     * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _route route for flashloan.
+     * @param _data extra data passed.
+    */
     function flashLoan(	
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata
+        bytes calldata // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
@@ -165,27 +228,53 @@ contract FlashAggregatorPolygon is Helper {
             require(false, "route-does-not-exist");
         }
 
-        emit LogFlashLoan(
+        uint256 length_ = _tokens.length;
+        uint256[] memory amounts_ = new uint256[](length_);
+
+        for(uint256 i = 0; i < length_; i++) {
+            amounts_[i] = type(uint).max;
+        }
+
+        transferFeeToTreasury(_tokens, amounts_);
+
+        emit LogFlashloan(
             msg.sender,
+            _route,
             _tokens,
             _amounts
         );
     }
 
+    /**
+     * @dev Function to get the list of available routes.
+     * @notice Function to get the list of available routes.
+    */
     function getRoutes() public pure returns (uint16[] memory routes_) {
         routes_ = new uint16[](3);
         routes_[0] = 1;
         routes_[1] = 5;
         routes_[2] = 7;
     }
+
+    /**
+     * @dev Function to transfer fee to the treasury.
+     * @notice Function to transfer fee to the treasury.
+     * @param _tokens token addresses for transferring fee to treasury.
+     * @param _amounts list of amounts for the corresponding tokens. If amount == type(uint).max, transfer the whole amount of that token this contract has.
+    */
+    function transferFeeToTreasury(address[] memory _tokens, uint256[] memory _amounts) public {
+        require(_tokens.length == _amounts.length, "length-not-same");
+        for(uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            if (_amounts[i] == type(uint).max) {
+                token_.safeTransfer(treasuryAddr, token_.balanceOf(address(this)));
+            } else {
+                token_.safeTransfer(treasuryAddr, _amounts[i]);
+            }
+        }
+    }
 }
 
 contract InstaFlashloanAggregatorPolygon is FlashAggregatorPolygon {
-
-    // constructor() {
-    //     TokenInterface(daiToken).approve(makerLendingAddr, type(uint256).max);
-    // }
-
     receive() external payable {}
-
 }
