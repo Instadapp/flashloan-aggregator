@@ -56,6 +56,12 @@ contract FlashResolverAvalanche is Helper {
         }
         return (bestRoutes_, feeBPS_);
     }
+
+    function getData(address[] memory _tokens, uint256[] memory _amounts) public view returns (uint16[] memory routes_, uint256[] memory fees_, uint16[] memory bestRoutes_, uint256 bestFee_) {
+        (routes_, fees_) = getRoutesInfo();
+        (bestRoutes_, bestFee_) = getBestRoutes(_tokens, _amounts);
+        return (routes_, fees_, bestRoutes_, bestFee_);
+    }
     
 }
 
