@@ -38,5 +38,8 @@ describe("Resolver", function () {
     console.log((await resolver.getBestRoutes([DAI, USDT], [Dai, Usdt])).toString());
   });
 
+  it("Should be able to return all the data for flashloan", async function () {
+    console.log((await resolver.getData([DAI, USDT], [Dai, Usdt])).toString());
+  });
   
 });

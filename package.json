@@ -21,7 +21,6 @@
   "homepage": "https://github.com/Instadapp/flashloan-aggregator#readme",
   "dependencies": {
     "@chainlink/contracts": "^0.2.2",
-    "@nomiclabs/hardhat-etherscan": "^2.1.6",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.3.2",
@@ -42,6 +41,7 @@
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-etherscan": "^2.1.8",
     "@openzeppelin/hardhat-upgrades": "^1.10.0",
     "@openzeppelin/test-helpers": "^0.5.13",
     "@tenderly/hardhat-tenderly": "^1.0.12",

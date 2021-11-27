@@ -1,4 +1,5 @@
 import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
@@ -89,6 +90,10 @@ const config: HardhatUserConfig = {
     kovan: createTestnetConfig("kovan"),
     rinkeby: createTestnetConfig("rinkeby"),
     ropsten: createTestnetConfig("ropsten"),
+    polygon_mainnet: {
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+      accounts: [`0x${process.env.PRIVATE_KEY}`]
+    }
   },
   paths: {
     artifacts: "./artifacts",
@@ -128,6 +133,9 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 10000 * 10000,
   },
+  etherscan: {
+    apiKey: `${process.env.SCAN_API_KEY}`
+  }
 };
 
 export default config;
