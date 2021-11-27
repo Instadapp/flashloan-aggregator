@@ -10,6 +10,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "hardhat/console.sol";
 import { Helper } from "./helpers.sol";
 
@@ -440,10 +441,10 @@ contract FlashAggregator is Setups {
     }
 }
 
-contract InstaFlashAggregator is FlashAggregator {
+contract InstaFlashAggregator is FlashAggregator, Initializable {
     using SafeERC20 for IERC20;
 
-    constructor() {
+    function initialize() public initializer {
         IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
     }
 

@@ -13,23 +13,11 @@ import {
     IWeth
 } from "./interfaces.sol";
 
-contract Variables {
-
-    bytes32 internal dataHash;
-    // if 1 then can enter flashlaon, if 2 then callback
-    uint internal status = 1;
+contract ConstantVariables {
 
     address public constant chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     address public constant wEthToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     IWeth public constant wEth = IWeth(wEthToken);
-
-    struct FlashloanVariables {
-        address[] _tokens;
-        uint256[] _amounts;
-        uint256[] _iniBals;
-        uint256[] _finBals;
-        uint256[] _instaFees;
-    }
 
     address public constant aaveLendingAddr = 0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9;
     IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
@@ -54,8 +42,24 @@ contract Variables {
     address private constant instaListAddr = 0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb;
     ListInterface public constant instaList = ListInterface(instaListAddr);
 
-    mapping(address => address) public tokenToCToken;
-
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
+
+}
+
+contract Variables is ConstantVariables{
+
+    bytes32 internal dataHash;
+    // if 1 then can enter flashlaon, if 2 then callback
+    uint internal status = 1;
+
+    struct FlashloanVariables {
+        address[] _tokens;
+        uint256[] _amounts;
+        uint256[] _iniBals;
+        uint256[] _finBals;
+        uint256[] _instaFees;
+    }
+
+    mapping(address => address) public tokenToCToken;
 
 }
