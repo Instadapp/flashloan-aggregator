@@ -32,14 +32,14 @@ contract Setups is Helper {
      * @notice Add to token to cToken mapping.
      * @param _ctokens list of cToken addresses to be added to the mapping.
     */
-    function addTokenToCtoken(address[] memory _ctokens) external {
+    function addTokenToCtoken(CTokenInterface[] memory _ctokens) public {
         for (uint i = 0; i < _ctokens.length; i++) {
-            (bool isMarket_,,) = troller.markets(_ctokens[i]);
+            (bool isMarket_,,) = troller.markets(address(_ctokens[i]));
             require(isMarket_, "unvalid-ctoken");
-            address token_ = CTokenInterface(_ctokens[i]).underlying();
+            address token_ = _ctokens[i].underlying();
             require(tokenToCToken[token_] == address((0)), "already-added");
-            tokenToCToken[token_] = _ctokens[i];
-            IERC20(token_).safeApprove(_ctokens[i], type(uint256).max);
+            tokenToCToken[token_] = address(_ctokens[i]);
+            IERC20(token_).safeApprove(address(_ctokens[i]), type(uint256).max);
         }
     }
 }
@@ -446,6 +446,7 @@ contract InstaFlashAggregator is FlashAggregator, Initializable {
 
     function initialize() public initializer {
         IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
+        addTokenToCtoken(troller.getAllMarkets());
     }
 
     receive() external payable {}

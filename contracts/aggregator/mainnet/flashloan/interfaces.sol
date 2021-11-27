@@ -98,6 +98,7 @@ interface Comptroller {
         external
         returns (uint256[] memory);
     function markets(address) external view returns (bool, uint, bool);
+    function getAllMarkets() external view returns (CTokenInterface[] memory);
 }
 
 interface IAaveLending {

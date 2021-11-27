@@ -19,6 +19,9 @@ describe("FlashLoan", function () {
   let Aggregator, aggregator, Receiver, receiver: InstaFlashReceiver, Proxy, proxy, Admin, admin;
   let signer: SignerWithAddress;
 
+  const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137';
+  const data = ethers.utils.defaultAbiCoder('initialize()');
+
   const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
   const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";
   const ACC_DAI = "0x9a7a9d980ed6239b89232c012e21f4c210f4bef1";
@@ -33,9 +36,18 @@ describe("FlashLoan", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
+
     Aggregator = new InstaFlashAggregator__factory(signer);
     aggregator = await Aggregator.deploy();
     await aggregator.deployed();
+
+    Admin = new InstaFlashAggregatorAdmin__factory(signer);
+    admin = await Admin.deploy(master);
+    await admin.deployed();
+
+    Proxy = new InstaFlashAggregatorProxy__factory(signer);
+    proxy = await Proxy.deploy(aggregator.address, admin.address, data);
+    await proxy.deployed();
 
     await aggregator.addTokenToCtoken([
       "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
@@ -44,7 +56,7 @@ describe("FlashLoan", function () {
     ]); // DAI, USDT, USDC
 
     Receiver = new InstaFlashReceiver__factory(signer);
-    receiver = await Receiver.deploy(aggregator.address);
+    receiver = await Receiver.deploy(proxy.address);
     await receiver.deployed();
 
     const token_dai = new ethers.Contract(
