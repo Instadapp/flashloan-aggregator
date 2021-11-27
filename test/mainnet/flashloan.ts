@@ -3,16 +3,20 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-  InstaFlashloanAggregator,
-  InstaFlashloanAggregator__factory,
+  InstaFlashAggregator,
+  InstaFlashAggregator__factory,
   IERC20__factory,
   IERC20,
   InstaFlashReceiver__factory,
   InstaFlashReceiver,
+  InstaFlashAggregatorProxy,
+  InstaFlashAggregatorProxy__factory,
+  InstaFlashAggregatorAdmin,
+  InstaFlashAggregatorAdmin__factory,
 } from "../../typechain";
 
 describe("FlashLoan", function () {
-  let Resolver, resolver, Receiver, receiver: InstaFlashReceiver;
+  let Aggregator, aggregator, Receiver, receiver: InstaFlashReceiver, Proxy, proxy, Admin, admin;
   let signer: SignerWithAddress;
 
   const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
@@ -29,18 +33,18 @@ describe("FlashLoan", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
-    Resolver = new InstaFlashloanAggregator__factory(signer);
-    resolver = await Resolver.deploy();
-    await resolver.deployed();
+    Aggregator = new InstaFlashAggregator__factory(signer);
+    aggregator = await Aggregator.deploy();
+    await aggregator.deployed();
 
-    await resolver.addTokenToCtoken([
+    await aggregator.addTokenToCtoken([
       "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
       "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
       "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
     ]); // DAI, USDT, USDC
 
     Receiver = new InstaFlashReceiver__factory(signer);
-    receiver = await Receiver.deploy(resolver.address);
+    receiver = await Receiver.deploy(aggregator.address);
     await receiver.deployed();
 
     const token_dai = new ethers.Contract(

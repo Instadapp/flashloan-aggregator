@@ -440,7 +440,7 @@ contract FlashAggregator is Setups {
     }
 }
 
-contract InstaFlashloanAggregator is FlashAggregator {
+contract InstaFlashAggregator is FlashAggregator {
     using SafeERC20 for IERC20;
 
     constructor() {

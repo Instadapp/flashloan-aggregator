@@ -3,8 +3,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-  InstaFlashloanAggregatorArbitrum,
-  InstaFlashloanAggregatorArbitrum__factory,
+  InstaFlashAggregatorArbitrum,
+  InstaFlashAggregatorArbitrum__factory,
   InstaFlashloanResolverArbitrum,
   InstaFlashloanResolverArbitrum__factory,
 } from "../../typechain";
@@ -21,7 +21,7 @@ describe("Resolver", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
-    Aggregator = new InstaFlashloanAggregatorArbitrum__factory(signer);
+    Aggregator = new InstaFlashAggregatorArbitrum__factory(signer);
     aggregator = await Aggregator.deploy();
     await aggregator.deployed();
 

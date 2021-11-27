@@ -173,6 +173,6 @@ contract FlashAggregatorArbitrum is Helper {
     }
 }
 
-contract InstaFlashloanAggregatorArbitrum is FlashAggregatorArbitrum {
+contract InstaFlashAggregatorArbitrum is FlashAggregatorArbitrum {
     receive() external payable {}
 }

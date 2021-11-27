@@ -179,6 +179,6 @@ contract FlashAggregatorAvalanche is Helper {
     }
 }
 
-contract InstaFlashloanAggregatorAvalanche is FlashAggregatorAvalanche {
+contract InstaFlashAggregatorAvalanche is FlashAggregatorAvalanche {
     receive() external payable {}
 }

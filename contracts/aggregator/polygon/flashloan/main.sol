@@ -275,6 +275,6 @@ contract FlashAggregatorPolygon is Helper {
     }
 }
 
-contract InstaFlashloanAggregatorPolygon is FlashAggregatorPolygon {
+contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     receive() external payable {}
 }
