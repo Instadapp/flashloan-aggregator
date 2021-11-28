@@ -277,6 +277,7 @@ contract FlashAggregatorPolygon is Helper {
 
 contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     function initialize() public {
+        require(status == 0, "cannot-call-again");
         status = 1;
     }
 
