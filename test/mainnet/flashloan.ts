@@ -20,7 +20,10 @@ describe("FlashLoan", function () {
   let signer: SignerWithAddress;
 
   const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137';
-  const data = ethers.utils.defaultAbiCoder('initialize()');
+
+  let ABI = [ "function initialize()" ];
+  let iface = new ethers.utils.Interface(ABI);
+  const data = iface.encodeFunctionData("initialize")
 
   const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
   const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";

@@ -91,10 +91,10 @@ const config: HardhatUserConfig = {
     kovan: createTestnetConfig("kovan"),
     rinkeby: createTestnetConfig("rinkeby"),
     ropsten: createTestnetConfig("ropsten"),
-    polygon_mainnet: {
-      url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
-      accounts: [`0x${process.env.PRIVATE_KEY}`]
-    }
+    // polygon_mainnet: {
+    //   url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+    //   accounts: [`0x${process.env.PRIVATE_KEY}`]
+    // }
   },
   paths: {
     artifacts: "./artifacts",
