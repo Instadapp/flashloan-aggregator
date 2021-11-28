@@ -432,9 +432,9 @@ contract FlashAggregator is Setups {
         for(uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
             if (_amounts[i] == type(uint).max) {
-                token_.safeTransfer(treasuryAddr, token_.balanceOf(address(this)));
+                token_.safeTransfer(treasuryAddr, (token_.balanceOf(address(this)) - 10));
             } else {
-                token_.safeTransfer(treasuryAddr, _amounts[i]);
+                token_.safeTransfer(treasuryAddr, (_amounts[i] - 10));
             }
         }
     }
