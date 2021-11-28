@@ -147,6 +147,7 @@ contract FlashAggregator is Setups {
                 aaveSupply(daiToken, _amount);
                 aaveBorrow(tokens_, amounts_);
             }
+            
             safeTransfer(instaLoanVariables_, sender_);
 
             if (checkIfDsa(msg.sender)) {

@@ -39,13 +39,18 @@ contract Helper is Variables {
 
     function safeTransfer(
         FlashloanVariables memory _instaLoanVariables,
-        address _receiver
+        address payable _receiver
     ) internal {
         require(_instaLoanVariables._tokens.length == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
         uint256 length_ = _instaLoanVariables._tokens.length;
         for (uint i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-            token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
+            if (_instaLoanVariables._tokens[i] == chainToken) {
+                (bool sent,) = _receiver.call{value: msg.value}("");
+                require(sent, "Failed to send Ether");
+            } else {
+                IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
+                token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
+            }
         }
     }
 
@@ -115,8 +120,13 @@ contract Helper is Variables {
     ) internal {
         uint256 length_ = _tokens.length;
         for(uint i=0; i < length_; i++) {
-            CTokenInterface cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
-            require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
+            if ( _tokens[i] == chainToken ) {
+                CTokenInterface cToken = CTokenInterface(cEthToken);
+                require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
+            } else {
+                CTokenInterface cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
+                require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
+            }
         }
     }
 
