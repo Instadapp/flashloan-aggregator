@@ -120,13 +120,13 @@ contract Helper is Variables {
     ) internal {
         uint256 length_ = _tokens.length;
         for(uint i=0; i < length_; i++) {
+            CTokenInterface cToken;
             if ( _tokens[i] == chainToken ) {
-                CTokenInterface cToken = CTokenInterface(cEthToken);
-                require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
+                cToken = CTokenInterface(cEthToken);
             } else {
-                CTokenInterface cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
-                require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
+                cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
             }
+            require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
         }
     }
 
@@ -136,9 +136,14 @@ contract Helper is Variables {
     ) internal {
         uint256 length_ = _tokens.length;
         for(uint i=0; i < length_; i++) {
-            CTokenInterface cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
-            // Approved already in addTokenToctoken function
-            require(cToken.repayBorrow(_amounts[i]) == 0, "repay failed");
+            if ( _tokens[i] == chainToken ) {
+                CEthInterface cToken = CEthInterface(cEthToken);
+                cToken.repayBorrow{value : _amounts[i]};
+            } else {
+                CTokenInterface cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
+                // Approved already in addTokenToctoken function
+                require(cToken.repayBorrow(_amounts[i]) == 0, "repay failed");
+            }
         }
     }
 
