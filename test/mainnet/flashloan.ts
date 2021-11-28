@@ -56,8 +56,6 @@ describe("FlashLoan", function () {
     proxy = await Proxy.deploy(aggregator.address, admin.address, data);
     await proxy.deployed();
 
-    // await proxy.addTokenToCtoken(); // DAI, USDT, USDC
-
     Receiver = new InstaFlashReceiver__factory(signer);
     receiver = await Receiver.deploy(proxy.address);
     await receiver.deployed();

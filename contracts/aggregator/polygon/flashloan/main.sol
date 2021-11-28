@@ -276,5 +276,9 @@ contract FlashAggregatorPolygon is Helper {
 }
 
 contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
+    function initialize() public {
+        status = 1;
+    }
+
     receive() external payable {}
 }
