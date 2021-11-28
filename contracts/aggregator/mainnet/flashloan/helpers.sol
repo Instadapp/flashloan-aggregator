@@ -39,7 +39,7 @@ contract Helper is Variables {
 
     function safeTransfer(
         FlashloanVariables memory _instaLoanVariables,
-        address payable _receiver
+        address _receiver
     ) internal {
         require(_instaLoanVariables._tokens.length == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
         uint256 length_ = _instaLoanVariables._tokens.length;

@@ -22,7 +22,6 @@ import {
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
-
 contract Setups is Helper {
     using SafeERC20 for IERC20;
 
@@ -426,17 +425,13 @@ contract FlashAggregator is Setups {
      * @dev Function to transfer fee to the treasury.
      * @notice Function to transfer fee to the treasury. Will be called manually.
      * @param _tokens token addresses for transferring fee to treasury.
-     * @param _amounts list of amounts for the corresponding tokens. If amount == type(uint).max, transfer the whole amount of that token this contract has.
     */
-    function transferFeeToTreasury(address[] memory _tokens, uint256[] memory _amounts) public {
-        require(_tokens.length == _amounts.length, "length-not-same");
-        for(uint256 i = 0; i < _tokens.length; i++) {
+    function transferFeeToTreasury(address[] memory _tokens) public {
+        for (uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
-            if (_amounts[i] == type(uint).max) {
-                token_.safeTransfer(treasuryAddr, token_.balanceOf(address(this)));
-            } else {
-                token_.safeTransfer(treasuryAddr, _amounts[i]);
-            }
+            uint decimals_ = TokenInterface(_tokens[i]).decimals();
+            uint amtToSub_ = decimals_ == 18 ? 1e10 : decimals_ > 12 ? 10000 : decimals_ > 7 ? 100 : 10;
+            token_.safeTransfer(treasuryAddr, (token_.balanceOf(address(this)) - amtToSub_));
         }
     }
 }
