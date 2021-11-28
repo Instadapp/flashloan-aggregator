@@ -266,7 +266,8 @@ contract FlashAggregatorPolygon is Helper {
             IERC20 token_ = IERC20(_tokens[i]);
             uint decimals_ = TokenInterface(_tokens[i]).decimals();
             uint amtToSub_ = decimals_ == 18 ? 1e10 : decimals_ > 12 ? 10000 : decimals_ > 7 ? 100 : 10;
-            token_.safeTransfer(treasuryAddr, (token_.balanceOf(address(this)) - amtToSub_));
+            uint amtToTransfer_ = token_.balanceOf(address(this)) > amtToSub_ ? (token_.balanceOf(address(this)) - amtToSub_) : 0;
+            token_.safeTransfer(treasuryAddr, amtToTransfer_);
         }
     }
 }
