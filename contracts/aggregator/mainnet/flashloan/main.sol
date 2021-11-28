@@ -444,8 +444,10 @@ contract FlashAggregator is Setups {
 contract InstaFlashAggregator is FlashAggregator, Initializable {
     using SafeERC20 for IERC20;
 
-    function initialize() public initializer {
+    function initialize(address[] memory _ctokens) public initializer {
         IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
+        addTokenToCtoken(_ctokens);
+        status = 1;
     }
 
     receive() external payable {}

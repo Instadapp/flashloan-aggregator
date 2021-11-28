@@ -50,7 +50,7 @@ contract Variables is ConstantVariables{
 
     bytes32 internal dataHash;
     // if 1 then can enter flashlaon, if 2 then callback
-    uint internal status = 1;
+    uint internal status;
 
     struct FlashloanVariables {
         address[] _tokens;

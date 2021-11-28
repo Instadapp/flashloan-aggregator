@@ -21,9 +21,13 @@ describe("FlashLoan", function () {
 
   const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137';
 
-  let ABI = [ "function initialize()" ];
+  let ABI = [ "function initialize(address[] memory)" ];
   let iface = new ethers.utils.Interface(ABI);
-  const data = iface.encodeFunctionData("initialize")
+  const data = iface.encodeFunctionData("initialize", [[
+    "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+    "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
+    "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+  ]]) // DAI, USDT, USDC
 
   const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
   const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";
@@ -52,11 +56,7 @@ describe("FlashLoan", function () {
     proxy = await Proxy.deploy(aggregator.address, admin.address, data);
     await proxy.deployed();
 
-    await aggregator.addTokenToCtoken([
-      "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
-      "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
-      "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
-    ]); // DAI, USDT, USDC
+    // await proxy.addTokenToCtoken(); // DAI, USDT, USDC
 
     Receiver = new InstaFlashReceiver__factory(signer);
     receiver = await Receiver.deploy(proxy.address);
