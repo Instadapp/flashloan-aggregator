@@ -209,7 +209,7 @@ contract FlashAggregator is Setups {
         } else if (route_ == 6 || route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
             if (route_ == 6) {
-                compoundSupply(chainToken, _amounts[0]);
+                compoundSupply(wEthToken, _amounts[0]);
                 compoundBorrow(tokens_, amounts_);
             } else {
                 aaveSupply(wEthToken, _amounts[0]);
@@ -225,7 +225,7 @@ contract FlashAggregator is Setups {
 
             if (route_ == 6) {
                 compoundPayback(tokens_, amounts_);
-                compoundWithdraw(chainToken, _amounts[0]);
+                compoundWithdraw(wEthToken, _amounts[0]);
             } else {
                 aavePayback(tokens_, amounts_);
                 aaveWithdraw(wEthToken, _amounts[0]);

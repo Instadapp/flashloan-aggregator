@@ -15,7 +15,6 @@ import {
 
 contract ConstantVariables {
 
-    address public constant chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     address public constant wEthToken = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     IWeth public constant wEth = IWeth(wEthToken);
 

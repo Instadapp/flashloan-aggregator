@@ -49,13 +49,8 @@ contract Helper is Variables {
         require(_instaLoanVariables._tokens.length == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
         uint256 length_ = _instaLoanVariables._tokens.length;
         for (uint i = 0; i < length_; i++) {
-            if (_instaLoanVariables._tokens[i] == chainToken) {
-                (bool sent,) = _receiver.call{value: msg.value}("");
-                require(sent, "Failed to send Ether");
-            } else {
-                IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-                token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
-            }
+            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
+            token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
         }
     }
 
@@ -131,7 +126,7 @@ contract Helper is Variables {
     */
     function compoundSupply(address _token, uint256 _amount) internal {
         address[] memory cTokens_ = new address[](1);
-        if (_token == chainToken) {
+        if (_token == wEthToken) {
             wEth.withdraw(_amount);
             CEthInterface cEth_ = CEthInterface(cEthToken);
             cEth_.mint{value: _amount}();
@@ -161,7 +156,7 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         for(uint i=0; i < length_; i++) {
             CTokenInterface cToken;
-            if ( _tokens[i] == chainToken ) {
+            if (_tokens[i] == wEthToken) {
                 cToken = CTokenInterface(cEthToken);
                 require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
                 wEth.deposit{value: _amounts[i]}();
@@ -184,7 +179,7 @@ contract Helper is Variables {
     ) internal {
         uint256 length_ = _tokens.length;
         for(uint i=0; i < length_; i++) {
-            if ( _tokens[i] == chainToken ) {
+            if ( _tokens[i] == wEthToken ) {
                 wEth.withdraw(_amounts[i]);
                 CEthInterface cToken = CEthInterface(cEthToken);
                 cToken.repayBorrow{value : _amounts[i]};
@@ -203,7 +198,7 @@ contract Helper is Variables {
      * @param _amount amount of token.
     */
     function compoundWithdraw(address _token, uint256 _amount) internal {
-        if (_token == chainToken) {
+        if (_token == wEthToken) {
             CEthInterface cEth_ = CEthInterface(cEthToken);
             require(cEth_.redeemUnderlying(_amount) == 0, "redeem failed");
             wEth.deposit{value: _amount}();
