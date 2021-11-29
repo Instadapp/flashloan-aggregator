@@ -1,6 +1,5 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 
 /**
  * @title Flashloan.
@@ -10,15 +9,11 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "hardhat/console.sol";
 import { Helper } from "./helpers.sol";
 
 import { 
-    IndexInterface,
-    ListInterface,
     TokenInterface,
     CTokenInterface,
-    IAaveLending, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
@@ -28,16 +23,16 @@ contract Setups is Helper {
     /**
      * @dev Add to token to cToken mapping.
      * @notice Add to token to cToken mapping.
-     * @param _ctokens list of cToken addresses to be added to the mapping.
+     * @param _cTokens list of cToken addresses to be added to the mapping.
     */
-    function addTokenToCtoken(address[] memory _ctokens) public {
-        for (uint i = 0; i < _ctokens.length; i++) {
-            (bool isMarket_,,) = troller.markets(_ctokens[i]);
+    function addTokenToCToken(address[] memory _cTokens) public {
+        for (uint i = 0; i < _cTokens.length; i++) {
+            (bool isMarket_,,) = troller.markets(_cTokens[i]);
             require(isMarket_, "unvalid-ctoken");
-            address token_ = CTokenInterface(_ctokens[i]).underlying();
+            address token_ = CTokenInterface(_cTokens[i]).underlying();
             require(tokenToCToken[token_] == address((0)), "already-added");
-            tokenToCToken[token_] = _ctokens[i];
-            IERC20(token_).safeApprove(_ctokens[i], type(uint256).max);
+            tokenToCToken[token_] = _cTokens[i];
+            IERC20(token_).safeApprove(_cTokens[i], type(uint256).max);
         }
     }
 }
@@ -443,7 +438,7 @@ contract InstaFlashAggregator is FlashAggregator {
     function initialize(address[] memory _ctokens) public {
         require(status == 0, "cannot-call-again");
         IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
-        addTokenToCtoken(_ctokens);
+        addTokenToCToken(_ctokens);
         status = 1;
     }
 

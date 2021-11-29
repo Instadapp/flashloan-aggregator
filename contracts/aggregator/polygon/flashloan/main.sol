@@ -1,18 +1,13 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "hardhat/console.sol";
 import { Helper } from "./helpers.sol";
 
 import { 
-    IndexInterface,
-    ListInterface,
     TokenInterface,
-    IAaveLending, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 

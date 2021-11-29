@@ -7,11 +7,21 @@ import {
   InstaFlashAggregatorPolygon__factory,
   InstaFlashloanResolverPolygon,
   InstaFlashloanResolverPolygon__factory,
+  InstaFlashAggregatorProxy,
+  InstaFlashAggregatorProxy__factory,
+  InstaFlashAggregatorAdmin,
+  InstaFlashAggregatorAdmin__factory,
 } from "../../typechain";
 
 describe("Resolver", function () {
-  let Aggregator, aggregator, Resolver, resolver: InstaFlashloanResolverPolygon;
+  let Aggregator, aggregator, Resolver, resolver: InstaFlashloanResolverPolygon, Proxy, proxy, Admin, admin;
   let signer: SignerWithAddress;
+
+  const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137';
+
+  let ABI = [ "function initialize()" ];
+  let iface = new ethers.utils.Interface(ABI);
+  const data = iface.encodeFunctionData("initialize")
 
   const DAI = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063";
   const USDT = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
@@ -21,9 +31,18 @@ describe("Resolver", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
+
     Aggregator = new InstaFlashAggregatorPolygon__factory(signer);
     aggregator = await Aggregator.deploy();
     await aggregator.deployed();
+
+    Admin = new InstaFlashAggregatorAdmin__factory(signer);
+    admin = await Admin.deploy(master);
+    await admin.deployed();
+
+    Proxy = new InstaFlashAggregatorProxy__factory(signer);
+    proxy = await Proxy.deploy(aggregator.address, admin.address, data);
+    await proxy.deployed();
 
     Resolver = new InstaFlashloanResolverPolygon__factory(signer);
     resolver = await Resolver.deploy(aggregator.address);

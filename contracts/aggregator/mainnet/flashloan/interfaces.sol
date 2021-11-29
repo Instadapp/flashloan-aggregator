@@ -24,23 +24,15 @@ interface ListInterface {
 }
 
 interface TokenInterface is IERC20 {
-
     function decimals() external view returns (uint256);
-
 }
 
 interface CTokenInterface {
     function mint(uint256) external returns (uint256);
 
-    function balanceOfUnderlying(address) external returns (uint256);
-
-    function redeem(uint256) external returns (uint256);
-
     function redeemUnderlying(uint256) external returns (uint256);
 
     function borrow(uint256) external returns (uint256);
-
-    function borrowBalanceCurrent(address) external returns (uint256);
 
     function repayBorrow(uint256) external returns (uint256);
 
@@ -52,21 +44,11 @@ interface CEthInterface {
 
     function mint() external payable;
 
-    function exchangeRateCurrent() external returns (uint);
-
-    function supplyRatePerBlock() external returns (uint);
-
     function balanceOfUnderlying(address) external returns (uint);
-
-    function redeem(uint) external returns (uint);
 
     function redeemUnderlying(uint) external returns (uint);
 
     function borrow(uint) external returns (uint);
-
-    function borrowBalanceCurrent(address) external returns (uint);
-
-    function borrowRatePerBlock() external view returns (uint);
 
     function repayBorrow() external payable;
 }

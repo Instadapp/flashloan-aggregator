@@ -1,25 +1,26 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-
 import {Variables} from "./variables.sol";
-import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { 
-    IndexInterface,
-    ListInterface,
     TokenInterface,
-    IAaveLending, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
 
-    // Helpers
+    /**
+     * @dev Approves the tokens to the receiver address with allowance (amount + fee).
+     * @notice Approves the tokens to the receiver address with allowance (amount + fee).
+     * @param _instaLoanVariables struct which includes list of token addresses and amounts.
+     * @param _fees list of premiums/fees for the corresponding addresses for flashloan.
+     * @param _receiver address to which tokens have to be approved.
+    */
     function safeApprove(
         FlashloanVariables memory _instaLoanVariables,
         uint256[] memory _fees,
@@ -34,6 +35,12 @@ contract Helper is Variables {
         }
     }
 
+    /**
+     * @dev Transfers the tokens to the receiver address.
+     * @notice Transfers the tokens to the receiver address.
+     * @param _instaLoanVariables struct which includes list of token addresses and amounts.
+     * @param _receiver address to which tokens have to be transferred.
+    */
     function safeTransfer(
         FlashloanVariables memory _instaLoanVariables,
         address _receiver
@@ -46,6 +53,13 @@ contract Helper is Variables {
         }
     }
 
+    /**
+     * @dev Transfers the tokens to the receiver address (amount + fee).
+     * @notice Transfers the tokens to the receiver address (amount + fee).
+     * @param _instaLoanVariables struct which includes list of token addresses and amounts.
+     * @param _fees list of fees for the respective tokens.
+     * @param _receiver address to which tokens have to be transferred.
+    */
     function safeTransferWithFee(
         FlashloanVariables memory _instaLoanVariables,
         uint256[] memory _fees,
@@ -60,6 +74,12 @@ contract Helper is Variables {
         }
     }
 
+    /**
+     * @dev Calculates the balances..
+     * @notice Calculates the balances of the account passed for the tokens.
+     * @param _tokens list of token addresses to calculate balance for.
+     * @param _account account to calculate balance for.
+    */
     function calculateBalances(
         address[] memory _tokens,
         address _account
@@ -73,6 +93,11 @@ contract Helper is Variables {
         return balances_;
     }
 
+    /**
+     * @dev Validates if the receiver sent the correct amounts of funds.
+     * @notice Validates if the receiver sent the correct amounts of funds.
+     * @param _instaLoanVariables struct which includes list of initial balances, final balances and fees for the respective tokens.
+    */
     function validateFlashloan(
         FlashloanVariables memory _instaLoanVariables
     ) internal pure {
@@ -81,12 +106,23 @@ contract Helper is Variables {
         }
     }
 
+    /**
+     * @dev Validates if token addresses are unique. Just need to check adjacent tokens as the array was sorted first
+     * @notice Validates if token addresses are unique.
+     * @param _tokens list of token addresses.
+    */
     function validateTokens(address[] memory _tokens) internal pure {
         for (uint i = 0; i < _tokens.length - 1; i++) {
             require(_tokens[i] != _tokens[i+1], "non-unique-tokens");
         }
     }
 
+    /**
+     * @dev Supply token to aave.
+     * @notice Supply token to aave.
+     * @param _token token address.
+     * @param _amount amount of token.
+    */
     function aaveSupply(address _token, uint256 _amount) internal {
         IERC20 token_ = IERC20(_token);
         token_.safeApprove(aaveLendingAddr, _amount);
@@ -94,6 +130,12 @@ contract Helper is Variables {
         aaveLending.setUserUseReserveAsCollateral(_token, true);
     }
 
+    /**
+     * @dev Borrow tokens from aave.
+     * @notice Borrow tokens from aave.
+     * @param _tokens list of token addresses.
+     * @param _amounts list of amounts for respective tokens.
+    */
     function aaveBorrow(
         address[] memory _tokens,
         uint256[] memory _amounts
@@ -104,6 +146,12 @@ contract Helper is Variables {
         }
     }
 
+    /**
+     * @dev Payback tokens to aave.
+     * @notice Payback tokens to aave.
+     * @param _tokens list of token addresses.
+     * @param _amounts list of amounts for respective tokens.
+    */
     function aavePayback(
         address[] memory _tokens,
         uint256[] memory _amounts
@@ -116,10 +164,21 @@ contract Helper is Variables {
         }
     }
 
+    /**
+     * @dev Withdraw token from aave.
+     * @notice Wiothdraw token from aave.
+     * @param _token token address.
+     * @param _amount amount of token.
+    */
     function aaveWithdraw(address _token, uint256 _amount) internal {
         aaveLending.withdraw(_token, _amount, address(this));
     }
 
+    /**
+     * @dev Returns fee for the passed route in BPS.
+     * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
+     * @param _route route number for flashloan.
+    */
     function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
         if (_route == 1) {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
@@ -134,6 +193,12 @@ contract Helper is Variables {
         }
     }
 
+    /**
+     * @dev Calculate fees for the respective amounts and fee in BPS passed.
+     * @notice Calculate fees for the respective amounts and fee in BPS passed. 1 BPS == 0.01%.
+     * @param _amounts list of amounts.
+     * @param _BPS fee in BPS.
+    */
     function calculateFees(uint256[] memory _amounts, uint256 _BPS) internal pure returns (uint256[] memory) {
         uint256 length_ = _amounts.length;
         uint256[] memory InstaFees = new uint256[](length_);
@@ -143,6 +208,12 @@ contract Helper is Variables {
         return InstaFees;
     }
 
+    /**
+     * @dev Sort the tokens and amounts arrays according to token addresses.
+     * @notice Sort the tokens and amounts arrays according to token addresses.
+     * @param _tokens list of token addresses.
+     * @param _amounts list of respective amounts.
+    */
     function bubbleSort(address[] memory _tokens, uint256[] memory _amounts) internal pure returns (address[] memory, uint256[] memory) {
         for (uint256 i = 0; i < _tokens.length - 1; i++) {
             for( uint256 j = 0; j < _tokens.length - i - 1 ; j++) {
@@ -154,16 +225,30 @@ contract Helper is Variables {
         return (_tokens, _amounts);
     }
 
+    /**
+     * @dev Returns to wEth amount to be borrowed.
+     * @notice Returns to wEth amount to be borrowed.
+    */
     function getWEthBorrowAmount() internal view returns (uint256) {
         IERC20 wEth = IERC20(wEthToken);
         uint256 amount_ = wEth.balanceOf(balancerLendingAddr);
         return (amount_ * wethBorrowAmountPercentage) / 100;
     }
 
+    /**
+     * @dev Returns to true if the passed address is a DSA else returns false.
+     * @notice Returns to true if the passed address is a DSA else returns false.
+     * @param _account account to check for, if DSA.
+    */
     function checkIfDsa(address _account) internal view returns (bool) {
         return instaList.accountID(_account) > 0;
     }
 
+    /**
+     * @dev  better checking by double encoding the data.
+     * @notice better checking by double encoding the data.
+     * @param data_ data passed.
+    */
      modifier verifyDataHash(bytes memory data_) {
         bytes32 dataHash_ = keccak256(data_);
         require(dataHash_ == dataHash && dataHash_ != bytes32(0), "invalid-data-hash");
@@ -173,6 +258,10 @@ contract Helper is Variables {
         status = 1;
     }
 
+    /**
+     * @dev reentrancy gaurd.
+     * @notice reentrancy gaurd.
+    */
     modifier reentrancy {
         require(status == 1, "already-entered");
         status = 2;
