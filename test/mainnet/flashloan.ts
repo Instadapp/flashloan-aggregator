@@ -31,13 +31,17 @@ describe("FlashLoan", function () {
 
   const DAI = "0x6b175474e89094c44da98b954eedeac495271d0f";
   const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+  const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const ACC_DAI = "0x9a7a9d980ed6239b89232c012e21f4c210f4bef1";
   const ACC_USDT = "0x6D5Be15f9Aa170e207C043CDf8E0BaDbF2A48ed0";
+  const ACC_WETH = "0xe78388b4ce79068e89bf8aa7f218ef6b9ab0e9d0";
 
   const dai = ethers.utils.parseUnits("10", 18);
   const usdt = ethers.utils.parseUnits("10", 6);
+  const weth = ethers.utils.parseUnits("10", 18);
   const Dai = ethers.utils.parseUnits("5000", 18);
   const Usdt = ethers.utils.parseUnits("5000", 6);
+  const Weth = ethers.utils.parseUnits("1000", 18);
   const zeroAddr =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -111,8 +115,14 @@ describe("FlashLoan", function () {
 
   describe("Multi token", async function () {
     beforeEach(async function () {
-      const token = new ethers.Contract(
+      const token_usdt = new ethers.Contract(
         USDT,
+        IERC20__factory.abi,
+        ethers.provider
+      );
+
+      const token_weth = new ethers.Contract(
+        WETH,
         IERC20__factory.abi,
         ethers.provider
       );
@@ -122,42 +132,66 @@ describe("FlashLoan", function () {
         ethers.utils.parseEther("10.0").toHexString(),
       ]);
 
+      await hre.network.provider.send("hardhat_setBalance", [
+        ACC_WETH,
+        ethers.utils.parseEther("10.0").toHexString(),
+      ]);
+
       await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [ACC_USDT],
       });
 
       const signer_usdt = await ethers.getSigner(ACC_USDT);
-      await token.connect(signer_usdt).transfer(receiver.address, usdt);
+      await token_usdt.connect(signer_usdt).transfer(receiver.address, usdt);
 
       await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [ACC_USDT],
       });
+
+      await hre.network.provider.send("hardhat_setBalance", [
+        ACC_WETH,
+        ethers.utils.parseEther("10.0").toHexString(),
+      ]);
+
+      await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [ACC_WETH],
+      });
+
+      const signer_weth = await ethers.getSigner(ACC_WETH);
+      await token_weth.connect(signer_weth).transfer(receiver.address, weth);
+
+      await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [ACC_WETH],
+      });
+
     });
     it("Should be able to take flashLoan of multiple tokens together from AAVE", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT, WETH], [Dai, Usdt, Weth], 1, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple tokens together from MakerDAO", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 2, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT, WETH], [Dai, Usdt, Weth], 2, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple tokens together from Compound(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 3, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT, WETH], [Dai, Usdt, Weth], 3, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple tokens together from AAVE(MakerDAO)", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 4, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT, WETH], [Dai, Usdt, Weth], 4, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple sorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 5, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT, WETH], [Dai, Usdt, Weth], 5, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple unsorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([USDT, DAI], [Usdt, Dai], 5, zeroAddr);
+      await receiver.flashBorrow([USDT, DAI, WETH], [Usdt, Dai, Weth], 5, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple tokens together from Compound(Balancer)", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 6, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT, WETH], [Dai, Usdt, Weth], 6, zeroAddr);
     });
     it("Should be able to take flashLoan of multiple tokens together from AAVE(Balancer)", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 7, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT, WETH], [Dai, Usdt, Weth], 7, zeroAddr);
     });
   });
 });

@@ -40,11 +40,8 @@ interface CTokenInterface {
 }
 
 interface CEthInterface {
-    function balanceOf(address) external view returns (uint);
 
     function mint() external payable;
-
-    function balanceOfUnderlying(address) external returns (uint);
 
     function redeemUnderlying(uint) external returns (uint);
 
