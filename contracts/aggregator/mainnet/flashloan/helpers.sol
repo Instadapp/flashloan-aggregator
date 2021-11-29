@@ -155,13 +155,12 @@ contract Helper is Variables {
     ) internal {
         uint256 length_ = _tokens.length;
         for(uint i=0; i < length_; i++) {
-            CTokenInterface cToken;
             if (_tokens[i] == wEthToken) {
-                cToken = CTokenInterface(cEthToken);
-                require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
+                CEthInterface cEth = CEthInterface(cEthToken);
+                require(cEth.borrow(_amounts[i]) == 0, "borrow failed");
                 wEth.deposit{value: _amounts[i]}();
             } else {
-                cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
+                CTokenInterface cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
                 require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
             }
         }
@@ -182,7 +181,7 @@ contract Helper is Variables {
             if ( _tokens[i] == wEthToken ) {
                 wEth.withdraw(_amounts[i]);
                 CEthInterface cToken = CEthInterface(cEthToken);
-                cToken.repayBorrow{value : _amounts[i]};
+                cToken.repayBorrow{value : _amounts[i]}();
             } else {
                 CTokenInterface cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
                 // Approved already in addTokenToctoken function

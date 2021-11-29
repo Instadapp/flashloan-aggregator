@@ -40,7 +40,6 @@ interface CTokenInterface {
 }
 
 interface CEthInterface {
-
     function mint() external payable;
 
     function redeemUnderlying(uint) external returns (uint);
