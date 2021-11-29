@@ -262,7 +262,7 @@ contract FlashAggregatorPolygon is Helper {
             uint decimals_ = TokenInterface(_tokens[i]).decimals();
             uint amtToSub_ = decimals_ == 18 ? 1e10 : decimals_ > 12 ? 10000 : decimals_ > 7 ? 100 : 10;
             uint amtToTransfer_ = token_.balanceOf(address(this)) > amtToSub_ ? (token_.balanceOf(address(this)) - amtToSub_) : 0;
-            token_.safeTransfer(treasuryAddr, amtToTransfer_);
+            if (amtToTransfer_ > 0) token_.safeTransfer(treasuryAddr, amtToTransfer_);
         }
     }
 }

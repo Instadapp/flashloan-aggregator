@@ -163,10 +163,12 @@ contract Helper is Variables {
             CTokenInterface cToken;
             if ( _tokens[i] == chainToken ) {
                 cToken = CTokenInterface(cEthToken);
+                require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
+                wEth.deposit{value: _amounts[i]}();
             } else {
                 cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
+                require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
             }
-            require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
         }
     }
 
@@ -183,6 +185,7 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         for(uint i=0; i < length_; i++) {
             if ( _tokens[i] == chainToken ) {
+                wEth.withdraw(_amounts[i]);
                 CEthInterface cToken = CEthInterface(cEthToken);
                 cToken.repayBorrow{value : _amounts[i]};
             } else {

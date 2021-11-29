@@ -29,12 +29,7 @@ contract InstaFlashReceiver {
     ) external returns (bool) {
         // Do something
         for (uint i = 0; i < tokens.length; i++) {
-            if ( tokens[i] == chainToken ) {
-                (bool sent,) = address(flashloan).call{value: amounts[i] + premiums[i]}("");
-                require(sent, "Failed to send Ether");
-            } else {
-                IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
-            }
+            IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
         }
     }
 
@@ -47,12 +42,7 @@ contract InstaFlashReceiver {
     ) external returns (bool) {
         // Do something
         for (uint i = 0; i < tokens.length; i++) {
-            if ( tokens[i] == chainToken ) {
-                (bool sent,) = address(flashloan).call{value: amounts[i] + premiums[i]}("");
-                require(sent, "Failed to send Ether");
-            } else {
-                IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
-            }
+            IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
         }
     }
 
