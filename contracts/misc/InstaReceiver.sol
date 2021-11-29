@@ -11,7 +11,7 @@ interface IFlashLoan {
 
 contract InstaFlashReceiver {
     using SafeERC20 for IERC20;
-
+    address chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     IFlashLoan internal immutable flashloan; // TODO: Contract/Protocol address to get flashloan
 
     function flashBorrow(address[] calldata tokens_, uint[] calldata amts_, uint256 route, bytes calldata data_) public {
@@ -29,7 +29,12 @@ contract InstaFlashReceiver {
     ) external returns (bool) {
         // Do something
         for (uint i = 0; i < tokens.length; i++) {
-            IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
+            if ( tokens[i] == chainToken ) {
+                (bool sent,) = address(flashloan).call{value: amounts[i] + premiums[i]}("");
+                require(sent, "Failed to send Ether");
+            } else {
+                IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
+            }
         }
     }
 
@@ -42,7 +47,12 @@ contract InstaFlashReceiver {
     ) external returns (bool) {
         // Do something
         for (uint i = 0; i < tokens.length; i++) {
-            IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
+            if ( tokens[i] == chainToken ) {
+                (bool sent,) = address(flashloan).call{value: amounts[i] + premiums[i]}("");
+                require(sent, "Failed to send Ether");
+            } else {
+                IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
+            }
         }
     }
 
