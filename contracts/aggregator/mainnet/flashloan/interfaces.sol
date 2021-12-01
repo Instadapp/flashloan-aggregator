@@ -23,40 +23,16 @@ interface ListInterface {
     function accountID(address) external view returns (uint64);
 }
 
-interface TokenInterface {
-    function approve(address, uint256) external;
-
-    function transfer(address, uint256) external;
-
-    function transferFrom(
-        address,
-        address,
-        uint256
-    ) external;
-
-    function deposit() external payable;
-
-    function withdraw(uint256) external;
-
-    function balanceOf(address) external view returns (uint256);
-
+interface TokenInterface is IERC20 {
     function decimals() external view returns (uint256);
-
-    function allowance(address, address) external view returns (uint256);
 }
 
 interface CTokenInterface {
     function mint(uint256) external returns (uint256);
 
-    function balanceOfUnderlying(address) external returns (uint256);
-
-    function redeem(uint256) external returns (uint256);
-
     function redeemUnderlying(uint256) external returns (uint256);
 
     function borrow(uint256) external returns (uint256);
-
-    function borrowBalanceCurrent(address) external returns (uint256);
 
     function repayBorrow(uint256) external returns (uint256);
 
@@ -64,25 +40,11 @@ interface CTokenInterface {
 }
 
 interface CEthInterface {
-    function balanceOf(address) external view returns (uint);
-
     function mint() external payable;
-
-    function exchangeRateCurrent() external returns (uint);
-
-    function supplyRatePerBlock() external returns (uint);
-
-    function balanceOfUnderlying(address) external returns (uint);
-
-    function redeem(uint) external returns (uint);
 
     function redeemUnderlying(uint) external returns (uint);
 
     function borrow(uint) external returns (uint);
-
-    function borrowBalanceCurrent(address) external returns (uint);
-
-    function borrowRatePerBlock() external view returns (uint);
 
     function repayBorrow() external payable;
 }
@@ -98,6 +60,7 @@ interface Comptroller {
         external
         returns (uint256[] memory);
     function markets(address) external view returns (bool, uint, bool);
+    function getAllMarkets() external view returns (CTokenInterface[] memory);
 }
 
 interface IAaveLending {

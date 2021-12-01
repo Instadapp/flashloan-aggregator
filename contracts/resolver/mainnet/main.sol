@@ -1,11 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "hardhat/console.sol";
 import { Helper } from "./helpers.sol";
 
 import { 
@@ -13,8 +9,6 @@ import {
 } from "./interfaces.sol";
 
 contract FlashResolver is Helper {
-    using SafeERC20 for IERC20;
-
     function getRoutesInfo() public view returns (uint16[] memory routes_, uint256[] memory fees_) {
         routes_ = flashloanAggregator.getRoutes();
         fees_ = new uint256[](routes_.length);
@@ -24,7 +18,6 @@ contract FlashResolver is Helper {
     }
 
     function getBestRoutes(address[] memory _tokens, uint256[] memory _amounts) public view returns (uint16[] memory, uint256) {
-
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
@@ -65,12 +58,5 @@ contract FlashResolver is Helper {
 }
 
 contract InstaFlashloanResolver is FlashResolver {
-    using SafeERC20 for IERC20;
-
-    constructor(address _flashloanAggregatorAddr) {
-        flashloanAggregator = InstaFlashloanAggregatorInterface(_flashloanAggregatorAddr);
-    }
-
     receive() external payable {}
-
 }

@@ -3,14 +3,12 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-  InstaFlashloanAggregatorPolygon,
-  InstaFlashloanAggregatorPolygon__factory,
   InstaFlashloanResolverPolygon,
   InstaFlashloanResolverPolygon__factory,
 } from "../../typechain";
 
 describe("Resolver", function () {
-  let Aggregator, aggregator, Resolver, resolver: InstaFlashloanResolverPolygon;
+  let Resolver, resolver: InstaFlashloanResolverPolygon;
   let signer: SignerWithAddress;
 
   const DAI = "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063";
@@ -21,13 +19,10 @@ describe("Resolver", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
-    Aggregator = new InstaFlashloanAggregatorPolygon__factory(signer);
-    aggregator = await Aggregator.deploy();
-    await aggregator.deployed();
 
     Resolver = new InstaFlashloanResolverPolygon__factory(signer);
-    resolver = await Resolver.deploy(aggregator.address);
-    await aggregator.deployed()
+    resolver = await Resolver.deploy();
+    await resolver.deployed()
   });
 
   it("Should be able to return routes info", async function () {

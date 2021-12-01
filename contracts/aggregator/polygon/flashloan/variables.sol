@@ -9,19 +9,8 @@ import {
     IBalancerLending
 } from "./interfaces.sol";
 
-contract Variables {
+contract ConstantVariables {
 
-    bytes32 internal dataHash;
-    // if 1 then can enter flashlaon, if 2 then callback
-    uint internal status = 1;
-
-    struct FlashloanVariables {
-        address[] _tokens;
-        uint256[] _amounts;
-        uint256[] _iniBals;
-        uint256[] _finBals;
-        uint256[] _instaFees;
-    }
 
     address public constant aaveLendingAddr = 0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf;
     IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
@@ -37,4 +26,21 @@ contract Variables {
     ListInterface public constant instaList = ListInterface(instaListAddr);
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
+
+}
+
+contract Variables is ConstantVariables {
+
+    bytes32 internal dataHash;
+    // if 1 then can enter flashlaon, if 2 then callback
+    uint internal status;
+
+    struct FlashloanVariables {
+        address[] _tokens;
+        uint256[] _amounts;
+        uint256[] _iniBals;
+        uint256[] _finBals;
+        uint256[] _instaFees;
+    }
+
 }

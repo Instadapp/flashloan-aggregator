@@ -1,6 +1,5 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 
 /**
  * @title Flashloan.
@@ -10,18 +9,13 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "hardhat/console.sol";
 import { Helper } from "./helpers.sol";
 
 import { 
-    IndexInterface,
-    ListInterface,
     TokenInterface,
     CTokenInterface,
-    IAaveLending, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
-
 
 contract Setups is Helper {
     using SafeERC20 for IERC20;
@@ -29,16 +23,16 @@ contract Setups is Helper {
     /**
      * @dev Add to token to cToken mapping.
      * @notice Add to token to cToken mapping.
-     * @param _ctokens list of cToken addresses to be added to the mapping.
+     * @param _cTokens list of cToken addresses to be added to the mapping.
     */
-    function addTokenToCtoken(address[] memory _ctokens) external {
-        for (uint i = 0; i < _ctokens.length; i++) {
-            (bool isMarket_,,) = troller.markets(_ctokens[i]);
+    function addTokenToCToken(address[] memory _cTokens) public {
+        for (uint i = 0; i < _cTokens.length; i++) {
+            (bool isMarket_,,) = troller.markets(_cTokens[i]);
             require(isMarket_, "unvalid-ctoken");
-            address token_ = CTokenInterface(_ctokens[i]).underlying();
+            address token_ = CTokenInterface(_cTokens[i]).underlying();
             require(tokenToCToken[token_] == address((0)), "already-added");
-            tokenToCToken[token_] = _ctokens[i];
-            IERC20(token_).safeApprove(_ctokens[i], type(uint256).max);
+            tokenToCToken[token_] = _cTokens[i];
+            IERC20(token_).safeApprove(_cTokens[i], type(uint256).max);
         }
     }
 }
@@ -147,6 +141,7 @@ contract FlashAggregator is Setups {
                 aaveSupply(daiToken, _amount);
                 aaveBorrow(tokens_, amounts_);
             }
+            
             safeTransfer(instaLoanVariables_, sender_);
 
             if (checkIfDsa(msg.sender)) {
@@ -214,12 +209,13 @@ contract FlashAggregator is Setups {
         } else if (route_ == 6 || route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
             if (route_ == 6) {
-                compoundSupply(chainToken, _amounts[0]);
+                compoundSupply(wEthToken, _amounts[0]);
                 compoundBorrow(tokens_, amounts_);
             } else {
                 aaveSupply(wEthToken, _amounts[0]);
                 aaveBorrow(tokens_, amounts_);
             }
+
             safeTransfer(instaLoanVariables_, sender_);
 
             if (checkIfDsa(msg.sender)) {
@@ -230,7 +226,7 @@ contract FlashAggregator is Setups {
 
             if (route_ == 6) {
                 compoundPayback(tokens_, amounts_);
-                compoundWithdraw(chainToken, _amounts[0]);
+                compoundWithdraw(wEthToken, _amounts[0]);
             } else {
                 aavePayback(tokens_, amounts_);
                 aaveWithdraw(wEthToken, _amounts[0]);
@@ -425,26 +421,26 @@ contract FlashAggregator is Setups {
      * @dev Function to transfer fee to the treasury.
      * @notice Function to transfer fee to the treasury. Will be called manually.
      * @param _tokens token addresses for transferring fee to treasury.
-     * @param _amounts list of amounts for the corresponding tokens. If amount == type(uint).max, transfer the whole amount of that token this contract has.
     */
-    function transferFeeToTreasury(address[] memory _tokens, uint256[] memory _amounts) public {
-        require(_tokens.length == _amounts.length, "length-not-same");
-        for(uint256 i = 0; i < _tokens.length; i++) {
+    function transferFeeToTreasury(address[] memory _tokens) public {
+        for (uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
-            if (_amounts[i] == type(uint).max) {
-                token_.safeTransfer(treasuryAddr, token_.balanceOf(address(this)));
-            } else {
-                token_.safeTransfer(treasuryAddr, _amounts[i]);
-            }
+            uint decimals_ = TokenInterface(_tokens[i]).decimals();
+            uint amtToSub_ = decimals_ == 18 ? 1e10 : decimals_ > 12 ? 10000 : decimals_ > 7 ? 100 : 10;
+            uint amtToTransfer_ = token_.balanceOf(address(this)) > amtToSub_ ? (token_.balanceOf(address(this)) - amtToSub_) : 0;
+            if (amtToTransfer_ > 0) token_.safeTransfer(treasuryAddr, amtToTransfer_);
         }
     }
 }
 
-contract InstaFlashloanAggregator is FlashAggregator {
+contract InstaFlashAggregator is FlashAggregator {
     using SafeERC20 for IERC20;
 
-    constructor() {
+    function initialize(address[] memory _ctokens) public {
+        require(status == 0, "cannot-call-again");
         IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
+        addTokenToCToken(_ctokens);
+        status = 1;
     }
 
     receive() external payable {}

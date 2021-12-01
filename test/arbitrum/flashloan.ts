@@ -3,17 +3,27 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-  InstaFlashloanAggregatorArbitrum,
-  InstaFlashloanAggregatorArbitrum__factory,
+  InstaFlashAggregatorArbitrum,
+  InstaFlashAggregatorArbitrum__factory,
   IERC20__factory,
   IERC20,
   InstaFlashReceiver__factory,
   InstaFlashReceiver,
+  InstaFlashAggregatorProxy,
+  InstaFlashAggregatorProxy__factory,
+  InstaFlashAggregatorAdmin,
+  InstaFlashAggregatorAdmin__factory,
 } from "../../typechain";
 
 describe("FlashLoan", function () {
-  let Resolver, resolver, Receiver, receiver: InstaFlashReceiver;
+  let Aggregator, aggregator, Receiver, receiver: InstaFlashReceiver, Proxy, proxy, Admin, admin;
   let signer: SignerWithAddress;
+
+  const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137';
+
+  let ABI = [ "function initialize()" ];
+  let iface = new ethers.utils.Interface(ABI);
+  const data = iface.encodeFunctionData("initialize");
 
   const USDC = "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8";
   const USDT = "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9";
@@ -30,12 +40,20 @@ describe("FlashLoan", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
-    Resolver = new InstaFlashloanAggregatorArbitrum__factory(signer);
-    resolver = await Resolver.deploy();
-    await resolver.deployed();
+    Aggregator = new InstaFlashAggregatorArbitrum__factory(signer);
+    aggregator = await Aggregator.deploy();
+    await aggregator.deployed();
+
+    Admin = new InstaFlashAggregatorAdmin__factory(signer);
+    admin = await Admin.deploy(master);
+    await admin.deployed();
+
+    Proxy = new InstaFlashAggregatorProxy__factory(signer);
+    proxy = await Proxy.deploy(aggregator.address, admin.address, data);
+    await proxy.deployed();
 
     Receiver = new InstaFlashReceiver__factory(signer);
-    receiver = await Receiver.deploy(resolver.address);
+    receiver = await Receiver.deploy(proxy.address);
     await receiver.deployed();
 
     const token_usdc = new ethers.Contract(

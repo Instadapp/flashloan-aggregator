@@ -1,6 +1,5 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 
 /**
  * @title Flashloan.
@@ -10,14 +9,10 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "hardhat/console.sol";
 import { Helper } from "./helpers.sol";
 
 import { 
-    IndexInterface,
-    ListInterface,
     TokenInterface,
-    IAaveLending, 
     InstaFlashReceiverInterface
 } from "./interfaces.sol";
 
@@ -141,7 +136,7 @@ contract FlashAggregatorAvalanche is Helper {
             amounts_[i] = type(uint).max;
         }
 
-        transferFeeToTreasury(_tokens, amounts_);
+        transferFeeToTreasury(_tokens);
 
         emit LogFlashloan(
             msg.sender,
@@ -164,21 +159,23 @@ contract FlashAggregatorAvalanche is Helper {
      * @dev Function to transfer fee to the treasury.
      * @notice Function to transfer fee to the treasury.
      * @param _tokens token addresses for transferring fee to treasury.
-     * @param _amounts list of amounts for the corresponding tokens. If amount == type(uint).max, transfer the whole amount of that token this contract has.
     */
-    function transferFeeToTreasury(address[] memory _tokens, uint256[] memory _amounts) public {
-        require(_tokens.length == _amounts.length, "length-not-same");
-        for(uint256 i = 0; i < _tokens.length; i++) {
+    function transferFeeToTreasury(address[] memory _tokens) public {
+        for (uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
-            if (_amounts[i] == type(uint).max) {
-                token_.safeTransfer(treasuryAddr, token_.balanceOf(address(this)));
-            } else {
-                token_.safeTransfer(treasuryAddr, _amounts[i]);
-            }
+            uint decimals_ = TokenInterface(_tokens[i]).decimals();
+            uint amtToSub_ = decimals_ == 18 ? 1e10 : decimals_ > 12 ? 10000 : decimals_ > 7 ? 100 : 10;
+            uint amtToTransfer_ = token_.balanceOf(address(this)) > amtToSub_ ? (token_.balanceOf(address(this)) - amtToSub_) : 0;
+            if (amtToTransfer_ > 0) token_.safeTransfer(treasuryAddr, amtToTransfer_);
         }
     }
 }
 
-contract InstaFlashloanAggregatorAvalanche is FlashAggregatorAvalanche {
+contract InstaFlashAggregatorAvalanche is FlashAggregatorAvalanche {
+    function initialize() public  {
+        require(status == 0, "cannot-call-again");
+        status = 1;
+    }
+
     receive() external payable {}
 }

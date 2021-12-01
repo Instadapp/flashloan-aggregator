@@ -3,26 +3,26 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-    InstaFlashloanAggregatorPolygon,
-    InstaFlashloanAggregatorPolygon__factory,
-    InstaFlashloanResolverPolygon,
-    InstaFlashloanResolverPolygon__factory,
-  } from "../typechain";
+  InstaFlashloanResolverPolygon,
+  InstaFlashloanResolverPolygon__factory,
+} from "../typechain";
 
-let Aggregator, aggregator: InstaFlashloanAggregatorPolygon, Resolver, resolver: InstaFlashloanResolverPolygon;
-async function testRunner() {
-    let signer: SignerWithAddress;
-    [signer] = await ethers.getSigners();
+let Resolver, resolver: InstaFlashloanResolverPolygon;
 
-    Aggregator = new InstaFlashloanAggregatorPolygon__factory(signer);
-    aggregator = await Aggregator.deploy();
-    await aggregator.deployed();
+async function scriptRunner() {
+  let signer: SignerWithAddress;
+  [signer] = await ethers.getSigners();
 
-    Resolver = new InstaFlashloanResolverPolygon__factory(signer);
-    resolver = await Resolver.deploy(aggregator.address);
-    await resolver.deployed()
+  console.log((await ethers.provider.getBalance(signer.address)).toString());
+  console.log(signer.address);
+  
+  Resolver = new InstaFlashloanResolverPolygon__factory(signer);
+  resolver = await Resolver.deploy();
+  await resolver.deployed()
+
+  console.log((await ethers.provider.getBalance(signer.address)).toString());
 }
 
-testRunner()
-  .then(() => console.log(`Deployed aggregator on ${aggregator.address}, Deployed resolver on ${resolver.address}`))
+scriptRunner()
+  .then(() => console.log(`Deployed resolver on ${resolver.address}`))
   .catch(err => console.error("❌ failed due to error: ", err));
