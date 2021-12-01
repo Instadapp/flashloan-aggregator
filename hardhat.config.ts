@@ -12,7 +12,6 @@ import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 import { NetworkUserConfig } from "hardhat/types";
-import Web3 from "web3";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
@@ -62,10 +61,10 @@ function getNetworkUrl(networkType: string) {
 }
 
 function getBlockNumber(networkType: string) {
-  if (networkType === "avalanche") return 6802000;
-  else if (networkType === "polygon") return 21244400;
-  else if (networkType === "arbitrum") return 2979700;
-  else return 13405033;
+  if (networkType === "avalanche") return 7675580;
+  else if (networkType === "polygon") return 22019000;
+  else if (networkType === "arbitrum") return 3493087;
+  else return 13722340;
 }
 
 const config: HardhatUserConfig = {
@@ -91,10 +90,35 @@ const config: HardhatUserConfig = {
     kovan: createTestnetConfig("kovan"),
     rinkeby: createTestnetConfig("rinkeby"),
     ropsten: createTestnetConfig("ropsten"),
-    // polygon_mainnet: {
-    //   url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
-    //   accounts: [`0x${process.env.PRIVATE_KEY}`]
-    // }
+    // hardhat: {
+    //   forking: {
+    //     url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+    //   },
+    // },
+    mainnet: {
+      url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
+      chainId: 1,
+      gasPrice: 101100000000,
+      accounts: [`0x${process.env.PRIVATE_KEY}`]
+    },
+    avalanche_mainnet: {
+      url: 'https://api.avax.network/ext/bc/C/rpc',
+      chainId: 43114,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 40110000000,
+    },
+    arbitrum_mainnet: {
+      url: `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+      chainId: 42161,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 1500000000
+    },
+    polygon_mainnet: {
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+      chainId: 137,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 100000000000,
+    }
   },
   paths: {
     artifacts: "./artifacts",

@@ -1,18 +1,10 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-
 import {Variables} from "./variables.sol";
-import "hardhat/console.sol";
-
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract Helper is Variables {
-    using SafeERC20 for IERC20;
-
-    // Helpers
-
     function getBalancerAvailability(address[] memory _tokens, uint256[] memory _amounts) internal view returns (bool) {
         for(uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
