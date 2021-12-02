@@ -180,7 +180,7 @@ contract FlashAggregator is Setups {
         uint256[] memory _fees,
         bytes memory _data
     ) external verifyDataHash(_data) {
-        require(msg.sender == balancerLendingAddr, "not-aave-sender");
+        require(msg.sender == balancerLendingAddr, "not-balancer-sender");
 
         FlashloanVariables memory instaLoanVariables_;
 
