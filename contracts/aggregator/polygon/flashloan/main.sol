@@ -55,7 +55,7 @@ contract FlashAggregatorPolygon is Helper {
         safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
 
-        if (checkIfDsa(msg.sender)) {
+        if (checkIfDsa(sender_)) {
             Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
         } else {
             InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
@@ -97,7 +97,7 @@ contract FlashAggregatorPolygon is Helper {
         if (route_ == 5) {
             safeTransfer(instaLoanVariables_, sender_);
 
-            if (checkIfDsa(msg.sender)) {
+            if (checkIfDsa(sender_)) {
                 Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
             } else {
                 InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
@@ -112,7 +112,7 @@ contract FlashAggregatorPolygon is Helper {
             aaveBorrow(tokens_, amounts_);
             safeTransfer(instaLoanVariables_, sender_);
 
-            if (checkIfDsa(msg.sender)) {
+            if (checkIfDsa(sender_)) {
                 Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
             } else {
                 InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
