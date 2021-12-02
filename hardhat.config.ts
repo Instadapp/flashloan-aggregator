@@ -92,7 +92,7 @@ const config: HardhatUserConfig = {
     ropsten: createTestnetConfig("ropsten"),
     // hardhat: {
     //   forking: {
-    //     url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+    //     url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
     //   },
     // },
     mainnet: {
@@ -111,7 +111,7 @@ const config: HardhatUserConfig = {
       url: `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
       chainId: 42161,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
-      gasPrice: 1500000000
+      gasPrice: 2000000000
     },
     polygon_mainnet: {
       url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,

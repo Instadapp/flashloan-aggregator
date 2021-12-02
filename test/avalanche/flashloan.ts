@@ -19,11 +19,11 @@ describe("FlashLoan", function () {
   let Aggregator, aggregator, Receiver, receiver: InstaFlashReceiver, Proxy, proxy, Admin, admin;
   let signer: SignerWithAddress;
 
-  const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137';
+  // const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137';
 
-  let ABI = [ "function initialize()" ];
-  let iface = new ethers.utils.Interface(ABI);
-  const data = iface.encodeFunctionData("initialize");
+  // let ABI = [ "function initialize()" ];
+  // let iface = new ethers.utils.Interface(ABI);
+  // const data = iface.encodeFunctionData("initialize");
 
   const DAI = "0xd586e7f844cea2f87f50152665bcbc2c279d8d70";
   const USDT = "0xc7198437980c041c805a1edcba50c1ce5db95118";
@@ -40,20 +40,20 @@ describe("FlashLoan", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
-    Aggregator = new InstaFlashAggregatorAvalanche__factory(signer);
-    aggregator = await Aggregator.deploy();
-    await aggregator.deployed();
+    // Aggregator = new InstaFlashAggregatorAvalanche__factory(signer);
+    // aggregator = await Aggregator.deploy();
+    // await aggregator.deployed();
 
-    Admin = new InstaFlashAggregatorAdmin__factory(signer);
-    admin = await Admin.deploy(master);
-    await admin.deployed();
+    // Admin = new InstaFlashAggregatorAdmin__factory(signer);
+    // admin = await Admin.deploy(master);
+    // await admin.deployed();
 
-    Proxy = new InstaFlashAggregatorProxy__factory(signer);
-    proxy = await Proxy.deploy(aggregator.address, admin.address, data);
-    await proxy.deployed();
+    // Proxy = new InstaFlashAggregatorProxy__factory(signer);
+    // proxy = await Proxy.deploy(aggregator.address, admin.address, data);
+    // await proxy.deployed();
 
     Receiver = new InstaFlashReceiver__factory(signer);
-    receiver = await Receiver.deploy(proxy.address);
+    receiver = await Receiver.deploy('0x2b65731A085B55DBe6c7DcC8D717Ac36c00F6d19');
     await receiver.deployed();
 
     const token_dai = new ethers.Contract(
