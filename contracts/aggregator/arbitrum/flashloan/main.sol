@@ -34,7 +34,7 @@ contract FlashAggregatorArbitrum is Helper {
         uint256[] memory _fees,
         bytes memory _data
     ) external verifyDataHash(_data) {
-        require(msg.sender == balancerLendingAddr, "not-aave-sender");
+        require(msg.sender == balancerLendingAddr, "not-balancer-sender");
 
         FlashloanVariables memory instaLoanVariables_;
 
@@ -55,7 +55,7 @@ contract FlashAggregatorArbitrum is Helper {
 
         safeTransfer(instaLoanVariables_, sender_);
 
-        if (checkIfDsa(msg.sender)) {
+        if (checkIfDsa(sender_)) {
             Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
         } else {
             InstaFlashReceiverInterface(sender_).executeOperation(instaLoanVariables_._tokens, _amounts, instaLoanVariables_._instaFees, sender_, data_);
