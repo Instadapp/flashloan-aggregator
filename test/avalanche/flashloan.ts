@@ -27,13 +27,17 @@ describe("FlashLoan", function () {
 
   const DAI = "0xd586e7f844cea2f87f50152665bcbc2c279d8d70";
   const USDT = "0xc7198437980c041c805a1edcba50c1ce5db95118";
+  const WAVAX = "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7";
   const ACC_DAI = "0xed2a7edd7413021d440b09d654f3b87712abab66";
   const ACC_USDT = "0xed2a7edd7413021d440b09d654f3b87712abab66";
+  const ACC_WAVAX = "0x43beddb3199f2a635c85ffc4f1af228198d268ab";
 
   const dai = ethers.utils.parseUnits("10", 18);
   const usdt = ethers.utils.parseUnits("10", 6);
+  const wavax = ethers.utils.parseUnits("10", 18);
   const Dai = ethers.utils.parseUnits("5000", 18);
   const Usdt = ethers.utils.parseUnits("5000", 6);
+  const Wavax = ethers.utils.parseUnits("5000", 18);
   
   const zeroAddr =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -89,7 +93,7 @@ describe("FlashLoan", function () {
 
   describe("Multi token", async function () {
     beforeEach(async function () {
-      const token = new ethers.Contract(
+      const token_usdt = new ethers.Contract(
         USDT,
         IERC20__factory.abi,
         ethers.provider
@@ -106,15 +110,39 @@ describe("FlashLoan", function () {
       });
 
       const signer_usdt = await ethers.getSigner(ACC_USDT);
-      await token.connect(signer_usdt).transfer(receiver.address, usdt);
+      await token_usdt.connect(signer_usdt).transfer(receiver.address, usdt);
 
       await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [ACC_USDT],
       });
+
+      const token_wavax = new ethers.Contract(
+        WAVAX,
+        IERC20__factory.abi,
+        ethers.provider
+      );
+
+      await hre.network.provider.send("hardhat_setBalance", [
+        ACC_WAVAX,
+        ethers.utils.parseEther("10.0").toHexString(),
+      ]);
+
+      await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [ACC_WAVAX],
+      });
+
+      const signer_wavax = await ethers.getSigner(ACC_WAVAX);
+      await token_wavax.connect(signer_wavax).transfer(receiver.address, wavax);
+
+      await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [ACC_WAVAX],
+      });
     });
     it("Should be able to take flashLoan of multiple tokens together from AAVE", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr);
+      await receiver.flashBorrow([DAI, USDT, WAVAX], [Dai, Usdt, Wavax], 1, zeroAddr);
     });
   });
 });
