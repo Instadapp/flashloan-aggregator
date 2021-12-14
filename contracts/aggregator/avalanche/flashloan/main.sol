@@ -73,6 +73,70 @@ contract FlashAggregatorAvalanche is Helper {
     }
 
     /**
+     * @dev Fallback function for balancer flashloan.
+     * @notice Fallback function for balancer flashloan.
+     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+     * @param _fees list of fees for the corresponding addresses for flashloan.
+     * @param _data extra data passed(includes route info aswell).
+    */
+    function onInstaLoan(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256[] memory _fees,
+        address,
+        bytes memory _data
+    ) external verifyDataHash(_data) {
+        require(msg.sender == interopLendingAddr, "not-interop-sender");
+
+        FlashloanVariables memory instaLoanVariables_;
+
+        (uint route_, address[] memory tokens_, uint256[] memory amounts_, address sender_, bytes memory data_) = abi.decode(
+            _data,
+            (uint, address[], uint256[], address, bytes)
+        );
+
+        instaLoanVariables_._tokens = tokens_;
+        instaLoanVariables_._amounts = amounts_;
+        instaLoanVariables_._iniBals = calculateBalances(tokens_, address(this));
+        instaLoanVariables_._instaFees = calculateFees(amounts_, calculateFeeBPS(route_));
+
+        if (route_ == 8) {
+            safeTransfer(instaLoanVariables_, sender_);
+
+            if (checkIfDsa(sender_)) {
+                Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            }
+
+            instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
+            validateFlashloan(instaLoanVariables_);
+            safeTransferWithFee(instaLoanVariables_, _fees, interopLendingAddr);
+        } else if (route_ == 9) {
+            aaveSupply(_tokens, _amounts);
+            aaveBorrow(tokens_, amounts_);
+            safeTransfer(instaLoanVariables_, sender_);
+
+            if (checkIfDsa(sender_)) {
+                Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            }
+
+            aavePayback(tokens_, amounts_);
+            aaveWithdraw(_tokens, _amounts);
+            
+            instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
+            validateFlashloan(instaLoanVariables_);
+            instaLoanVariables_._amounts = _amounts;
+            instaLoanVariables_._tokens = _tokens;
+            safeTransferWithFee(instaLoanVariables_, _fees, interopLendingAddr);
+        } else {
+            require(false, "wrong-route");
+        }
+    }
+
+    /**
      * @dev Middle function for route 1.
      * @notice Middle function for route 1.
      * @param _tokens list of token addresses for flashloan.
@@ -91,6 +155,37 @@ contract FlashAggregatorAvalanche is Helper {
     }
 
     /**
+     * @dev Middle function for route 9.
+     * @notice Middle function for route 9.
+     * @param _tokens list of token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _data extra data passed.
+    */
+    function routeInterop(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
+        bytes memory data_ = abi.encode(8, _tokens, _amounts, msg.sender, _data);
+        dataHash = bytes32(keccak256(data_));
+        interopLending.initiateFlashLoan(address(this), _tokens, _amounts, data_);
+    }
+
+    /**
+     * @dev Middle function for route 9.
+     * @notice Middle function for route 9.
+     * @param _tokens list of token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _data extra data passed.
+     * @param _instaData extra data passed.
+    */
+    function routeInteropAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data, bytes memory _instaData) internal {
+        (address[] memory tokens_, uint256[] memory amounts_) = abi.decode(
+            _instaData,
+            (address[], uint256[])
+        );
+        bytes memory data_ = abi.encode(9, _tokens, _amounts, msg.sender, _data);
+        dataHash = bytes32(keccak256(data_));
+        interopLending.initiateFlashLoan(address(this), tokens_, amounts_, data_);
+    }
+
+    /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @param _tokens token addresses for flashloan.
@@ -103,7 +198,7 @@ contract FlashAggregatorAvalanche is Helper {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
+        bytes calldata _instaData // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
@@ -125,6 +220,10 @@ contract FlashAggregatorAvalanche is Helper {
             require(false, "this route is only for mainnet");
         } else if (_route == 7) {
             require(false, "this route is only for mainnet and polygon");
+        } else if (_route == 8) {
+            routeInterop(_tokens, _amounts, _data);
+        } else if (_route == 9) {
+            routeInteropAave(_tokens, _amounts, _data, _instaData);
         } else {
             require(false, "route-does-not-exist");
         }
@@ -151,8 +250,10 @@ contract FlashAggregatorAvalanche is Helper {
      * @notice Function to get the list of available routes.
     */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](1);
+        routes_ = new uint16[](3);
         routes_[0] = 1;
+        routes_[1] = 8;
+        routes_[2] = 9;
     }
 
     /**

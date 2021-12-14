@@ -54,6 +54,27 @@ contract Helper is Variables {
     }
 
     /**
+     * @dev Transfers the tokens to the receiver address (amount + fee).
+     * @notice Transfers the tokens to the receiver address (amount + fee).
+     * @param _instaLoanVariables struct which includes list of token addresses and amounts.
+     * @param _fees list of fees for the respective tokens.
+     * @param _receiver address to which tokens have to be transferred.
+    */
+    function safeTransferWithFee(
+        FlashloanVariables memory _instaLoanVariables,
+        uint256[] memory _fees,
+        address _receiver
+    ) internal {
+        require(_instaLoanVariables._tokens.length == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
+        require(_instaLoanVariables._tokens.length == _fees.length, "Lengths of parameters not same");
+        uint256 length_ = _instaLoanVariables._tokens.length;
+        for (uint i = 0; i < length_; i++) {
+            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
+            token.safeTransfer(_receiver, _instaLoanVariables._amounts[i] + _fees[i]);
+        }
+    }
+
+    /**
      * @dev Calculates the balances..
      * @notice Calculates the balances of the account passed for the tokens.
      * @param _tokens list of token addresses to calculate balance for.
@@ -97,6 +118,71 @@ contract Helper is Variables {
     }
 
     /**
+     * @dev Supply token to aave.
+     * @notice Supply token to aave.
+     * @param _tokens token addresses.
+     * @param _amounts amounts of tokens.
+    */
+    function aaveSupply(address[] memory _tokens, uint256[] memory _amounts) internal {
+        uint256 length_ = _tokens.length;
+        require(_amounts.length == length_, "array-lengths-not-same");
+        for(uint256 i = 0; i < length_; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            token_.safeApprove(aaveLendingAddr, _amounts[i]);
+            aaveLending.deposit(_tokens[i], _amounts[i], address(this), 3228);
+            aaveLending.setUserUseReserveAsCollateral(_tokens[i], true);
+        }
+    }
+
+    /**
+     * @dev Borrow tokens from aave.
+     * @notice Borrow tokens from aave.
+     * @param _tokens list of token addresses.
+     * @param _amounts list of amounts for respective tokens.
+    */
+    function aaveBorrow(
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) internal {
+        uint256 length_ = _tokens.length;
+        for(uint i=0; i < length_; i++) {
+            aaveLending.borrow(_tokens[i], _amounts[i], 2, 3228, address(this));
+        }
+    }
+
+    /**
+     * @dev Payback tokens to aave.
+     * @notice Payback tokens to aave.
+     * @param _tokens list of token addresses.
+     * @param _amounts list of amounts for respective tokens.
+    */
+    function aavePayback(
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) internal {
+        uint256 length = _tokens.length;
+        for(uint i=0; i < length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            token_.safeApprove(aaveLendingAddr, _amounts[i]);
+            aaveLending.repay(_tokens[i], _amounts[i], 2, address(this));
+        }
+    }
+
+    /**
+     * @dev Withdraw token from aave.
+     * @notice Wiothdraw token from aave.
+     * @param _tokens token addresses.
+     * @param _amounts amounts of tokens.
+    */
+    function aaveWithdraw(address[] memory _tokens, uint256[] memory _amounts) internal {
+        uint256 length_ = _tokens.length;
+        require(_amounts.length == length_, "array-lengths-not-same");
+        for(uint256 i = 0; i < length_; i++) {
+            aaveLending.withdraw(_tokens[i], _amounts[i], address(this));
+        }
+    }
+
+    /**
      * @dev Returns fee for the passed route in BPS.
      * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
      * @param _route route number for flashloan.
@@ -104,6 +190,8 @@ contract Helper is Variables {
     function calculateFeeBPS(uint256 _route) public view returns(uint256 BPS_){
         if (_route == 1) {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
+        } else if (_route == 8 || _route == 9) {
+            BPS_ == interopLending.instaFeeBPS();
         } else {
             require(false, "Invalid source");
         }

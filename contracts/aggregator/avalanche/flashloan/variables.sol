@@ -5,13 +5,17 @@ pragma solidity ^0.8.0;
 import { 
     IndexInterface,
     ListInterface,
-    IAaveLending
+    IAaveLending,
+    IInteropLending
 } from "./interfaces.sol";
 
 contract ConstantVariables {
 
     address public constant aaveLendingAddr = 0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
     IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
+
+    address public constant interopLendingAddr = address(0);
+    IInteropLending public constant interopLending = IInteropLending(interopLendingAddr);
 
     address public constant treasuryAddr = 0xE06d0b1752E60687C0EA5ABBe006d3368fdCDCC1; // TODO: need to update this
     address private constant instaListAddr = 0x9926955e0Dd681Dc303370C52f4Ad0a4dd061687;

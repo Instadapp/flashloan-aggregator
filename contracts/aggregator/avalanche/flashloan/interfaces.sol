@@ -80,3 +80,13 @@ interface IAaveLending {
     function setUserUseReserveAsCollateral(address asset, bool useAsCollateral)
         external;
 }
+
+interface IInteropLending {
+    function initiateFlashLoan(
+        address _receiverAddress,
+        address[] calldata _tokens,	
+        uint256[] calldata _amounts,	
+        bytes calldata _data
+    ) external;
+    function instaFeeBPS() external view returns (uint256);
+}
