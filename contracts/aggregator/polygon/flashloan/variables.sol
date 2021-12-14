@@ -19,7 +19,7 @@ contract ConstantVariables {
     address public constant balancerLendingAddr = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     IBalancerLending public constant balancerLending = IBalancerLending(balancerLendingAddr);
 
-    address public constant interopLendingAddr = address(0);
+    address public constant interopLendingAddr = 0x6aB2f727Ef3Df85Cf6bCeF517a411610aBf3c9A4;
     IInteropLending public constant interopLending = IInteropLending(interopLendingAddr);
 
     address public constant wEthToken = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
