@@ -276,6 +276,8 @@ contract Helper is Variables {
             BPS_ = (makerLending.toll()) / (10 ** 14);
         } else if (_route == 5 || _route == 6 || _route == 7) {
             BPS_ = (balancerLending.getProtocolFeesCollector().getFlashLoanFeePercentage()) * 100;
+        } else if (_route == 8 || _route == 9) {
+            BPS_ == interopLending.instaFeeBPS();
         } else {
             require(false, "Invalid source");
         }

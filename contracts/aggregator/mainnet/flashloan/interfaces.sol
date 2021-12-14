@@ -139,3 +139,13 @@ interface IBalancerLending {
     ) external;
     function getProtocolFeesCollector() external view returns (ProtocolFeesCollector);
 }
+
+interface IInteropLending {
+    function initiateFlashLoan(
+        address _receiverAddress,
+        address[] calldata _tokens,	
+        uint256[] calldata _amounts,	
+        bytes calldata _data
+    ) external;
+    function instaFeeBPS() external view returns (uint256);
+}
