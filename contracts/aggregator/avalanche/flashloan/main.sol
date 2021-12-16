@@ -132,7 +132,7 @@ contract FlashAggregatorAvalanche is Helper {
             instaLoanVariables_._tokens = _tokens;
             safeTransferWithFee(instaLoanVariables_, _fees, interopLendingAddr);
         } else {
-            require(false, "wrong-route");
+            revert("wrong-route");
         }
     }
 
@@ -209,23 +209,23 @@ contract FlashAggregatorAvalanche is Helper {
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);
         } else if (_route == 2) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 3) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 4) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 5) {
-            require(false, "this route is only for mainnet, polygon and arbitrum");
+            revert("this route is only for mainnet, polygon and arbitrum");
         } else if (_route == 6) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 7) {
-            require(false, "this route is only for mainnet and polygon");
+            revert("this route is only for mainnet and polygon");
         } else if (_route == 8) {
             routeInterop(_tokens, _amounts, _data);
         } else if (_route == 9) {
             routeInteropAave(_tokens, _amounts, _data, _instaData);
         } else {
-            require(false, "route-does-not-exist");
+            revert("route-does-not-exist");
         }
 
         uint256 length_ = _tokens.length;

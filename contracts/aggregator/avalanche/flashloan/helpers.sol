@@ -193,7 +193,7 @@ contract Helper is Variables {
         } else if (_route == 8 || _route == 9) {
             BPS_ == interopLending.instaFeeBPS();
         } else {
-            require(false, "Invalid source");
+            revert("Invalid source");
         }
         
         if (BPS_ < InstaFeeBPS) {
