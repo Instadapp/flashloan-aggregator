@@ -295,7 +295,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata _instaData // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
+        bytes calldata _instaData
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
