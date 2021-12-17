@@ -152,15 +152,15 @@ contract FlashAggregatorPolygon is Helper {
 
         FlashloanVariables memory instaLoanVariables_;
 
-        (uint route_, address[] memory tokens_, uint256[] memory amounts_, address sender_, bytes memory data_) = abi.decode(
+        (uint route_, address[] memory borrowTokens_, uint256[] memory borrowAmounts_, address sender_, bytes memory data_) = abi.decode(
             _data,
             (uint, address[], uint256[], address, bytes)
         );
 
-        instaLoanVariables_._tokens = tokens_;
-        instaLoanVariables_._amounts = amounts_;
-        instaLoanVariables_._iniBals = calculateBalances(tokens_, address(this));
-        instaLoanVariables_._instaFees = calculateFees(amounts_, calculateFeeBPS(route_));
+        instaLoanVariables_._tokens = borrowTokens_;
+        instaLoanVariables_._amounts = borrowAmounts_;
+        instaLoanVariables_._iniBals = calculateBalances(borrowTokens_, address(this));
+        instaLoanVariables_._instaFees = calculateFees(borrowAmounts_, calculateFeeBPS(route_));
 
         if (route_ == 8) {
             safeTransfer(instaLoanVariables_, sender_);
@@ -168,27 +168,27 @@ contract FlashAggregatorPolygon is Helper {
             if (checkIfDsa(sender_)) {
                 Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
             } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+                InstaFlashReceiverInterface(sender_).executeOperation(borrowTokens_, borrowAmounts_, instaLoanVariables_._instaFees, sender_, data_);
             }
 
-            instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
+            instaLoanVariables_._finBals = calculateBalances(borrowTokens_, address(this));
             validateFlashloan(instaLoanVariables_);
             safeTransferWithFee(instaLoanVariables_, _fees, interopLendingAddr);
         } else if (route_ == 9) {
             aaveSupply(_tokens, _amounts);
-            aaveBorrow(tokens_, amounts_);
+            aaveBorrow(borrowTokens_, borrowAmounts_);
             safeTransfer(instaLoanVariables_, sender_);
 
             if (checkIfDsa(sender_)) {
                 Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
             } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+                InstaFlashReceiverInterface(sender_).executeOperation(borrowTokens_, borrowAmounts_, instaLoanVariables_._instaFees, sender_, data_);
             }
 
-            aavePayback(tokens_, amounts_);
+            aavePayback(borrowTokens_, borrowAmounts_);
             aaveWithdraw(_tokens, _amounts);
     
-            instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
+            instaLoanVariables_._finBals = calculateBalances(borrowTokens_, address(this));
             validateFlashloan(instaLoanVariables_);
             instaLoanVariables_._amounts = _amounts;
             instaLoanVariables_._tokens = _tokens;
@@ -267,19 +267,19 @@ contract FlashAggregatorPolygon is Helper {
     /**
      * @dev Middle function for route 9.
      * @notice Middle function for route 9.
-     * @param _tokens list of token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
+     * @param _borrowTokens list of token addresses for flashloan.
+     * @param _borrowAmounts list of amounts for the corresponding assets.
      * @param _data extra data passed.
      * @param _instaData extra data passed.
     */
-    function routeInteropAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data, bytes memory _instaData) internal {
-        (address[] memory tokens_, uint256[] memory amounts_) = abi.decode(
+    function routeInteropAave(address[] memory _borrowTokens, uint256[] memory _borrowAmounts, bytes memory _data, bytes memory _instaData) internal {
+        (address[] memory suuplyTokens_, uint256[] memory supplyAmounts_) = abi.decode(
             _instaData,
             (address[], uint256[])
         );
-        bytes memory data_ = abi.encode(9, _tokens, _amounts, msg.sender, _data);
+        bytes memory data_ = abi.encode(9, _borrowTokens, _borrowAmounts, msg.sender, _data);
         dataHash = bytes32(keccak256(data_));
-        interopLending.initiateInstaLoan(address(this), tokens_, amounts_, data_);
+        interopLending.initiateInstaLoan(address(this), suuplyTokens_, supplyAmounts_, data_);
     }
 
     /**
