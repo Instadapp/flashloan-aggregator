@@ -261,7 +261,7 @@ contract FlashAggregatorPolygon is Helper {
     function routeInterop(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(8, _tokens, _amounts, msg.sender, _data);
         dataHash = bytes32(keccak256(data_));
-        interopLending.initiateFlashLoan(address(this), _tokens, _amounts, data_);
+        interopLending.initiateInstaLoan(address(this), _tokens, _amounts, data_);
     }
 
     /**
@@ -279,7 +279,7 @@ contract FlashAggregatorPolygon is Helper {
         );
         bytes memory data_ = abi.encode(9, _tokens, _amounts, msg.sender, _data);
         dataHash = bytes32(keccak256(data_));
-        interopLending.initiateFlashLoan(address(this), tokens_, amounts_, data_);
+        interopLending.initiateInstaLoan(address(this), tokens_, amounts_, data_);
     }
 
     /**

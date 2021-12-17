@@ -82,7 +82,7 @@ interface IAaveLending {
 }
 
 interface IInteropLending {
-    function initiateFlashLoan(
+    function initiateInstaLoan(
         address _receiverAddress,
         address[] calldata _tokens,	
         uint256[] calldata _amounts,	
