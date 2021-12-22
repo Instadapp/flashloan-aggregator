@@ -32,7 +32,7 @@ contract Setups is Helper {
             address token_ = CTokenInterface(_cTokens[i]).underlying();
             require(tokenToCToken[token_] == address((0)), "already-added");
             tokenToCToken[token_] = _cTokens[i];
-            IERC20(token_).safeApprove(_cTokens[i], type(uint256).max);
+            approve(IERC20(token_), _cTokens[i], type(uint256).max);
         }
     }
 }
@@ -438,7 +438,7 @@ contract InstaFlashAggregator is FlashAggregator {
 
     function initialize(address[] memory _ctokens) public {
         require(status == 0, "cannot-call-again");
-        IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
+        approve(IERC20(daiToken), makerLendingAddr, type(uint256).max);
         addTokenToCToken(_ctokens);
         status = 1;
     }

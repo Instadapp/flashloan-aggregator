@@ -16,6 +16,22 @@ contract Helper is Variables {
     using SafeERC20 for IERC20;
 
     /**
+     * @dev Approves the token to the spender address with allowance amount.
+     * @notice Approves the token to the spender address with allowance amount.
+     * @param token_ token for which allowance is to be given.
+     * @param spender_ the address to which the allowance is to be given.
+     * @param amount_ amount of token.
+    */
+    function approve(IERC20 token_, address spender_, uint256 amount_) internal {
+        try token_.approve(spender_, amount_) {
+
+        } catch {
+            token_.approve(spender_, 0);
+            token_.approve(spender_, amount_);
+        }
+    }
+
+    /**
      * @dev Approves the tokens to the receiver address with allowance (amount + fee).
      * @notice Approves the tokens to the receiver address with allowance (amount + fee).
      * @param _instaLoanVariables struct which includes list of token addresses and amounts.
@@ -31,8 +47,8 @@ contract Helper is Variables {
         require(_instaLoanVariables._tokens.length == _fees.length, "Lengths of parameters not same");
         uint256 length_ = _instaLoanVariables._tokens.length;
         for (uint i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-            token.safeApprove(_receiver, _instaLoanVariables._amounts[i] + _fees[i]);
+            IERC20 token_ = IERC20(_instaLoanVariables._tokens[i]);
+            approve(token_, _receiver, _instaLoanVariables._amounts[i] + _fees[i]);
         }
     }
 
@@ -215,7 +231,7 @@ contract Helper is Variables {
     */
     function aaveSupply(address _token, uint256 _amount) internal {
         IERC20 token_ = IERC20(_token);
-        token_.safeApprove(aaveLendingAddr, _amount);
+        approve(token_, aaveLendingAddr, _amount);
         aaveLending.deposit(_token, _amount, address(this), 3228);
         aaveLending.setUserUseReserveAsCollateral(_token, true);
     }
@@ -249,7 +265,7 @@ contract Helper is Variables {
         uint256 length = _tokens.length;
         for(uint i=0; i < length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
-            token_.safeApprove(aaveLendingAddr, _amounts[i]);
+            approve(token_, aaveLendingAddr, _amounts[i]);
             aaveLending.repay(_tokens[i], _amounts[i], 2, address(this));
         }
     }
