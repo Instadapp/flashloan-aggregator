@@ -26,9 +26,9 @@ contract Helper is Variables {
         uint256[] memory _fees,
         address _receiver
     ) internal {
-        require(_instaLoanVariables._tokens.length == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
-        require(_instaLoanVariables._tokens.length == _fees.length, "Lengths of parameters not same");
         uint256 length_ = _instaLoanVariables._tokens.length;
+        require(length_ == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
+        require(length_ == _fees.length, "Lengths of parameters not same");
         for (uint i = 0; i < length_; i++) {
             IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
             token.safeApprove(_receiver, _instaLoanVariables._amounts[i] + _fees[i]);
@@ -45,8 +45,8 @@ contract Helper is Variables {
         FlashloanVariables memory _instaLoanVariables,
         address _receiver
     ) internal {
-        require(_instaLoanVariables._tokens.length == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
         uint256 length_ = _instaLoanVariables._tokens.length;
+        require(length_ == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
         for (uint i = 0; i < length_; i++) {
             IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
             token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
@@ -65,9 +65,9 @@ contract Helper is Variables {
         uint256[] memory _fees,
         address _receiver
     ) internal {
-        require(_instaLoanVariables._tokens.length == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
-        require(_instaLoanVariables._tokens.length == _fees.length, "Lengths of parameters not same");
         uint256 length_ = _instaLoanVariables._tokens.length;
+        require(length_ == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
+        require(length_ == _fees.length, "Lengths of parameters not same");
         for (uint i = 0; i < length_; i++) {
             IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
             token.safeTransfer(_receiver, _instaLoanVariables._amounts[i] + _fees[i]);
@@ -145,6 +145,7 @@ contract Helper is Variables {
         uint256[] memory _amounts
     ) internal {
         uint256 length_ = _tokens.length;
+        require(_amounts.length == length_, "array-lengths-not-same");
         for(uint i=0; i < length_; i++) {
             aaveLending.borrow(_tokens[i], _amounts[i], 2, 3228, address(this));
         }
@@ -160,8 +161,9 @@ contract Helper is Variables {
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal {
-        uint256 length = _tokens.length;
-        for(uint i=0; i < length; i++) {
+        uint256 length_ = _tokens.length;
+        require(_amounts.length == length_, "array-lengths-not-same");
+        for(uint i = 0; i < length_; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
             token_.safeApprove(aaveLendingAddr, _amounts[i]);
             aaveLending.repay(_tokens[i], _amounts[i], 2, address(this));
