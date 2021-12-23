@@ -15,6 +15,22 @@ contract Helper is Variables {
     using SafeERC20 for IERC20;
 
     /**
+     * @dev Approves the token to the spender address with allowance amount.
+     * @notice Approves the token to the spender address with allowance amount.
+     * @param token_ token for which allowance is to be given.
+     * @param spender_ the address to which the allowance is to be given.
+     * @param amount_ amount of token.
+    */
+    function approve(IERC20 token_, address spender_, uint256 amount_) internal {
+        if(token_.allowance(address(this), spender_) == 0) {
+            token_.safeApprove(spender_, amount_);
+        } else {
+            token_.safeApprove(spender_, 0);
+            token_.safeApprove(spender_, amount_);
+        }
+    }
+
+    /**
      * @dev Approves the tokens to the receiver address with allowance (amount + fee).
      * @notice Approves the tokens to the receiver address with allowance (amount + fee).
      * @param _instaLoanVariables struct which includes list of token addresses and amounts.
@@ -30,8 +46,8 @@ contract Helper is Variables {
         require(length_ == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
         require(length_ == _fees.length, "Lengths of parameters not same");
         for (uint i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-            token.safeApprove(_receiver, _instaLoanVariables._amounts[i] + _fees[i]);
+            IERC20 token_ = IERC20(_instaLoanVariables._tokens[i]);
+            approve(token_, _receiver, _instaLoanVariables._amounts[i] + _fees[i]);
         }
     }
 
@@ -128,7 +144,7 @@ contract Helper is Variables {
         require(_amounts.length == length_, "array-lengths-not-same");
         for(uint256 i = 0; i < length_; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
-            token_.safeApprove(aaveLendingAddr, _amounts[i]);
+            approve(token_, aaveLendingAddr, _amounts[i]);
             aaveLending.deposit(_tokens[i], _amounts[i], address(this), 3228);
             aaveLending.setUserUseReserveAsCollateral(_tokens[i], true);
         }
