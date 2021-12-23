@@ -3,9 +3,7 @@ pragma solidity ^0.8.0;
 
 
 import { 
-    IndexInterface,
     ListInterface,
-    TokenInterface,
     IAaveLending,
     IERC3156FlashLender, 
     Comptroller,

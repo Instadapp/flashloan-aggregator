@@ -162,11 +162,6 @@ describe("FlashLoan", function () {
         params: [ACC_USDT],
       });
 
-      await hre.network.provider.send("hardhat_setBalance", [
-        ACC_WETH,
-        ethers.utils.parseEther("10.0").toHexString(),
-      ]);
-
       await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [ACC_WETH],
