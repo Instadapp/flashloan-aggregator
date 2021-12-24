@@ -25,8 +25,8 @@ contract Helper is Variables {
         try token_.approve(spender_, amount_) {
             
         } catch {
-                token_.safeApprove(spender_, 0);
-                token_.safeApprove(spender_, amount_);      
+            token_.safeApprove(spender_, 0);
+            token_.safeApprove(spender_, amount_);
         }
     }
 
