@@ -5,6 +5,7 @@ import {Variables} from "./variables.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "hardhat/console.sol";
 
 import {
     CTokenInterface,
@@ -21,13 +22,24 @@ contract Helper is Variables {
      * @param spender_ the address to which the allowance is to be given.
      * @param amount_ amount of token.
     */
+    // function approve(IERC20 token_, address spender_, uint256 amount_) internal {
+    //     if(token_.allowance(address(this), spender_) == 0) {
+    //         token_.safeApprove(spender_, amount_);
+    //     } else {
+    //         token_.safeApprove(spender_, 0);
+    //         token_.safeApprove(spender_, amount_);
+    //     }
+    // }
     function approve(IERC20 token_, address spender_, uint256 amount_) internal {
-        if(token_.allowance(address(this), spender_) == 0) {
-            token_.safeApprove(spender_, amount_);
-        } else {
+        console.log(address(token_));
+        try token_.approve(spender_, amount_) {
+            console.log(1);
+        } catch {
+            console.log(2);
             token_.safeApprove(spender_, 0);
-            token_.safeApprove(spender_, amount_);
+            token_.safeApprove(spender_, amount_);      
         }
+        console.log(3);
     }
 
     /**
