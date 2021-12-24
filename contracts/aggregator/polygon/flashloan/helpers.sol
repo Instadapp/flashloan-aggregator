@@ -22,11 +22,11 @@ contract Helper is Variables {
      * @param amount_ amount of token.
     */
     function approve(IERC20 token_, address spender_, uint256 amount_) internal {
-        if(token_.allowance(address(this), spender_) == 0) {
-            token_.safeApprove(spender_, amount_);
-        } else {
-            token_.safeApprove(spender_, 0);
-            token_.safeApprove(spender_, amount_);
+        try token_.approve(spender_, amount_) {
+            
+        } catch {
+                token_.safeApprove(spender_, 0);
+                token_.safeApprove(spender_, amount_);      
         }
     }
 
