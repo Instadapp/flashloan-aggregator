@@ -21,12 +21,13 @@ contract Helper is Variables {
      * @param spender_ the address to which the allowance is to be given.
      * @param amount_ amount of token.
     */
-    function approve(IERC20 token_, address spender_, uint256 amount_) internal {
-        try token_.approve(spender_, amount_) {
+    function approve(address token_, address spender_, uint256 amount_) internal {
+        TokenInterface tokenContract_ = TokenInterface(token_);
+        try tokenContract_.approve(spender_, amount_) {
             
         } catch {
-            token_.safeApprove(spender_, 0);
-            token_.safeApprove(spender_, amount_);
+            tokenContract_.approve(spender_, 0);
+            tokenContract_.approve(spender_, amount_);
         }
     }
 
@@ -46,8 +47,7 @@ contract Helper is Variables {
         require(length_ == _instaLoanVariables._amounts.length, "Lengths of parameters not same");
         require(length_ == _fees.length, "Lengths of parameters not same");
         for (uint i = 0; i < length_; i++) {
-            IERC20 token_ = IERC20(_instaLoanVariables._tokens[i]);
-            approve(token_, _receiver, _instaLoanVariables._amounts[i] + _fees[i]);
+            approve(_instaLoanVariables._tokens[i], _receiver, _instaLoanVariables._amounts[i] + _fees[i]);
         }
     }
 
@@ -143,8 +143,7 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for(uint256 i = 0; i < length_; i++) {
-            IERC20 token_ = IERC20(_tokens[i]);
-            approve(token_, aaveLendingAddr, _amounts[i]);
+            approve(_tokens[i], aaveLendingAddr, _amounts[i]);
             aaveLending.deposit(_tokens[i], _amounts[i], address(this), 3228);
             aaveLending.setUserUseReserveAsCollateral(_tokens[i], true);
         }
@@ -180,8 +179,7 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for(uint i = 0; i < length_; i++) {
-            IERC20 token_ = IERC20(_tokens[i]);
-            approve(token_, aaveLendingAddr, _amounts[i]);
+            approve(_tokens[i], aaveLendingAddr, _amounts[i]);
             aaveLending.repay(_tokens[i], _amounts[i], 2, address(this));
         }
     }
