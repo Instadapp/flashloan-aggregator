@@ -107,21 +107,21 @@ contract FlashAggregatorArbitrum is Helper {
         validateTokens(_tokens);
 
         if (_route == 1) {
-            require(false, "this route is only for mainnet, polygon and avalanche");	
+            revert("this route is only for mainnet, polygon and avalanche");	
         } else if (_route == 2) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 3) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 4) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
         } else if (_route == 6) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 7) {
-            require(false, "this route is only for mainnet and polygon");
+            revert("this route is only for mainnet and polygon");
         } else {
-            require(false, "route-does-not-exist");
+            revert("route-does-not-exist");
         }
 
         uint256 length_ = _tokens.length;
