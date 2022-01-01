@@ -108,7 +108,11 @@ contract FlashAggregatorPolygon is Helper {
             safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else if (route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
-            aaveSupply(wEthToken, _amounts[0]);
+
+            address[] memory wEthTokenList = new address[](1);
+            wEthTokenList[0] = wEthToken;
+
+            aaveSupply(wEthTokenList, _amounts);
             aaveBorrow(tokens_, amounts_);
             safeTransfer(instaLoanVariables_, sender_);
 
@@ -119,15 +123,14 @@ contract FlashAggregatorPolygon is Helper {
             }
             
             aavePayback(tokens_, amounts_);
-            aaveWithdraw(wEthToken, _amounts[0]);
+            aaveWithdraw(wEthTokenList, _amounts);
             instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
             validateFlashloan(instaLoanVariables_);
             instaLoanVariables_._amounts = _amounts;
-            instaLoanVariables_._tokens = new address[](1);
-            instaLoanVariables_._tokens[0] = wEthToken;
+            instaLoanVariables_._tokens = wEthTokenList;
             safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else {
-            require(false, "wrong-route");
+            revert("wrong-route");
         }
     }
 
@@ -197,7 +200,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
+        bytes calldata _instaData
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
@@ -208,29 +211,20 @@ contract FlashAggregatorPolygon is Helper {
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);	
         } else if (_route == 2) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 3) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 4) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
         } else if (_route == 6) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 7) {
             routeBalancerAave(_tokens, _amounts, _data);
         } else {
-            require(false, "route-does-not-exist");
+            revert("route-does-not-exist");
         }
-
-        uint256 length_ = _tokens.length;
-        uint256[] memory amounts_ = new uint256[](length_);
-
-        for(uint256 i = 0; i < length_; i++) {
-            amounts_[i] = type(uint).max;
-        }
-
-        transferFeeToTreasury(_tokens);
 
         emit LogFlashloan(
             msg.sender,
