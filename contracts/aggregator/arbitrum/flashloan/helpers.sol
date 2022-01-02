@@ -26,8 +26,9 @@ contract Helper is Variables {
         try tokenContract_.approve(spender_, amount_) {
 
         } catch {
-            tokenContract_.approve(spender_, 0);
-            tokenContract_.approve(spender_, amount_);
+            IERC20 token = IERC20(token_);
+            token.safeApprove(spender_, 0);
+            token.safeApprove(spender_, amount_);
         }
     }
 
