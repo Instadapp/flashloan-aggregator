@@ -157,10 +157,6 @@ contract Helper is Variables {
                 require(cToken_.mint(_amounts[i]) == 0, "mint failed");
                 cTokens_[i] = tokenToCToken[_tokens[i]];
             }
-            uint256[] memory errors_ = troller.enterMarkets(cTokens_);
-            for(uint256 j = 0; j < errors_.length; j++){
-                require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
-            }
         }
     }
 
