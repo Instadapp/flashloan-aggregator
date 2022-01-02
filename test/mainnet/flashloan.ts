@@ -16,10 +16,11 @@ import {
 } from "../../typechain";
 
 describe("FlashLoan", function () {
-  let Aggregator, aggregator, Receiver, receiver: InstaFlashReceiver, Proxy, proxy, Admin, admin;
+  let Aggregator, aggregator, Receiver, receiver: InstaFlashReceiver, Proxy, proxy: InstaFlashAggregatorProxy, Admin, admin;
   let signer: SignerWithAddress;
 
   const master = '0xa8c31E39e40E6765BEdBd83D92D6AA0B33f1CCC5';
+  const aaveLendingAddr = '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9';
 
   let ABI = [ "function initialize(address[])" ];
   let iface = new ethers.utils.Interface(ABI);
@@ -87,6 +88,11 @@ describe("FlashLoan", function () {
       ethers.utils.parseEther("10.0").toHexString(),
     ]);
 
+    await hre.network.provider.send("hardhat_setBalance", [
+      proxy.address,
+      ethers.utils.parseEther("10.0").toHexString(),
+    ]);
+
     await hre.network.provider.request({
       method: "hardhat_impersonateAccount",
       params: [ACC_DAI],
@@ -98,6 +104,19 @@ describe("FlashLoan", function () {
     await hre.network.provider.request({
       method: "hardhat_stopImpersonatingAccount",
       params: [ACC_DAI],
+    });
+
+    await hre.network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [proxy.address],
+    });
+
+    const signer_fla = await ethers.getSigner(proxy.address);
+    await token_dai.connect(signer_fla).approve(aaveLendingAddr, 100);
+
+    await hre.network.provider.request({
+      method: "hardhat_stopImpersonatingAccount",
+      params: [proxy.address],
     });
   });
 
@@ -173,6 +192,19 @@ describe("FlashLoan", function () {
       await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [ACC_WETH],
+      });
+
+      await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [proxy.address],
+      });
+  
+      const signer_fla = await ethers.getSigner(proxy.address);
+      await token_usdt.connect(signer_fla).approve(aaveLendingAddr, 100);
+  
+      await hre.network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [proxy.address],
       });
 
     });
