@@ -118,7 +118,7 @@ const config: HardhatUserConfig = {
       url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
       chainId: 137,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
-      gasPrice: 100000000000,
+      gasPrice: 70000000000,
     }
   },
   paths: {

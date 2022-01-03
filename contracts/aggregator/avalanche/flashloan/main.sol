@@ -103,7 +103,7 @@ contract FlashAggregatorAvalanche is Helper {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata _instaData
+        bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
@@ -163,10 +163,13 @@ contract FlashAggregatorAvalanche is Helper {
 }
 
 contract InstaFlashAggregatorAvalanche is FlashAggregatorAvalanche {
-    function initialize() public  {
-        require(status == 0, "cannot-call-again");
-        status = 1;
-    }
+    /* 
+     Deprecated
+    */
+    // function initialize() public {
+    //     require(status == 0, "cannot-call-again");
+    //     status = 1;
+    // }
 
     receive() external payable {}
 }

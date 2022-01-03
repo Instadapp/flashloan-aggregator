@@ -377,7 +377,7 @@ contract FlashAggregator is Setups {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
+        bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
@@ -444,20 +444,22 @@ contract FlashAggregator is Setups {
 
 contract InstaFlashAggregator is FlashAggregator {
     using SafeERC20 for IERC20;
-
-    function initialize(address[] memory _ctokens) public {
-        require(status == 0, "cannot-call-again");
-        IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
-        addTokenToCToken(_ctokens);
-        address[] memory cTokens_ = new address[](2);
-        cTokens_[0] = cEthToken;
-        cTokens_[1] = cDaiToken;
-        uint256[] memory errors_ = troller.enterMarkets(cTokens_);
-        for(uint256 j = 0; j < errors_.length; j++){
-            require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
-        }
-        status = 1;
-    }
+    /* 
+     Deprecated
+    */
+    // function initialize(address[] memory _ctokens) public {
+    //     require(status == 0, "cannot-call-again");
+    //     IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
+    //     addTokenToCToken(_ctokens);
+    //     address[] memory cTokens_ = new address[](2);
+    //     cTokens_[0] = cEthToken;
+    //     cTokens_[1] = cDaiToken;
+    //     uint256[] memory errors_ = troller.enterMarkets(cTokens_);
+    //     for(uint256 j = 0; j < errors_.length; j++){
+    //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
+    //     }
+    //     status = 1;
+    // }
 
     receive() external payable {}
 
