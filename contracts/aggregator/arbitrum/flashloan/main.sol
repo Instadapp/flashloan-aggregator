@@ -98,7 +98,7 @@ contract FlashAggregatorArbitrum is Helper {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
+        bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
@@ -107,31 +107,22 @@ contract FlashAggregatorArbitrum is Helper {
         validateTokens(_tokens);
 
         if (_route == 1) {
-            require(false, "this route is only for mainnet, polygon and avalanche");	
+            revert("this route is only for mainnet, polygon and avalanche");	
         } else if (_route == 2) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 3) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 4) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
         } else if (_route == 6) {
-            require(false, "this route is only for mainnet");
+            revert("this route is only for mainnet");
         } else if (_route == 7) {
-            require(false, "this route is only for mainnet and polygon");
+            revert("this route is only for mainnet and polygon");
         } else {
-            require(false, "route-does-not-exist");
+            revert("route-does-not-exist");
         }
-
-        uint256 length_ = _tokens.length;
-        uint256[] memory amounts_ = new uint256[](length_);
-
-        for(uint256 i = 0; i < length_; i++) {
-            amounts_[i] = type(uint).max;
-        }
-
-        transferFeeToTreasury(_tokens);
 
         emit LogFlashloan(
             msg.sender,
@@ -167,10 +158,13 @@ contract FlashAggregatorArbitrum is Helper {
 }
 
 contract InstaFlashAggregatorArbitrum is FlashAggregatorArbitrum {
-    function initialize() public {
-        require(status == 0, "cannot-call-again");
-        status = 1;
-    }
+    /* 
+     Deprecated
+    */
+    // function initialize() public {
+    //     require(status == 0, "cannot-call-again");
+    //     status = 1;
+    // }
 
     receive() external payable {}
 }

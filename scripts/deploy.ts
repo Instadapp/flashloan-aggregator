@@ -3,11 +3,11 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-  InstaFlashloanResolverPolygon,
-  InstaFlashloanResolverPolygon__factory,
+  InstaFlashAggregatorPolygon,
+  InstaFlashAggregatorPolygon__factory,
 } from "../typechain";
 
-let Resolver, resolver: InstaFlashloanResolverPolygon;
+let Aggregator, aggregator: InstaFlashAggregatorPolygon;
 
 async function scriptRunner() {
   let signer: SignerWithAddress;
@@ -16,13 +16,18 @@ async function scriptRunner() {
   console.log((await ethers.provider.getBalance(signer.address)).toString());
   console.log(signer.address);
   
-  Resolver = new InstaFlashloanResolverPolygon__factory(signer);
-  resolver = await Resolver.deploy();
-  await resolver.deployed()
+  Aggregator = new InstaFlashAggregatorPolygon__factory(signer);
+  aggregator = await Aggregator.deploy();
+  await aggregator.deployed()
+
+  await hre.run('verify:verify', {
+    address: aggregator.address,
+    constructorArguments: []
+  })
 
   console.log((await ethers.provider.getBalance(signer.address)).toString());
 }
 
 scriptRunner()
-  .then(() => console.log(`Deployed resolver on ${resolver.address}`))
+  .then(() => console.log(`Deployed aggregator on ${aggregator.address}`))
   .catch(err => console.error("❌ failed due to error: ", err));

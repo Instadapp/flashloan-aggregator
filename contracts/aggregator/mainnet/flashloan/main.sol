@@ -80,7 +80,7 @@ contract FlashAggregator is Setups {
 
         safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
-
+        
         if (checkIfDsa(sender_)) {
             Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
         } else {
@@ -134,11 +134,17 @@ contract FlashAggregator is Setups {
             
         } else if (route_ == 3 || route_ == 4) {
             require(_fee == 0, "flash-DAI-fee-not-0");
+
+            address[] memory _daiTokenList = new address[](1);
+            uint256[] memory _daiTokenAmountsList = new uint256[](1);
+            _daiTokenList[0] = daiToken;
+            _daiTokenAmountsList[0] = _amount;
+
             if (route_ == 3) {
-                compoundSupply(daiToken, _amount);
+                compoundSupply(_daiTokenList, _daiTokenAmountsList);
                 compoundBorrow(tokens_, amounts_);
             } else {
-                aaveSupply(daiToken, _amount);
+                aaveSupply(_daiTokenList, _daiTokenAmountsList);
                 aaveBorrow(tokens_, amounts_);
             }
             
@@ -152,13 +158,13 @@ contract FlashAggregator is Setups {
 
             if (route_ == 3) {
                 compoundPayback(tokens_, amounts_);
-                compoundWithdraw(daiToken, _amount);
+                compoundWithdraw(_daiTokenList, _daiTokenAmountsList);
             } else {
                 aavePayback(tokens_, amounts_);
-                aaveWithdraw(daiToken, _amount);
+                aaveWithdraw(_daiTokenList, _daiTokenAmountsList);
             }
         } else {
-            require(false, "wrong-route");
+            revert("wrong-route");
         }
 
         instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
@@ -208,11 +214,15 @@ contract FlashAggregator is Setups {
             safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else if (route_ == 6 || route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
+
+            address[] memory wEthTokenList = new address[](1);
+            wEthTokenList[0] = wEthToken;
+
             if (route_ == 6) {
-                compoundSupply(wEthToken, _amounts[0]);
+                compoundSupply(wEthTokenList, _amounts);
                 compoundBorrow(tokens_, amounts_);
             } else {
-                aaveSupply(wEthToken, _amounts[0]);
+                aaveSupply(wEthTokenList, _amounts);
                 aaveBorrow(tokens_, amounts_);
             }
 
@@ -226,19 +236,18 @@ contract FlashAggregator is Setups {
 
             if (route_ == 6) {
                 compoundPayback(tokens_, amounts_);
-                compoundWithdraw(wEthToken, _amounts[0]);
+                compoundWithdraw(wEthTokenList, _amounts);
             } else {
                 aavePayback(tokens_, amounts_);
-                aaveWithdraw(wEthToken, _amounts[0]);
+                aaveWithdraw(wEthTokenList, _amounts);
             }
             instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
             validateFlashloan(instaLoanVariables_);
+            instaLoanVariables_._tokens = wEthTokenList;
             instaLoanVariables_._amounts = _amounts;
-            instaLoanVariables_._tokens = new address[](1);
-            instaLoanVariables_._tokens[0] = wEthToken;
             safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else {
-            require(false, "wrong-route");
+            revert("wrong-route");
         }
     }
 
@@ -368,7 +377,7 @@ contract FlashAggregator is Setups {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata // added this as we might need some extra data to decide route in future cases. Not using it anywhere at the moment.
+        bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
 
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
@@ -391,7 +400,7 @@ contract FlashAggregator is Setups {
         } else if (_route == 7) {
             routeBalancerAave(_tokens, _amounts, _data);
         } else {
-            require(false, "route-does-not-exist");
+            revert("route-does-not-exist");
         }
         
         emit LogFlashloan(
@@ -435,13 +444,22 @@ contract FlashAggregator is Setups {
 
 contract InstaFlashAggregator is FlashAggregator {
     using SafeERC20 for IERC20;
-
-    function initialize(address[] memory _ctokens) public {
-        require(status == 0, "cannot-call-again");
-        IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
-        addTokenToCToken(_ctokens);
-        status = 1;
-    }
+    /* 
+     Deprecated
+    */
+    // function initialize(address[] memory _ctokens) public {
+    //     require(status == 0, "cannot-call-again");
+    //     IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
+    //     addTokenToCToken(_ctokens);
+    //     address[] memory cTokens_ = new address[](2);
+    //     cTokens_[0] = cEthToken;
+    //     cTokens_[1] = cDaiToken;
+    //     uint256[] memory errors_ = troller.enterMarkets(cTokens_);
+    //     for(uint256 j = 0; j < errors_.length; j++){
+    //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
+    //     }
+    //     status = 1;
+    // }
 
     receive() external payable {}
 
