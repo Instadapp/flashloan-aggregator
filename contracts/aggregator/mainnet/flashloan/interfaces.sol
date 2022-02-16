@@ -68,6 +68,7 @@ interface Comptroller {
         returns (uint256[] memory);
     function markets(address) external view returns (bool, uint, bool);
     function getAllMarkets() external view returns (CTokenInterface[] memory);
+    function isMarketListed(address cTokenAddress) external view returns (bool);
 }
 
 interface IAaveLending {
@@ -145,4 +146,8 @@ interface IBalancerLending {
         bytes memory userData
     ) external;
     function getProtocolFeesCollector() external view returns (ProtocolFeesCollector);
+}
+
+interface ERC20 {
+    function approve(address spender, uint256 amount) external;
 }

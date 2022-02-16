@@ -21,6 +21,9 @@ contract ConstantVariables {
     address public constant makerLendingAddr = 0x1EB4CF3A948E7D72A198fe073cCb8C7a948cD853;
     IERC3156FlashLender public constant makerLending = IERC3156FlashLender(makerLendingAddr);
 
+    address public constant IronBankAddr = 0x1a21Ab52d1Ca1312232a72f4cf4389361A479829;
+    IERC3156FlashLender public constant creamLending = IERC3156FlashLender(IronBankAddr);
+
     address public constant balancerLendingAddr = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     IBalancerLending public constant balancerLending = IBalancerLending(balancerLendingAddr);
 
@@ -37,6 +40,8 @@ contract ConstantVariables {
     address public constant treasuryAddr = 0x28849D2b63fA8D361e5fc15cB8aBB13019884d09;
     address private constant instaListAddr = 0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb;
     ListInterface public constant instaList = ListInterface(instaListAddr);
+
+    address public constant comptroller = 0x3d5BC3c8d13dcB8bF317092d84783c2697AE9258;
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 
