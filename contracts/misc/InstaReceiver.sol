@@ -47,22 +47,6 @@ contract InstaFlashReceiver {
         }
     }
 
-    function cast(
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        uint256[] calldata premiums,
-        address initiator,
-        bytes calldata params
-    ) external returns (bool) {
-        // Do something
-        for (uint256 i = 0; i < tokens.length; i++) {
-            IERC20(tokens[i]).safeTransfer(
-                address(flashloan),
-                amounts[i] + premiums[i]
-            );
-        }
-    }
-
     constructor(address flashloan_) {
         flashloan = IFlashLoan(flashloan_);
     }
