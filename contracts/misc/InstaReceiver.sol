@@ -17,7 +17,6 @@ interface IFlashLoan {
 
 contract InstaFlashReceiver {
     using SafeERC20 for IERC20;
-    address chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     IFlashLoan internal immutable flashloan; // TODO: Contract/Protocol address to get flashloan
 
     function flashBorrow(
