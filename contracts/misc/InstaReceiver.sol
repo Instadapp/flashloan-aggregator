@@ -6,7 +6,13 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "hardhat/console.sol";
 
 interface IFlashLoan {
-    function flashLoan(address[] memory tokens_, uint[] memory amts_,uint256 route, bytes calldata data_, bytes calldata instaData_) external;
+    function flashLoan(
+        address[] memory tokens_,
+        uint256[] memory amts_,
+        uint256 route,
+        bytes calldata data_,
+        bytes calldata instaData_
+    ) external;
 }
 
 contract InstaFlashReceiver {
@@ -14,7 +20,12 @@ contract InstaFlashReceiver {
     address chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     IFlashLoan internal immutable flashloan; // TODO: Contract/Protocol address to get flashloan
 
-    function flashBorrow(address[] calldata tokens_, uint[] calldata amts_, uint256 route, bytes calldata data_) public {
+    function flashBorrow(
+        address[] calldata tokens_,
+        uint256[] calldata amts_,
+        uint256 route,
+        bytes calldata data_
+    ) public {
         bytes memory _instaData;
         flashloan.flashLoan(tokens_, amts_, route, data_, _instaData);
     }
@@ -28,8 +39,11 @@ contract InstaFlashReceiver {
         bytes calldata params
     ) external returns (bool) {
         // Do something
-        for (uint i = 0; i < tokens.length; i++) {
-            IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20(tokens[i]).safeTransfer(
+                address(flashloan),
+                amounts[i] + premiums[i]
+            );
         }
     }
 
@@ -41,13 +55,15 @@ contract InstaFlashReceiver {
         bytes calldata params
     ) external returns (bool) {
         // Do something
-        for (uint i = 0; i < tokens.length; i++) {
-            IERC20(tokens[i]).safeTransfer(address(flashloan), amounts[i] + premiums[i]);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20(tokens[i]).safeTransfer(
+                address(flashloan),
+                amounts[i] + premiums[i]
+            );
         }
     }
 
     constructor(address flashloan_) {
         flashloan = IFlashLoan(flashloan_);
     }
-
 }
