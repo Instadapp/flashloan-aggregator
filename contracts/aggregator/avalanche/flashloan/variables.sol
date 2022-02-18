@@ -1,13 +1,15 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import {IndexInterface, ListInterface, IAaveLending} from "./interfaces.sol";
+import {IndexInterface, ListInterface, IAaveLending, Comptroller, IERC3156FlashLender} from "./interfaces.sol";
 
 contract ConstantVariables {
     address public constant aaveLendingAddr =
         0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
     IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
 
+    address public constant comptroller = 0x2eE80614Ccbc5e28654324a66A396458Fa5cD7Cc;
+    //Comptroller public constant troller = Comptroller(comptrollerAddr);
     address public constant treasuryAddr =
         0xE06d0b1752E60687C0EA5ABBe006d3368fdCDCC1;
     address private constant instaListAddr =
@@ -29,4 +31,6 @@ contract Variables is ConstantVariables {
         uint256[] _finBals;
         uint256[] _instaFees;
     }
+
+     mapping(address => address) public tokenToCrToken;
 }

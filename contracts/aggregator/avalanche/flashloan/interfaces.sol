@@ -88,3 +88,31 @@ interface IAaveLending {
     function setUserUseReserveAsCollateral(address asset, bool useAsCollateral)
         external;
 }
+
+interface Comptroller {
+    function isMarketListed(address cTokenAddress) external view returns (bool);
+}
+
+
+interface IERC3156FlashLender {
+    function maxFlashLoan(address token) external view returns (uint256);
+
+    function flashFee(address token, uint256 amount)
+        external
+        view
+        returns (uint256);
+
+    function flashLoan(
+        InstaFlashReceiverInterface receiver,
+        address token,
+        uint256 amount,
+        bytes calldata data
+    ) external returns (bool);
+
+    function toll() external view returns (uint256);
+}
+
+interface ERC20 {
+    function approve(address spender, uint256 amount) external;
+}
+

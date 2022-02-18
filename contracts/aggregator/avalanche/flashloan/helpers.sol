@@ -141,7 +141,9 @@ contract Helper is Variables {
     {
         if (_route == 1) {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
-        } else {
+        } else if (_route == 8){
+            BPS_ = 3;
+        }else {
             revert("Invalid source");
         }
 

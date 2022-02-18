@@ -11,9 +11,41 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import {Helper} from "./helpers.sol";
 
-import {TokenInterface, InstaFlashReceiverInterface} from "./interfaces.sol";
+import {TokenInterface, InstaFlashReceiverInterface, Comptroller, IERC3156FlashLender} from "./interfaces.sol";
 
-contract FlashAggregatorAvalanche is Helper {
+contract Setups is Helper {
+    using SafeERC20 for IERC20;
+
+    /**
+     * @dev Add to token to crToken mapping.
+     * @notice Add to token to crToken mapping.
+     * @param _crTokens list of crToken addresses to be added to the mapping.
+     */
+    function addTokenToCrToken(address[] memory _crTokens) public {
+        address wavax = address(0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7);
+        tokenToCrToken[wavax] = _crTokens[0];
+
+        address weth = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+        tokenToCrToken[weth] = _crTokens[1];
+
+        address usdt = address(0xc7198437980c041c805A1EDcbA50c1Ce5db95118);
+        tokenToCrToken[usdt] = _crTokens[2];
+
+        address usdc = address(0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664);
+        tokenToCrToken[usdc] = _crTokens[3];
+
+        address dai = address(0xd586E7F844cEa2F87f50152665BCbc2C279D8d70);
+        tokenToCrToken[dai] = _crTokens[4];
+
+        address wbtc = address(0x50b7545627a5162F82A992c33b87aDc75187B218);
+        tokenToCrToken[wbtc] = _crTokens[5];
+
+        address link = address(0x5947BB275c521040051D82396192181b413227A3);
+        tokenToCrToken[link] = _crTokens[6];
+    }
+}
+
+contract FlashAggregatorAvalanche is Setups {
     using SafeERC20 for IERC20;
 
     event LogFlashloan(
@@ -88,6 +120,106 @@ contract FlashAggregatorAvalanche is Helper {
         return true;
     }
 
+    struct info {
+        address _initiator;
+        address _token;
+        uint256 _amount;
+        uint256 _fee;
+    }
+
+    /**
+     * @dev Fallback function for makerdao or cream-finance flashloan.
+     * @notice Fallback function for makerdao and cream-finance flashloan.
+     */
+    function onFlashLoan(
+        address _initiator,
+        address _token,
+        uint256 _amount,
+        uint256 _fee,
+        bytes calldata _data
+    ) external verifyDataHash(_data) returns (bytes32) {
+        info memory data;
+        data._initiator = _initiator;
+        data._token = _token;
+        data._amount = _amount;
+        data._fee = _fee;
+
+        //require(a._initiator == address(this), "not-same-sender");
+        // require(
+        //      msg.sender == lendingAddr,
+        //     "not-cream-sender"
+        // );
+
+        FlashloanVariables memory instaLoanVariables_;
+
+        (
+            uint256 route_,
+            address[] memory tokens_,
+            uint256[] memory amounts_,
+            address sender_,
+            bytes memory data_
+        ) = abi.decode(_data, (uint256, address[], uint256[], address, bytes));
+
+        instaLoanVariables_._tokens = tokens_;
+        instaLoanVariables_._amounts = amounts_;
+        instaLoanVariables_._iniBals = calculateBalances(
+            tokens_,
+            address(this)
+        );
+        instaLoanVariables_._instaFees = calculateFees(
+            amounts_,
+            calculateFeeBPS(route_)
+        );
+
+        require(
+            Comptroller(comptroller).isMarketListed(msg.sender),
+            "untrusted message sender"
+        );
+        // require(
+        //     a._initiator == address(this),
+        //     "FlashBorrower: Untrusted loan initiator"
+        // );
+        // (address borrowToken, uint256 borrowAmount) = abi.decode(
+        //     _data,
+        //     (address, uint256)
+        // );
+        // require(
+        //     borrowToken == a._token,
+        //     "encoded data (borrowToken) does not match"
+        // );
+        // require(
+        //     borrowAmount == a._amount,
+        //     "encoded data (borrowAmount) does not match"
+        // );
+        IERC20(data._token).approve(msg.sender, data._amount + data._fee);
+
+        safeTransfer(instaLoanVariables_, sender_);
+
+        if (checkIfDsa(sender_)) {
+            Address.functionCall(
+                sender_,
+                data_,
+                "DSA-flashloan-fallback-failed"
+            );
+        } else {
+            InstaFlashReceiverInterface(sender_).executeOperation(
+                tokens_,
+                amounts_,
+                instaLoanVariables_._instaFees,
+                sender_,
+                data_
+            );
+        }
+
+        instaLoanVariables_._finBals = calculateBalances(
+            tokens_,
+            address(this)
+        );
+        validateFlashloan(instaLoanVariables_);
+
+        return keccak256("ERC3156FlashBorrower.onFlashLoan");
+    }
+
     /**
      * @dev Middle function for route 1.
      * @notice Middle function for route 1.
@@ -115,6 +247,40 @@ contract FlashAggregatorAvalanche is Helper {
             address(0),
             data_,
             3228
+        );
+    }
+
+    /**
+     * @dev Middle function for route 8.
+     * @notice Middle function for route 8.
+     * @param _token token address for flashloan.
+     * @param _amount token amount for flashloan.
+     * @param _data extra data passed.
+     */
+    function routeCreamFinance(
+        address _token,
+        uint256 _amount,
+        bytes memory _data
+    ) internal {
+        address[] memory tokens_ = new address[](1);
+        uint256[] memory amounts_ = new uint256[](1);
+        tokens_[0] = _token;
+        amounts_[0] = _amount;
+        bytes memory data_ = abi.encode(
+            8,
+            tokens_,
+            amounts_,
+            msg.sender,
+            _data
+        );
+        address crToken = tokenToCrToken[_token];
+        IERC3156FlashLender creamLending = IERC3156FlashLender(crToken);
+        dataHash = bytes32(keccak256(data_));
+        creamLending.flashLoan(
+            InstaFlashReceiverInterface(address(this)),
+            _token,
+            _amount,
+            data_
         );
     }
 
@@ -152,6 +318,8 @@ contract FlashAggregatorAvalanche is Helper {
             revert("this route is only for mainnet");
         } else if (_route == 7) {
             revert("this route is only for mainnet and polygon");
+        } else if (_route == 8) {
+            routeCreamFinance(_tokens[0], _amounts[0], _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -164,8 +332,9 @@ contract FlashAggregatorAvalanche is Helper {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](1);
+        routes_ = new uint16[](2);
         routes_[0] = 1;
+        routes_[1] = 8;
     }
 
     /**
@@ -195,10 +364,12 @@ contract InstaFlashAggregatorAvalanche is FlashAggregatorAvalanche {
     /* 
      Deprecated
     */
-    // function initialize() public {
-    //     require(status == 0, "cannot-call-again");
-    //     status = 1;
-    // }
+    function initialize(address[] memory _crtokens) public {
+        require(status == 0, "cannot-call-again");
+        addTokenToCrToken(_crtokens);
+
+        status = 1;
+    }
 
     receive() external payable {}
 }
