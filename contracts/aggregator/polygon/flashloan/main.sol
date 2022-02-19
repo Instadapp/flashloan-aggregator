@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import {Helper} from "./helpers.sol";
 
-import {TokenInterface, InstaFlashReceiverInterface} from "./interfaces.sol";
+import {TokenInterface, InstaFlashReceiverInterface, Comptroller, ERC3156FlashBorrowerInterface, ERC3156FlashLenderInterface} from "./interfaces.sol";
 
 contract FlashAggregatorPolygon is Helper {
     using SafeERC20 for IERC20;
@@ -193,6 +193,88 @@ contract FlashAggregatorPolygon is Helper {
         }
     }
 
+
+     struct info {
+        address _initiator;
+        address _token;
+        uint256 _amount;
+        uint256 _fee;
+    }
+
+    /**
+     * @dev Fallback function for makerdao or cream-finance flashloan.
+     * @notice Fallback function for makerdao and cream-finance flashloan.
+     */
+    function onFlashLoan(
+        address _initiator,
+        address _token,
+        uint256 _amount,
+        uint256 _fee,
+        bytes calldata _data
+    ) external verifyDataHash(_data) returns (bytes32) {
+        info memory data;
+        data._initiator = _initiator;
+        data._token = _token;
+        data._amount = _amount;
+        data._fee = _fee;
+
+        FlashloanVariables memory instaLoanVariables_;
+
+        (
+            uint256 route_,
+            address[] memory tokens_,
+            uint256[] memory amounts_,
+            address sender_,
+            bytes memory data_
+        ) = abi.decode(_data, (uint256, address[], uint256[], address, bytes));
+
+        instaLoanVariables_._tokens = tokens_;
+        instaLoanVariables_._amounts = amounts_;
+        instaLoanVariables_._iniBals = calculateBalances(
+            tokens_,
+            address(this)
+        );
+        instaLoanVariables_._instaFees = calculateFees(
+            amounts_,
+            calculateFeeBPS(route_)
+        );
+
+        require(
+            Comptroller(creamComptroller).isMarketListed(msg.sender),
+            "untrusted message sender"
+        );
+        
+        approve(data._token,msg.sender, data._amount + data._fee);
+
+        safeTransfer(instaLoanVariables_, sender_);
+
+        if (checkIfDsa(sender_)) {
+            Address.functionCall(
+                sender_,
+                data_,
+                "DSA-flashloan-fallback-failed"
+            );
+        } else {
+            InstaFlashReceiverInterface(sender_).executeOperation(
+                tokens_,
+                amounts_,
+                instaLoanVariables_._instaFees,
+                sender_,
+                data_
+            );
+        }
+
+        instaLoanVariables_._finBals = calculateBalances(
+            tokens_,
+            address(this)
+        );
+        validateFlashloan(instaLoanVariables_);
+
+        return keccak256("ERC3156FlashBorrowerInterface.onFlashLoan");
+    }
+
+
+
     /**
      * @dev Middle function for route 1.
      * @notice Middle function for route 1.
@@ -288,6 +370,43 @@ contract FlashAggregatorPolygon is Helper {
         );
     }
 
+
+     /**
+     * @dev Middle function for route 8.
+     * @notice Middle function for route 8.
+     * @param _token token address for flashloan.
+     * @param _amount token amount for flashloan.
+     * @param _data extra data passed.
+     */
+    function routeCreamFinance(
+        address _token,
+        uint256 _amount,
+        bytes memory _data
+    ) internal {
+        address[] memory tokens_ = new address[](1);
+        uint256[] memory amounts_ = new uint256[](1);
+        tokens_[0] = _token;
+        amounts_[0] = _amount;
+        bytes memory data_ = abi.encode(
+            8,
+            tokens_,
+            amounts_,
+            msg.sender,
+            _data
+        );
+       
+        dataHash = bytes32(keccak256(data_));
+        ERC3156FlashLenderInterface(flashloanLender).flashLoan(
+            InstaFlashReceiverInterface(address(this)),
+            _token,
+            _amount,
+            data_
+        );
+    }
+
+
+
+
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -322,6 +441,8 @@ contract FlashAggregatorPolygon is Helper {
             revert("this route is only for mainnet");
         } else if (_route == 7) {
             routeBalancerAave(_tokens, _amounts, _data);
+        } else if (_route == 8) {
+            routeCreamFinance(_tokens[0],_amounts[0],_data);
         } else {
             revert("route-does-not-exist");
         }
@@ -334,10 +455,11 @@ contract FlashAggregatorPolygon is Helper {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](3);
+        routes_ = new uint16[](4);
         routes_[0] = 1;
         routes_[1] = 5;
         routes_[2] = 7;
+        routes_[3] = 8;
     }
 
     /**
@@ -367,10 +489,10 @@ contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     /* 
      Deprecated
     */
-    // function initialize() public {
-    //     require(status == 0, "cannot-call-again");
-    //     status = 1;
-    // }
+    function initialize() public {
+        require(status == 0, "cannot-call-again");
+        status = 1;
+    }
 
     receive() external payable {}
 }

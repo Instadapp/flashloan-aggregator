@@ -144,12 +144,6 @@ contract FlashAggregatorAvalanche is Setups {
         data._amount = _amount;
         data._fee = _fee;
 
-        //require(a._initiator == address(this), "not-same-sender");
-        // require(
-        //      msg.sender == lendingAddr,
-        //     "not-cream-sender"
-        // );
-
         FlashloanVariables memory instaLoanVariables_;
 
         (
@@ -172,26 +166,11 @@ contract FlashAggregatorAvalanche is Setups {
         );
 
         require(
-            Comptroller(comptroller).isMarketListed(msg.sender),
+            Comptroller(creamComptroller).isMarketListed(msg.sender),
             "untrusted message sender"
         );
-        // require(
-        //     a._initiator == address(this),
-        //     "FlashBorrower: Untrusted loan initiator"
-        // );
-        // (address borrowToken, uint256 borrowAmount) = abi.decode(
-        //     _data,
-        //     (address, uint256)
-        // );
-        // require(
-        //     borrowToken == a._token,
-        //     "encoded data (borrowToken) does not match"
-        // );
-        // require(
-        //     borrowAmount == a._amount,
-        //     "encoded data (borrowAmount) does not match"
-        // );
-        IERC20(data._token).approve(msg.sender, data._amount + data._fee);
+        
+        approve(data._token,msg.sender, data._amount + data._fee);
 
         safeTransfer(instaLoanVariables_, sender_);
 
@@ -217,7 +196,7 @@ contract FlashAggregatorAvalanche is Setups {
         );
         validateFlashloan(instaLoanVariables_);
 
-        return keccak256("ERC3156FlashBorrower.onFlashLoan");
+        return keccak256("ERC3156FlashBorrowerInterface.onFlashLoan");
     }
 
     /**

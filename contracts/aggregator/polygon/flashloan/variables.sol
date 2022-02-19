@@ -23,6 +23,10 @@ contract ConstantVariables {
         0x839c2D3aDe63DF5b0b8F3E57D5e145057Ab41556;
     ListInterface public constant instaList = ListInterface(instaListAddr);
 
+    address public constant flashloanLender = 0xb3c68d69E95B095ab4b33B4cB67dBc0fbF3Edf56;
+
+    address public constant creamComptroller = 0x20CA53E2395FA571798623F1cFBD11Fe2C114c24;
+
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 }
 

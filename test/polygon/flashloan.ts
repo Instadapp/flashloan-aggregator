@@ -98,6 +98,9 @@ describe('FlashLoan', function () {
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
       await receiver.flashBorrow([DAI], [Dai], 7, zeroAddr)
     })
+    it('Should be able to take flashLoan of a single token from CREAM', async function () {
+      await receiver.flashBorrow([DAI], [Dai], 8, zeroAddr)
+    })
   })
 
   describe('Multi token', async function () {
@@ -137,6 +140,9 @@ describe('FlashLoan', function () {
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE(Balancer)', async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 7, zeroAddr)
+    })
+    it('Should be able to take flashLoan of multiple tokens together from CREAM', async function () {
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 8, zeroAddr)
     })
   })
 })

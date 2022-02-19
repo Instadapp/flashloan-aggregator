@@ -8,8 +8,8 @@ contract ConstantVariables {
         0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
     IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
 
-    address public constant comptroller = 0x2eE80614Ccbc5e28654324a66A396458Fa5cD7Cc;
-    //Comptroller public constant troller = Comptroller(comptrollerAddr);
+    address public constant creamComptroller = 0x2eE80614Ccbc5e28654324a66A396458Fa5cD7Cc;
+   
     address public constant treasuryAddr =
         0xE06d0b1752E60687C0EA5ABBe006d3368fdCDCC1;
     address private constant instaListAddr =

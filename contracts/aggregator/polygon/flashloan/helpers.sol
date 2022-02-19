@@ -243,6 +243,8 @@ contract Helper is Variables {
                         .getFlashLoanFeePercentage()
                 ) *
                 100;
+        } else if (_route == 8) {
+            BPS_ = 3;
         } else {
             revert("Invalid source");
         }
