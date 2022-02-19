@@ -62,7 +62,7 @@ function getNetworkUrl(networkType: string) {
 
 function getBlockNumber(networkType: string) {
   if (networkType === "avalanche") return 7675580;
-  else if (networkType === "polygon") return 22019000;
+  else if (networkType === "polygon") return 25119269;
   else if (networkType === "arbitrum") return 3493087;
   else return 13722340;
 }
