@@ -4,6 +4,16 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+
+import "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3FlashCallback.sol";
+import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
+
+// import "@uniswap/v3-periphery/contracts/base/PeripheryPayments.sol";
+// import "@uniswap/v3-periphery/contracts/base/PeripheryImmutableState.sol";
+import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
+import "@uniswap/v3-periphery/contracts/libraries/CallbackValidation.sol";
+import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+
 import {Helper} from "./helpers.sol";
 
 import {TokenInterface, InstaFlashReceiverInterface} from "./interfaces.sol";
@@ -193,6 +203,134 @@ contract FlashAggregatorPolygon is Helper {
         }
     }
 
+    /// @param fee0 The fee from calling flash for token0
+    /// @param fee1 The fee from calling flash for token1
+    /// @param data The data needed in the callback passed as FlashCallbackData from `initFlash`
+    /// @notice implements the callback called from flash
+    /// @dev fails if the flash is not profitable, meaning the amountOut from the flash is less than the amount borrowed
+    function uniswapV3FlashCallback(
+        uint256 fee0,
+        uint256 fee1,
+        bytes calldata data
+    ) external {
+        FlashCallbackData memory decoded = abi.decode(
+            data,
+            (FlashCallbackData)
+        );
+        CallbackValidation.verifyCallback(factory, decoded.poolKey);
+
+        address token0 = decoded.poolKey.token0;
+        address token1 = decoded.poolKey.token1;
+        uint256 amount0 = decoded.amount0;
+        uint256 amount1 = decoded.amount1;
+
+
+        if (amount0 == 0 || amount1 == 0) {
+            uint256[] memory amounts_ = new uint256[](1);
+            address[] memory tokens_ = new address[](1);
+
+            if (amount0 == 0) {
+                amounts_[0] = amount1;
+                tokens_[0] = token1;
+            } else {
+                amounts_[0] = amount0;
+                tokens_[0] = token0;
+            }
+
+            address sender_ = decoder.payer;
+            bytes memory data;
+
+            instaLoanVariables_._tokens = tokens_;
+            instaLoanVariables_._amounts = amounts_;
+            instaLoanVariables_._iniBals = calculateBalances(
+                tokens_,
+                address(this)
+            );
+            instaLoanVariables_._instaFees = calculateFees(
+                amounts_,
+                calculateFeeBPS(route_)
+            );
+
+            if (checkIfDsa(sender_)) {
+                Address.functionCall(
+                    sender_,
+                    data_,
+                    "DSA-flashloan-fallback-failed"
+                );
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(
+                    _assets,
+                    _amounts,
+                    instaLoanVariables_._instaFees,
+                    sender_,
+                    data_
+                );
+            }
+
+            instaLoanVariables_._finBals = calculateBalances(
+                _assets,
+                address(this)
+            );
+            validateFlashloan(instaLoanVariables_);
+        } else {
+            uint256[] memory amounts_ = new uint256[](2);
+            address[] memory tokens_ = new address[](2);
+
+            amounts_[0] = amount0;
+            tokens_[0] = token0;
+            amounts_[1] = amount1;
+            tokens_[1] = token1;
+
+            address sender_ = decoder.payer;
+            bytes memory data;
+
+            instaLoanVariables_._tokens = tokens_;
+            instaLoanVariables_._amounts = amounts_;
+            instaLoanVariables_._iniBals = calculateBalances(
+                tokens_,
+                address(this)
+            );
+            instaLoanVariables_._instaFees = calculateFees(
+                amounts_,
+                calculateFeeBPS(route_)
+            );
+
+            if (checkIfDsa(sender_)) {
+                Address.functionCall(
+                    sender_,
+                    data_,
+                    "DSA-flashloan-fallback-failed"
+                );
+            } else {
+                InstaFlashReceiverInterface(sender_).executeOperation(
+                    _assets,
+                    _amounts,
+                    instaLoanVariables_._instaFees,
+                    sender_,
+                    data_
+                );
+            }
+
+            instaLoanVariables_._finBals = calculateBalances(
+                _assets,
+                address(this)
+            );
+            validateFlashloan(instaLoanVariables_);
+        }
+
+        // // end up with amountOut0 of token0 from first swap and amountOut1 of token1 from second swap
+        uint256 amount0Owed = LowGasSafeMath.add(decoded.amount0, fee0);
+        uint256 amount1Owed = LowGasSafeMath.add(decoded.amount1, fee1);
+
+        TransferHelper.safeApprove(token0, address(this), amount0Owed);
+        TransferHelper.safeApprove(token1, address(this), amount1Owed);
+
+        if (amount0Owed > 0)
+            pay(token0, address(this), msg.sender, amount0Owed);
+        if (amount1Owed > 0)
+            pay(token1, address(this), msg.sender, amount1Owed);
+    }
+
     /**
      * @dev Middle function for route 1.
      * @notice Middle function for route 1.
@@ -288,6 +426,75 @@ contract FlashAggregatorPolygon is Helper {
         );
     }
 
+    struct PoolKey {
+        address token0;
+        address token1;
+        uint256 fee;
+    }
+
+    /**
+     * @dev Middle function for route 8.
+     * @notice Middle function for route 8.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _data extra data passed.
+     *@param _instadata pool key encoded
+     */
+    function routeUniswap(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data,
+        bytes memory _instadata
+    ) internal {
+        bytes memory data_ = abi.encode(
+            8,
+            _tokens,
+            _amounts,
+            msg.sender,
+            _data
+        );
+        PoolKey key;
+        (key) = abi.decode(_instadata, (PoolKey));
+
+        uint256 length_ = _tokens.length;
+        if (length_ == 1) {
+            require(
+                _tokens[0] == key.token0 || _tokens[0] == key.token1,
+                "Token does not match pool"
+            );
+        } else if (length_ == 2) {
+            require(
+                _tokens[0] == key.token0 && _tokens[1] == key.token1,
+                "Tokens does not match pool"
+            );
+        } else {
+            revert("Number of tokens exceed");
+        }
+
+        PoolAddress.PoolKey memory poolKey = PoolAddress.PoolKey({
+            token0: key.token0,
+            token1: key.token1,
+            fee: key.fee
+        });
+        IUniswapV3Pool pool = IUniswapV3Pool(
+            PoolAddress.computeAddress(factory, poolKey)
+        );
+
+        pool.flash(
+            address(this),
+            _amounts[0],
+            _amounts[1],
+            abi.encode(
+                FlashCallbackData({
+                    amount0: _amounts[0],
+                    amount1: _amounts[1],
+                    payer: msg.sender,
+                    poolKey: poolKey
+                })
+            )
+        );
+    }
+
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -301,7 +508,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata // kept for future use by instadapp. Currently not used anywhere.
+        bytes calldata _instadata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
@@ -322,6 +529,8 @@ contract FlashAggregatorPolygon is Helper {
             revert("this route is only for mainnet");
         } else if (_route == 7) {
             routeBalancerAave(_tokens, _amounts, _data);
+        } else if (_route == 8) {
+            routeUniswap(_tokens, _amounts, _data, _instadata);
         } else {
             revert("route-does-not-exist");
         }
@@ -338,6 +547,7 @@ contract FlashAggregatorPolygon is Helper {
         routes_[0] = 1;
         routes_[1] = 5;
         routes_[2] = 7;
+        routes_[3] = 8;
     }
 
     /**
@@ -367,10 +577,10 @@ contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     /* 
      Deprecated
     */
-    // function initialize() public {
-    //     require(status == 0, "cannot-call-again");
-    //     status = 1;
-    // }
+    function initialize() public {
+        require(status == 0, "cannot-call-again");
+        status = 1;
+    }
 
     receive() external payable {}
 }

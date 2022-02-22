@@ -24,10 +24,13 @@ contract InstaFlashReceiver {
         address[] calldata tokens_,
         uint256[] calldata amts_,
         uint256 route,
-        bytes calldata data_
+        bytes calldata data_,
+        bytes calldata _instaData
     ) public {
-        bytes memory _instaData;
-        flashloan.flashLoan(tokens_, amts_, route, data_, _instaData);
+        //bytes memory _instaData;
+        
+
+        flashloan.flashLoan(tokens_, amts_, route, data_,_instaData);
     }
 
     // Function which
