@@ -5,6 +5,7 @@ import {Variables} from "./variables.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "hardhat/console.sol";
 
 import {TokenInterface, InstaFlashReceiverInterface, IUniswapV3PoolImmutables} from "./interfaces.sol";
 
@@ -249,7 +250,7 @@ contract Helper is Variables {
                 ) *
                 100;
         } else if (_route == 8 ) {
-          BPS_ =  uint256(IUniswapV3PoolImmutables(uniswapPoolAddress).fee()*100);  
+          BPS_ =  uint256(IUniswapV3PoolImmutables(uniswapPoolAddress).fee());  
         } else {
             revert("Invalid source");
         }
@@ -336,7 +337,7 @@ contract Helper is Variables {
     /// @param key The PoolKey
     /// @return pool The contract address of the V3 pool
     function computeAddress(address factory, PoolKey memory key) internal pure returns (address pool) {
-        require(key.token0 < key.token1);
+        require(key.token0 < key.token1,"Token not sorted");
         pool = address(
             uint160(uint256(
                 keccak256(

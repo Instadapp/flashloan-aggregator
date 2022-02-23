@@ -37,8 +37,8 @@ describe('FlashLoan', function () {
   const ACC_DAI = '0x4a35582a710e1f4b2030a3f826da20bfb6703c09'
   const ACC_USDT = '0x0d0707963952f2fba59dd06f2b425ace40b492fe'
 
-  const dai = ethers.utils.parseUnits('10', 18)
-  const usdt = ethers.utils.parseUnits('10', 6)
+  const dai = ethers.utils.parseUnits('1000', 18)
+  const usdt = ethers.utils.parseUnits('1000', 6)
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
 
@@ -98,7 +98,7 @@ describe('FlashLoan', function () {
       await receiver.flashBorrow([DAI], [Dai], 7, 0, _data )
     })
     it('Should be able to take flashLoan of a single token from Uniswap', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 8, 5, _data )
+      await receiver.flashBorrow([DAI,USDT], [Dai,0], 8, 500, _data )
     })
   })
 
@@ -141,7 +141,7 @@ describe('FlashLoan', function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 7,0, _data )
     })
     it('Should be able to take flashLoan of multiple tokens together from Uniswap', async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 8,5, _data )
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 8,500, _data )
     })
   })
 })

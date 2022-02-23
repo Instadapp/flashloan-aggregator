@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "hardhat/console.sol";
 
 import "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3FlashCallback.sol";
-import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
 
 import {Helper} from "./helpers.sol";
 
@@ -198,15 +197,18 @@ contract FlashAggregatorPolygon is Helper {
         }
     }
 
-    
+    struct info {
+        uint256 amount0;
+        uint256 amount1;
+        address sender_;
+        PoolKey key;
+    }
 
-     struct info{
-            uint256 amount0;
-            uint256 amount1;
-            address sender_;
-            PoolKey key;
-        }
-
+    struct para {
+        uint256 fee0;
+        uint256 fee1;
+        bytes data;
+    }
 
     /// @param fee0 The fee from calling flash for token0
     /// @param fee1 The fee from calling flash for token1
@@ -216,130 +218,79 @@ contract FlashAggregatorPolygon is Helper {
     function uniswapV3FlashCallback(
         uint256 fee0,
         uint256 fee1,
-        bytes calldata data
-    ) external {
-        
-       info memory _data;
+        bytes memory data
+    ) external verifyDataHash(data) {
+        info memory _data;
+        para memory _para;
 
-        (
-            _data.amount0,
-            _data.amount1,
-            _data.sender_,
-            _data.key
-        ) = abi.decode(data, (uint256, uint256, address, PoolKey));
+        _para.fee0 = fee0;
+        _para.fee1 = fee1;
+        _para.data = data;
+
+        (_data.amount0, _data.amount1, _data.sender_, _data.key) = abi.decode(
+            data,
+            (uint256, uint256, address, PoolKey)
+        );
 
         address pool = computeAddress(factory, _data.key);
-        require(address(this) == pool);
+        require(msg.sender == pool);
 
         address token0 = _data.key.token0;
         address token1 = _data.key.token1;
 
         FlashloanVariables memory instaLoanVariables_;
 
-        if (_data.amount0 == 0 || _data.amount1 == 0) {
-            uint256[] memory amounts_ = new uint256[](1);
-            address[] memory tokens_ = new address[](1);
-            uint256[] memory fees_ = new uint256[](1);
+        uint256[] memory amounts_ = new uint256[](2);
+        address[] memory tokens_ = new address[](2);
+        uint256[] memory fees_ = new uint256[](2);
 
-            if (_data.amount0 == 0) {
-                amounts_[0] = _data.amount1;
-                tokens_[0] = token1;
-                fees_[0] = fee1;
-            } else {
-                amounts_[0] = _data.amount0;
-                tokens_[0] = token0;
-                fees_[0] = fee0;
-            }
+        amounts_[0] = _data.amount0;
+        tokens_[0] = token0;
+        amounts_[1] = _data.amount1;
+        tokens_[1] = token1;
+        fees_[0] = _para.fee0;
+        fees_[1] = _para.fee1;
 
-            instaLoanVariables_._tokens = tokens_;
-            instaLoanVariables_._amounts = amounts_;
-            instaLoanVariables_._iniBals = calculateBalances(
-                tokens_,
-                address(this)
+        instaLoanVariables_._tokens = tokens_;
+        instaLoanVariables_._amounts = amounts_;
+        instaLoanVariables_._iniBals = calculateBalances(
+            tokens_,
+            address(this)
+        );
+
+        setPoolAddress(uniswapPoolAddress);
+        instaLoanVariables_._instaFees = calculateFees(
+            amounts_,
+            calculateFeeBPS(8)
+        );
+
+        safeTransfer(instaLoanVariables_, _data.sender_);
+
+        if (checkIfDsa(_data.sender_)) {
+            Address.functionCall(
+                _data.sender_,
+                _para.data,
+                "DSA-flashloan-fallback-failed"
             );
-
-            setPoolAddress(uniswapPoolAddress);
-            instaLoanVariables_._instaFees = calculateFees(
-                amounts_,
-                calculateFeeBPS(8)
-            );
-
-            if (checkIfDsa(_data.sender_)) {
-                Address.functionCall(
-                    _data.sender_,
-                    data,
-                    "DSA-flashloan-fallback-failed"
-                );
-            } else {
-                InstaFlashReceiverInterface(_data.sender_).executeOperation(
-                    tokens_,
-                    amounts_,
-                    instaLoanVariables_._instaFees,
-                    _data.sender_,
-                    data
-                );
-            }
-
-            instaLoanVariables_._finBals = calculateBalances(
-                tokens_,
-                address(this)
-            );
-            validateFlashloan(instaLoanVariables_);
-
-            safeApprove(instaLoanVariables_, fees_, address(this));
-
-            safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
         } else {
-            uint256[] memory amounts_ = new uint256[](2);
-            address[] memory tokens_ = new address[](2);
-            uint256[] memory fees_ = new uint256[](2);
-
-            amounts_[0] = _data.amount0;
-            tokens_[0] = token0;
-            amounts_[1] = _data.amount1;
-            tokens_[1] = token1;
-            fees_[0] = fee0;
-            fees_[1] = fee1;
-
-            instaLoanVariables_._tokens = tokens_;
-            instaLoanVariables_._amounts = amounts_;
-            instaLoanVariables_._iniBals = calculateBalances(
+            InstaFlashReceiverInterface(_data.sender_).executeOperation(
                 tokens_,
-                address(this)
-            );
-
-            setPoolAddress(uniswapPoolAddress);
-            instaLoanVariables_._instaFees = calculateFees(
                 amounts_,
-                calculateFeeBPS(8)
+                instaLoanVariables_._instaFees,
+                _data.sender_,
+                _para.data
             );
-
-            if (checkIfDsa(_data.sender_)) {
-                Address.functionCall(
-                    _data.sender_,
-                    data,
-                    "DSA-flashloan-fallback-failed"
-                );
-            } else {
-                InstaFlashReceiverInterface(_data.sender_).executeOperation(
-                    tokens_,
-                    amounts_,
-                    instaLoanVariables_._instaFees,
-                    _data.sender_,
-                    data
-                );
-            }
-
-            instaLoanVariables_._finBals = calculateBalances(
-                tokens_,
-                address(this)
-            );
-            validateFlashloan(instaLoanVariables_);
-
-            safeApprove(instaLoanVariables_, fees_, address(this));
-
-            safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
         }
+
+        instaLoanVariables_._finBals = calculateBalances(
+            tokens_,
+            address(this)
+        );
+
+        validateFlashloan(instaLoanVariables_);
+
+        safeApprove(instaLoanVariables_, fees_, msg.sender);
+        safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
     }
 
     /**
@@ -454,35 +405,30 @@ contract FlashAggregatorPolygon is Helper {
         PoolKey memory key = abi.decode(_instadata, (PoolKey));
 
         uint256 length_ = _tokens.length;
-        uint256[] memory amounts_=  new uint256[](2);
-        if (length_ == 1) {
-            require(
-                _tokens[0] == key.token0 || _tokens[0] == key.token1,
-                "Token does not match pool"
-            );
-            amounts_[0] = _amounts[0];
-            amounts_[1] = 0;
-        } else if (length_ == 2) {
+        uint256[] memory amounts_ = new uint256[](2);
+        if (length_ == 2) {
             require(
                 _tokens[0] == key.token0 && _tokens[1] == key.token1,
                 "Tokens does not match pool"
             );
-             amounts_[0] = _amounts[0];
+            amounts_[0] = _amounts[0];
             amounts_[1] = _amounts[1];
         } else {
-            revert("Number of tokens exceed");
+            revert("Number of tokens does not match");
         }
 
         uniswapPoolAddress = computeAddress(factory, key);
         IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-       // console.log(pool);
-
-        pool.flash(
-            address(this),
+    
+        bytes memory data_ = abi.encode(
             amounts_[0],
             amounts_[1],
-            abi.encode(amounts_[0], amounts_[1], msg.sender, key)
+            msg.sender,
+            key,
+            _data
         );
+        dataHash = bytes32(keccak256(data_));
+        pool.flash(address(this), amounts_[0], amounts_[1], data_);
     }
 
     /**
@@ -533,7 +479,7 @@ contract FlashAggregatorPolygon is Helper {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](3);
+        routes_ = new uint16[](4);
         routes_[0] = 1;
         routes_[1] = 5;
         routes_[2] = 7;

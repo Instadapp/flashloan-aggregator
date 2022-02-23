@@ -15,12 +15,12 @@ interface IFlashLoan {
     ) external;
 }
 
-contract InstaFlashReceiver  {
+contract InstaFlashReceiver {
     using SafeERC20 for IERC20;
     address chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     IFlashLoan internal immutable flashloan; // TODO: Contract/Protocol address to get flashloan
 
-     struct PoolKey {
+    struct PoolKey {
         address token0;
         address token1;
         uint24 fee;
@@ -34,27 +34,21 @@ contract InstaFlashReceiver  {
         bytes calldata data_
     ) public {
         bytes memory _instaData;
-        if(route == 8){
+        if (route == 8) {
             PoolKey memory key;
-            //uint24 fee = uint24(fees);
-        uint256 length_ = tokens_.length;
-        if (length_ == 1) {
-           key.token0 = address(0x0000000000000000000000000000000000000000000000000000000000000000);
-           key.token1 = tokens_[0];
-           key.fee = fee;
-        } else if (length_ == 2) {
-           key.token0 = tokens_[0];
-           key.token1 = tokens_[1];
-           key.fee = fee;
-        } else {
-            revert("Number of tokens exceed");
+            uint256 length_ = tokens_.length;
+            if (length_ == 2) {
+                key.token0 = tokens_[0];
+                key.token1 = tokens_[1];
+                key.fee = fee;
+            } else {
+                revert("Number of tokens exceed");
+            }
+
+            _instaData = abi.encode(key);
         }
 
-        _instaData = abi.encode(key);
-
-        }
-
-        flashloan.flashLoan(tokens_, amts_, route, data_,_instaData);
+        flashloan.flashLoan(tokens_, amts_, route, data_, _instaData);
     }
 
     // Function which
