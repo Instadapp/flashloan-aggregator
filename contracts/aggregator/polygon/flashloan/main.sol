@@ -8,15 +8,9 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3FlashCallback.sol";
 import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
 
-// import "@uniswap/v3-periphery/contracts/base/PeripheryPayments.sol";
-// import "@uniswap/v3-periphery/contracts/base/PeripheryImmutableState.sol";
-import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
-import "@uniswap/v3-periphery/contracts/libraries/CallbackValidation.sol";
-import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-
 import {Helper} from "./helpers.sol";
 
-import {TokenInterface, InstaFlashReceiverInterface} from "./interfaces.sol";
+import {TokenInterface, InstaFlashReceiverInterface, IUniswapV3Pool} from "./interfaces.sol";
 
 contract FlashAggregatorPolygon is Helper {
     using SafeERC20 for IERC20;
@@ -213,32 +207,35 @@ contract FlashAggregatorPolygon is Helper {
         uint256 fee1,
         bytes calldata data
     ) external {
-        FlashCallbackData memory decoded = abi.decode(
-            data,
-            (FlashCallbackData)
-        );
-        CallbackValidation.verifyCallback(factory, decoded.poolKey);
+        (
+            uint256 amount0,
+            uint256 amount1,
+            address sender_,
+            PoolKey memory key
+        ) = abi.decode(data, (uint256, uint256, address, PoolKey));
 
-        address token0 = decoded.poolKey.token0;
-        address token1 = decoded.poolKey.token1;
-        uint256 amount0 = decoded.amount0;
-        uint256 amount1 = decoded.amount1;
+        address pool = computeAddress(factory, key);
+        require(address(this) == pool);
 
+        address token0 = key.token0;
+        address token1 = key.token1;
+
+        FlashloanVariables memory instaLoanVariables_;
 
         if (amount0 == 0 || amount1 == 0) {
             uint256[] memory amounts_ = new uint256[](1);
             address[] memory tokens_ = new address[](1);
+            uint256[] memory fees_ = new uint256[](1);
 
             if (amount0 == 0) {
                 amounts_[0] = amount1;
                 tokens_[0] = token1;
+                fees_[0] = fee1;
             } else {
                 amounts_[0] = amount0;
                 tokens_[0] = token0;
+                fees_[0] = fee0;
             }
-
-            address sender_ = decoder.payer;
-            bytes memory data;
 
             instaLoanVariables_._tokens = tokens_;
             instaLoanVariables_._amounts = amounts_;
@@ -246,43 +243,49 @@ contract FlashAggregatorPolygon is Helper {
                 tokens_,
                 address(this)
             );
+
+            setPoolAddress(uniswapPoolAddress);
             instaLoanVariables_._instaFees = calculateFees(
                 amounts_,
-                calculateFeeBPS(route_)
+                calculateFeeBPS(8)
             );
 
             if (checkIfDsa(sender_)) {
                 Address.functionCall(
                     sender_,
-                    data_,
+                    data,
                     "DSA-flashloan-fallback-failed"
                 );
             } else {
                 InstaFlashReceiverInterface(sender_).executeOperation(
-                    _assets,
-                    _amounts,
+                    tokens_,
+                    amounts_,
                     instaLoanVariables_._instaFees,
                     sender_,
-                    data_
+                    data
                 );
             }
 
             instaLoanVariables_._finBals = calculateBalances(
-                _assets,
+                tokens_,
                 address(this)
             );
             validateFlashloan(instaLoanVariables_);
+
+            safeApprove(instaLoanVariables_, fees_, address(this));
+
+            safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
         } else {
             uint256[] memory amounts_ = new uint256[](2);
             address[] memory tokens_ = new address[](2);
+            uint256[] memory fees_ = new uint256[](2);
 
             amounts_[0] = amount0;
             tokens_[0] = token0;
             amounts_[1] = amount1;
             tokens_[1] = token1;
-
-            address sender_ = decoder.payer;
-            bytes memory data;
+            fees_[0] = fee0;
+            fees_[1] = fee1;
 
             instaLoanVariables_._tokens = tokens_;
             instaLoanVariables_._amounts = amounts_;
@@ -290,45 +293,39 @@ contract FlashAggregatorPolygon is Helper {
                 tokens_,
                 address(this)
             );
+
+            setPoolAddress(uniswapPoolAddress);
             instaLoanVariables_._instaFees = calculateFees(
                 amounts_,
-                calculateFeeBPS(route_)
+                calculateFeeBPS(8)
             );
 
             if (checkIfDsa(sender_)) {
                 Address.functionCall(
                     sender_,
-                    data_,
+                    data,
                     "DSA-flashloan-fallback-failed"
                 );
             } else {
                 InstaFlashReceiverInterface(sender_).executeOperation(
-                    _assets,
-                    _amounts,
+                    tokens_,
+                    amounts_,
                     instaLoanVariables_._instaFees,
                     sender_,
-                    data_
+                    data
                 );
             }
 
             instaLoanVariables_._finBals = calculateBalances(
-                _assets,
+                tokens_,
                 address(this)
             );
             validateFlashloan(instaLoanVariables_);
+
+            safeApprove(instaLoanVariables_, fees_, address(this));
+
+            safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
         }
-
-        // // end up with amountOut0 of token0 from first swap and amountOut1 of token1 from second swap
-        uint256 amount0Owed = LowGasSafeMath.add(decoded.amount0, fee0);
-        uint256 amount1Owed = LowGasSafeMath.add(decoded.amount1, fee1);
-
-        TransferHelper.safeApprove(token0, address(this), amount0Owed);
-        TransferHelper.safeApprove(token1, address(this), amount1Owed);
-
-        if (amount0Owed > 0)
-            pay(token0, address(this), msg.sender, amount0Owed);
-        if (amount1Owed > 0)
-            pay(token1, address(this), msg.sender, amount1Owed);
     }
 
     /**
@@ -426,12 +423,6 @@ contract FlashAggregatorPolygon is Helper {
         );
     }
 
-    struct PoolKey {
-        address token0;
-        address token1;
-        uint256 fee;
-    }
-
     /**
      * @dev Middle function for route 8.
      * @notice Middle function for route 8.
@@ -446,15 +437,7 @@ contract FlashAggregatorPolygon is Helper {
         bytes memory _data,
         bytes memory _instadata
     ) internal {
-        bytes memory data_ = abi.encode(
-            8,
-            _tokens,
-            _amounts,
-            msg.sender,
-            _data
-        );
-        PoolKey key;
-        (key) = abi.decode(_instadata, (PoolKey));
+        PoolKey memory key = abi.decode(_instadata, (PoolKey));
 
         uint256 length_ = _tokens.length;
         if (length_ == 1) {
@@ -471,27 +454,14 @@ contract FlashAggregatorPolygon is Helper {
             revert("Number of tokens exceed");
         }
 
-        PoolAddress.PoolKey memory poolKey = PoolAddress.PoolKey({
-            token0: key.token0,
-            token1: key.token1,
-            fee: key.fee
-        });
-        IUniswapV3Pool pool = IUniswapV3Pool(
-            PoolAddress.computeAddress(factory, poolKey)
-        );
+        uniswapPoolAddress = computeAddress(factory, key);
+        pool = IUniswapV3Pool(uniswapPoolAddress);
 
         pool.flash(
             address(this),
             _amounts[0],
             _amounts[1],
-            abi.encode(
-                FlashCallbackData({
-                    amount0: _amounts[0],
-                    amount1: _amounts[1],
-                    payer: msg.sender,
-                    poolKey: poolKey
-                })
-            )
+            abi.encode(_amounts[0], _amounts[1], msg.sender, key)
         );
     }
 
