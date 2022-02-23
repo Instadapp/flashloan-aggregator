@@ -39,8 +39,8 @@ contract InstaFlashReceiver  {
             //uint24 fee = uint24(fees);
         uint256 length_ = tokens_.length;
         if (length_ == 1) {
-           key.token0 = tokens_[0];
-           key.token1 = address(0x0000000000000000000000000000000000000000000000000000000000000000);
+           key.token0 = address(0x0000000000000000000000000000000000000000000000000000000000000000);
+           key.token1 = tokens_[0];
            key.fee = fee;
         } else if (length_ == 2) {
            key.token0 = tokens_[0];

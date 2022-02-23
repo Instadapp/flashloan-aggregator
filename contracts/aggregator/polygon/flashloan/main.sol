@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "hardhat/console.sol";
 
 import "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3FlashCallback.sol";
 import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
@@ -453,28 +454,34 @@ contract FlashAggregatorPolygon is Helper {
         PoolKey memory key = abi.decode(_instadata, (PoolKey));
 
         uint256 length_ = _tokens.length;
+        uint256[] memory amounts_=  new uint256[](2);
         if (length_ == 1) {
             require(
                 _tokens[0] == key.token0 || _tokens[0] == key.token1,
                 "Token does not match pool"
             );
+            amounts_[0] = _amounts[0];
+            amounts_[1] = 0;
         } else if (length_ == 2) {
             require(
                 _tokens[0] == key.token0 && _tokens[1] == key.token1,
                 "Tokens does not match pool"
             );
+             amounts_[0] = _amounts[0];
+            amounts_[1] = _amounts[1];
         } else {
             revert("Number of tokens exceed");
         }
 
         uniswapPoolAddress = computeAddress(factory, key);
-        pool = IUniswapV3Pool(uniswapPoolAddress);
+        IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
+       // console.log(pool);
 
         pool.flash(
             address(this),
-            _amounts[0],
-            _amounts[1],
-            abi.encode(_amounts[0], _amounts[1], msg.sender, key)
+            amounts_[0],
+            amounts_[1],
+            abi.encode(amounts_[0], amounts_[1], msg.sender, key)
         );
     }
 
