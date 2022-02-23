@@ -197,6 +197,16 @@ contract FlashAggregatorPolygon is Helper {
         }
     }
 
+    
+
+     struct info{
+            uint256 amount0;
+            uint256 amount1;
+            address sender_;
+            PoolKey key;
+        }
+
+
     /// @param fee0 The fee from calling flash for token0
     /// @param fee1 The fee from calling flash for token1
     /// @param data The data needed in the callback passed as FlashCallbackData from `initFlash`
@@ -207,32 +217,35 @@ contract FlashAggregatorPolygon is Helper {
         uint256 fee1,
         bytes calldata data
     ) external {
+        
+       info memory _data;
+
         (
-            uint256 amount0,
-            uint256 amount1,
-            address sender_,
-            PoolKey memory key
+            _data.amount0,
+            _data.amount1,
+            _data.sender_,
+            _data.key
         ) = abi.decode(data, (uint256, uint256, address, PoolKey));
 
-        address pool = computeAddress(factory, key);
+        address pool = computeAddress(factory, _data.key);
         require(address(this) == pool);
 
-        address token0 = key.token0;
-        address token1 = key.token1;
+        address token0 = _data.key.token0;
+        address token1 = _data.key.token1;
 
         FlashloanVariables memory instaLoanVariables_;
 
-        if (amount0 == 0 || amount1 == 0) {
+        if (_data.amount0 == 0 || _data.amount1 == 0) {
             uint256[] memory amounts_ = new uint256[](1);
             address[] memory tokens_ = new address[](1);
             uint256[] memory fees_ = new uint256[](1);
 
-            if (amount0 == 0) {
-                amounts_[0] = amount1;
+            if (_data.amount0 == 0) {
+                amounts_[0] = _data.amount1;
                 tokens_[0] = token1;
                 fees_[0] = fee1;
             } else {
-                amounts_[0] = amount0;
+                amounts_[0] = _data.amount0;
                 tokens_[0] = token0;
                 fees_[0] = fee0;
             }
@@ -250,18 +263,18 @@ contract FlashAggregatorPolygon is Helper {
                 calculateFeeBPS(8)
             );
 
-            if (checkIfDsa(sender_)) {
+            if (checkIfDsa(_data.sender_)) {
                 Address.functionCall(
-                    sender_,
+                    _data.sender_,
                     data,
                     "DSA-flashloan-fallback-failed"
                 );
             } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(
+                InstaFlashReceiverInterface(_data.sender_).executeOperation(
                     tokens_,
                     amounts_,
                     instaLoanVariables_._instaFees,
-                    sender_,
+                    _data.sender_,
                     data
                 );
             }
@@ -280,9 +293,9 @@ contract FlashAggregatorPolygon is Helper {
             address[] memory tokens_ = new address[](2);
             uint256[] memory fees_ = new uint256[](2);
 
-            amounts_[0] = amount0;
+            amounts_[0] = _data.amount0;
             tokens_[0] = token0;
-            amounts_[1] = amount1;
+            amounts_[1] = _data.amount1;
             tokens_[1] = token1;
             fees_[0] = fee0;
             fees_[1] = fee1;
@@ -300,18 +313,18 @@ contract FlashAggregatorPolygon is Helper {
                 calculateFeeBPS(8)
             );
 
-            if (checkIfDsa(sender_)) {
+            if (checkIfDsa(_data.sender_)) {
                 Address.functionCall(
-                    sender_,
+                    _data.sender_,
                     data,
                     "DSA-flashloan-fallback-failed"
                 );
             } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(
+                InstaFlashReceiverInterface(_data.sender_).executeOperation(
                     tokens_,
                     amounts_,
                     instaLoanVariables_._instaFees,
-                    sender_,
+                    _data.sender_,
                     data
                 );
             }
