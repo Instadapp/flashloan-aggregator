@@ -38,8 +38,13 @@ contract InstaFlashReceiver {
             PoolKey memory key;
             uint256 length_ = tokens_.length;
             if (length_ == 2) {
+                if(tokens_[0] < tokens_[1]){
                 key.token0 = tokens_[0];
                 key.token1 = tokens_[1];
+                } else {
+                key.token0 = tokens_[1];
+                key.token1 = tokens_[0];
+                }
                 key.fee = fee;
             } else {
                 revert("Number of tokens exceed");
