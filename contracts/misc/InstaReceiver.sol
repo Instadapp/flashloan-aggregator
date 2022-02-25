@@ -20,18 +20,13 @@ contract InstaFlashReceiver {
     address chainToken = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     IFlashLoan internal immutable flashloan; // TODO: Contract/Protocol address to get flashloan
 
-    struct PoolKey {
-        address token0;
-        address token1;
-        uint24 fee;
-    }
-
+    
     function flashBorrow(
         address[] calldata tokens_,
         uint256[] calldata amts_,
         uint256 route,
         bytes calldata data_,
-        bytes memory _instaData
+        bytes calldata _instaData
     ) public {
         flashloan.flashLoan(tokens_, amts_, route, data_, _instaData);
     }

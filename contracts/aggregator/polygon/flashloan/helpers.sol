@@ -225,9 +225,6 @@ contract Helper is Variables {
     }
 
 
-    function setPoolAddress(address pool) internal {
-        uniswapPoolAddress = pool;
-    }
 
     /**
      * @dev Returns fee for the passed route in BPS.
@@ -249,8 +246,6 @@ contract Helper is Variables {
                         .getFlashLoanFeePercentage()
                 ) *
                 100;
-        } else if (_route == 8 ) {
-          BPS_ =  uint256(IUniswapV3PoolImmutables(uniswapPoolAddress).fee());  
         } else {
             revert("Invalid source");
         }

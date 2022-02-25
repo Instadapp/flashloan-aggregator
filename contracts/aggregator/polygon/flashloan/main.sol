@@ -202,6 +202,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256 amount1;
         address sender_;
         PoolKey key;
+        bytes data;
     }
 
     struct para {
@@ -227,9 +228,9 @@ contract FlashAggregatorPolygon is Helper {
         _para.fee1 = fee1;
         _para.data = data;
 
-        (_data.amount0, _data.amount1, _data.sender_, _data.key) = abi.decode(
+        (_data.amount0, _data.amount1, _data.sender_, _data.key, _data.data) = abi.decode(
             data,
-            (uint256, uint256, address, PoolKey)
+            (uint256, uint256, address, PoolKey,bytes)
         );
 
         address pool = computeAddress(factory, _data.key);
@@ -258,10 +259,13 @@ contract FlashAggregatorPolygon is Helper {
             address(this)
         );
 
-        setPoolAddress(uniswapPoolAddress);
+        uint256 fees = uint256(_data.key.fee);
+        if (fees < InstaFeeBPS) {
+            fees = InstaFeeBPS;
+        }
         instaLoanVariables_._instaFees = calculateFees(
             amounts_,
-            calculateFeeBPS(8)
+            fees
         );
 
         safeTransfer(instaLoanVariables_, _data.sender_);
@@ -278,7 +282,7 @@ contract FlashAggregatorPolygon is Helper {
                 amounts_,
                 instaLoanVariables_._instaFees,
                 _data.sender_,
-                _para.data
+                _data.data
             );
         }
 
@@ -406,9 +410,21 @@ contract FlashAggregatorPolygon is Helper {
 
         uint256 length_ = _tokens.length;
         uint256[] memory amounts_ = new uint256[](2);
-        if (length_ == 2) {
+        if (length_ == 1) {
             require(
-                _tokens[0] == key.token0 && _tokens[1] == key.token1,
+                (_tokens[0] == key.token0 || _tokens[0] == key.token1),
+                "Tokens does not match pool"
+            );
+            if (_tokens[0] == key.token0) {
+                amounts_[0] = _amounts[0];
+                amounts_[1] = 0;
+            } else {
+                amounts_[0] = 0;
+                amounts_[1] = _amounts[0];
+            }
+        } else if (length_ == 2) {
+            require(
+                (_tokens[0] == key.token0 && _tokens[1] == key.token1),
                 "Tokens does not match pool"
             );
             amounts_[0] = _amounts[0];
@@ -417,8 +433,7 @@ contract FlashAggregatorPolygon is Helper {
             revert("Number of tokens does not match");
         }
 
-        uniswapPoolAddress = computeAddress(factory, key);
-        IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
+        IUniswapV3Pool pool = IUniswapV3Pool(computeAddress(factory, key));
     
         bytes memory data_ = abi.encode(
             amounts_[0],

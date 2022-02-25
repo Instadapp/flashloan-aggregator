@@ -27,6 +27,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256 amount1;
         address sender_;
         PoolKey key;
+        bytes data;
     }
 
     struct para {
@@ -52,9 +53,9 @@ contract FlashAggregatorPolygon is Helper {
         _para.fee1 = fee1;
         _para.data = data;
 
-        (_data.amount0, _data.amount1, _data.sender_, _data.key) = abi.decode(
+        (_data.amount0, _data.amount1, _data.sender_, _data.key,_data.data) = abi.decode(
             data,
-            (uint256, uint256, address, PoolKey)
+            (uint256, uint256, address, PoolKey,bytes)
         );
 
         address pool = computeAddress(factory, _data.key);
@@ -83,9 +84,14 @@ contract FlashAggregatorPolygon is Helper {
             address(this)
         );
 
+        uint256 fees = uint256(_data.key.fee / 100);
+         if (fees < InstaFeeBPS) {
+            fees = InstaFeeBPS;
+        }
+        
         instaLoanVariables_._instaFees = calculateFees(
             amounts_,
-            uint256(_data.key.fee / 100)
+            fees
         );
 
         safeTransfer(instaLoanVariables_, _data.sender_);
@@ -102,7 +108,7 @@ contract FlashAggregatorPolygon is Helper {
                 amounts_,
                 instaLoanVariables_._instaFees,
                 _data.sender_,
-                _para.data
+                _data.data
             );
         }
 
