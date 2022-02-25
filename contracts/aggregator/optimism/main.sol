@@ -192,21 +192,7 @@ contract FlashAggregatorPolygon is Helper {
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
 
-        if (_route == 1) {
-            revert("this route is not for optimism");
-        } else if (_route == 2) {
-            revert("this route is only for mainnet");
-        } else if (_route == 3) {
-            revert("this route is only for mainnet");
-        } else if (_route == 4) {
-            revert("this route is only for mainnet");
-        } else if (_route == 5) {
-            revert("this route is  not for optimism");
-        } else if (_route == 6) {
-            revert("this route is only for mainnet");
-        } else if (_route == 7) {
-            revert("this route is  not for optimism");
-        } else if (_route == 8) {
+        if (_route == 8) {
             routeUniswap(_tokens, _amounts, _data, _instadata);
         } else {
             revert("route-does-not-exist");

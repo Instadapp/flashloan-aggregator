@@ -96,7 +96,7 @@ describe("FlashLoan", function () {
 
   describe("Single token", async function () {
     it("Should be able to take flashLoan of a single token from Uniswap", async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, 0], 8, _data, _instaData);
+      await receiver.flashBorrow([DAI], [Dai], 8, _data, _instaData);
     });
   });
 
