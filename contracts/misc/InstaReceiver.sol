@@ -30,29 +30,9 @@ contract InstaFlashReceiver {
         address[] calldata tokens_,
         uint256[] calldata amts_,
         uint256 route,
-        uint24 fee,
-        bytes calldata data_
+        bytes calldata data_,
+        bytes memory _instaData
     ) public {
-        bytes memory _instaData;
-        if (route == 8) {
-            PoolKey memory key;
-            uint256 length_ = tokens_.length;
-            if (length_ == 2) {
-                if(tokens_[0] < tokens_[1]){
-                key.token0 = tokens_[0];
-                key.token1 = tokens_[1];
-                } else {
-                key.token0 = tokens_[1];
-                key.token1 = tokens_[0];
-                }
-                key.fee = fee;
-            } else {
-                revert("Number of tokens exceed");
-            }
-
-            _instaData = abi.encode(key);
-        }
-
         flashloan.flashLoan(tokens_, amts_, route, data_, _instaData);
     }
 

@@ -22,7 +22,6 @@ contract FlashAggregatorPolygon is Helper {
         uint256[] amounts
     );
 
-
     struct info {
         uint256 amount0;
         uint256 amount1;
@@ -59,7 +58,7 @@ contract FlashAggregatorPolygon is Helper {
         );
 
         address pool = computeAddress(factory, _data.key);
-        require(msg.sender == pool);
+        require(msg.sender == pool, "Invalid sender");
 
         address token0 = _data.key.token0;
         address token1 = _data.key.token1;
@@ -84,10 +83,9 @@ contract FlashAggregatorPolygon is Helper {
             address(this)
         );
 
-        setPoolAddress(uniswapPoolAddress);
         instaLoanVariables_._instaFees = calculateFees(
             amounts_,
-            calculateFeeBPS(8)
+            uint256(_data.key.fee / 100)
         );
 
         safeTransfer(instaLoanVariables_, _data.sender_);
@@ -119,7 +117,6 @@ contract FlashAggregatorPolygon is Helper {
         safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
     }
 
-
     /**
      * @dev Middle function for route 8.
      * @notice Middle function for route 8.
@@ -138,7 +135,20 @@ contract FlashAggregatorPolygon is Helper {
 
         uint256 length_ = _tokens.length;
         uint256[] memory amounts_ = new uint256[](2);
-        if (length_ == 2) {
+
+        if (length_ == 1) {
+            require(
+                (_tokens[0] == key.token0 || _tokens[0] == key.token1),
+                "Tokens does not match pool"
+            );
+            if (_tokens[0] == key.token0) {
+                amounts_[0] = _amounts[0];
+                amounts_[1] = 0;
+            } else {
+                amounts_[0] = 0;
+                amounts_[1] = _amounts[0];
+            }
+        } else if (length_ == 2) {
             require(
                 (_tokens[0] == key.token0 && _tokens[1] == key.token1),
                 "Tokens does not match pool"
@@ -149,9 +159,8 @@ contract FlashAggregatorPolygon is Helper {
             revert("Number of tokens does not match");
         }
 
-        uniswapPoolAddress = computeAddress(factory, key);
-        IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-    
+        IUniswapV3Pool pool = IUniswapV3Pool(computeAddress(factory, key));
+
         bytes memory data_ = abi.encode(
             amounts_[0],
             amounts_[1],
@@ -192,11 +201,11 @@ contract FlashAggregatorPolygon is Helper {
         } else if (_route == 4) {
             revert("this route is only for mainnet");
         } else if (_route == 5) {
-           revert("this route is  not for optimism");
+            revert("this route is  not for optimism");
         } else if (_route == 6) {
             revert("this route is only for mainnet");
         } else if (_route == 7) {
-           revert("this route is  not for optimism");
+            revert("this route is  not for optimism");
         } else if (_route == 8) {
             routeUniswap(_tokens, _amounts, _data, _instadata);
         } else {

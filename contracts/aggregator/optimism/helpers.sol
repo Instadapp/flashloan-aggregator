@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "hardhat/console.sol";
 
-import { TokenInterface,InstaFlashReceiverInterface, IUniswapV3PoolImmutables} from "./interfaces.sol";
+import {TokenInterface, InstaFlashReceiverInterface, IUniswapV3PoolImmutables} from "./interfaces.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
@@ -157,32 +157,6 @@ contract Helper is Variables {
         }
     }
 
-
-    function setPoolAddress(address pool) internal {
-        uniswapPoolAddress = pool;
-    }
-
-    /**
-     * @dev Returns fee for the passed route in BPS.
-     * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
-     * @param _route route number for flashloan.
-     */
-    function calculateFeeBPS(uint256 _route)
-        public
-        view
-        returns (uint256 BPS_)
-    {
-        if (_route == 8 ) {
-          BPS_ =  uint256(IUniswapV3PoolImmutables(uniswapPoolAddress).fee());  
-        } else {
-            revert("Invalid source");
-        }
-
-        if (BPS_ < InstaFeeBPS) {
-            BPS_ = InstaFeeBPS;
-        }
-    }
-
     /**
      * @dev Calculate fees for the respective amounts and fee in BPS passed.
      * @notice Calculate fees for the respective amounts and fee in BPS passed. 1 BPS == 0.01%.
@@ -233,7 +207,6 @@ contract Helper is Variables {
         return (_tokens, _amounts);
     }
 
-
     /**
      * @dev Returns to true if the passed address is a DSA else returns false.
      * @notice Returns to true if the passed address is a DSA else returns false.
@@ -243,34 +216,33 @@ contract Helper is Variables {
         return instaList.accountID(_account) > 0;
     }
 
-
-    
-
-     /// @notice Deterministically computes the pool address given the factory and PoolKey
+    /// @notice Deterministically computes the pool address given the factory and PoolKey
     /// @param factory The Uniswap V3 factory contract address
     /// @param key The PoolKey
     /// @return pool The contract address of the V3 pool
-    function computeAddress(address factory, PoolKey memory key) internal pure returns (address pool) {
-        require(key.token0 < key.token1,"Token not sorted");
+    function computeAddress(address factory, PoolKey memory key)
+        internal
+        pure
+        returns (address pool)
+    {
+        require(key.token0 < key.token1, "Token not sorted");
         pool = address(
-            uint160(uint256(
-                keccak256(
-                    abi.encodePacked(
-                        hex'ff',
-                        factory,
-                        keccak256(abi.encode(key.token0, key.token1, key.fee)),
-                        POOL_INIT_CODE_HASH
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            hex"ff",
+                            factory,
+                            keccak256(
+                                abi.encode(key.token0, key.token1, key.fee)
+                            ),
+                            POOL_INIT_CODE_HASH
+                        )
                     )
                 )
-            ))
+            )
         );
     }
-
-
-
-
-
-
 
     /**
      * @dev  better checking by double encoding the data.
