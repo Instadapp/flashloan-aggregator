@@ -453,16 +453,8 @@ contract FlashAggregatorPolygon is Helper {
 
         if (_route == 1) {
             routeAave(_tokens, _amounts, _data);
-        } else if (_route == 2) {
-            revert("this route is only for mainnet");
-        } else if (_route == 3) {
-            revert("this route is only for mainnet");
-        } else if (_route == 4) {
-            revert("this route is only for mainnet");
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
-        } else if (_route == 6) {
-            revert("this route is only for mainnet");
         } else if (_route == 7) {
             routeBalancerAave(_tokens, _amounts, _data);
         } else if (_route == 8) {
