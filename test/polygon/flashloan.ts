@@ -105,7 +105,7 @@ describe("FlashLoan", function () {
       beforeEach(async function () {
         _instaData = await ethers.utils.defaultAbiCoder.encode(
           ["tuple(address, address, uint24)"],
-          [[USDT, DAI, "500"]]
+          [[DAI, USDT, "500"]]
         );
       });
       it("Should be able to take flashLoan of a single token from Uniswap", async function () {
@@ -182,7 +182,7 @@ describe("FlashLoan", function () {
       beforeEach(async function () {
         _instaData = await ethers.utils.defaultAbiCoder.encode(
           ["tuple(address, address, uint24)"],
-          [[USDT, DAI, "500"]]
+          [[DAI, USDT, "500"]]
         );
       });
       it("Should be able to take flashLoan of multiple tokens together from Uniswap", async function () {
