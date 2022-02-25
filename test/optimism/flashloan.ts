@@ -3,8 +3,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-  InstaFlashAggregatorPolygon,
-  InstaFlashAggregatorPolygon__factory,
+  InstaFlashAggregatorOptimism,
+  InstaFlashAggregatorOptimism__factory,
   IERC20__factory,
   IERC20,
   InstaFlashReceiver__factory,
@@ -48,7 +48,7 @@ describe("FlashLoan", function () {
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
-    Aggregator = new InstaFlashAggregatorPolygon__factory(signer);
+    Aggregator = new InstaFlashAggregatorOptimism__factory(signer);
     aggregator = await Aggregator.deploy();
     await aggregator.deployed();
 

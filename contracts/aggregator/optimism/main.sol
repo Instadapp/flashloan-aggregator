@@ -12,7 +12,7 @@ import {Helper} from "./helpers.sol";
 
 import {TokenInterface, InstaFlashReceiverInterface, IUniswapV3Pool} from "./interfaces.sol";
 
-contract FlashAggregatorPolygon is Helper {
+contract FlashAggregatorOptimism is Helper {
     using SafeERC20 for IERC20;
 
     event LogFlashloan(
@@ -239,7 +239,7 @@ contract FlashAggregatorPolygon is Helper {
     }
 }
 
-contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
+contract InstaFlashAggregatorOptimism is FlashAggregatorOptimism {
     /* 
      Deprecated
     */
