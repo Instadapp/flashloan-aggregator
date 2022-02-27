@@ -6,35 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IUniswapV3Pool} from "./interfaces.sol";
 
 contract Helper is Variables {
-    function getAaveAvailability(
-        address[] memory _tokens,
-        uint256[] memory _amounts
-    ) internal view returns (bool) {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            IERC20 token_ = IERC20(_tokens[i]);
-            (, , , , , , , , bool isActive, ) = aaveProtocolDataProvider
-                .getReserveConfigurationData(_tokens[i]);
-            (address aTokenAddr, , ) = aaveProtocolDataProvider
-                .getReserveTokensAddresses(_tokens[i]);
-            if (isActive == false) return false;
-            if (token_.balanceOf(aTokenAddr) < _amounts[i]) return false;
-        }
-        return true;
-    }
-
-    function getBalancerAvailability(
-        address[] memory _tokens,
-        uint256[] memory _amounts
-    ) internal view returns (bool) {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            IERC20 token_ = IERC20(_tokens[i]);
-            if (token_.balanceOf(balancerLendingAddr) < _amounts[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     function getRoutesWithAvailability(
         uint16[] memory _routes,
         address[] memory _tokens,
@@ -43,17 +14,7 @@ contract Helper is Variables {
         uint16[] memory routesWithAvailability_ = new uint16[](7);
         uint256 j = 0;
         for (uint256 i = 0; i < _routes.length; i++) {
-            if (_routes[i] == 1 || _routes[i] == 7) {
-                if (getAaveAvailability(_tokens, _amounts)) {
-                    routesWithAvailability_[j] = _routes[i];
-                    j++;
-                }
-            } else if (_routes[i] == 5) {
-                if (getBalancerAvailability(_tokens, _amounts)) {
-                    routesWithAvailability_[j] = _routes[i];
-                    j++;
-                }
-            } else if (_routes[i] == 8) {
+            if (_routes[i] == 8) {
                 routesWithAvailability_[j] = _routes[i];
                 j++;
             } else {
@@ -222,57 +183,6 @@ contract Helper is Variables {
                     key.token1 = USDC;
                 } else {
                     key.token0 = USDC;
-                    key.token1 = token0;
-                }
-                key.fee = 3000;
-                address uniswapPoolAddress = computeAddress(factory, key);
-                IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-
-                if (pool.balance0() >= _amounts[0]) {
-                    if (key.fee < bestKey.fee) bestKey = key;
-                }
-            }
-
-            if (token0 != MATIC) {
-                if (token0 < MATIC) {
-                    key.token0 = token0;
-                    key.token1 = MATIC;
-                } else {
-                    key.token0 = MATIC;
-                    key.token1 = token0;
-                }
-                key.fee = 100;
-                address uniswapPoolAddress = computeAddress(factory, key);
-                IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-
-                if (pool.balance0() >= _amounts[0]) {
-                    if (key.fee < bestKey.fee) bestKey = key;
-                }
-            }
-
-            if (token0 != MATIC) {
-                if (token0 < MATIC) {
-                    key.token0 = token0;
-                    key.token1 = MATIC;
-                } else {
-                    key.token0 = MATIC;
-                    key.token1 = token0;
-                }
-                key.fee = 500;
-                address uniswapPoolAddress = computeAddress(factory, key);
-                IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-
-                if (pool.balance0() >= _amounts[0]) {
-                    if (key.fee < bestKey.fee) bestKey = key;
-                }
-            }
-
-            if (token0 != MATIC) {
-                if (token0 < MATIC) {
-                    key.token0 = token0;
-                    key.token1 = MATIC;
-                } else {
-                    key.token0 = MATIC;
                     key.token1 = token0;
                 }
                 key.fee = 3000;

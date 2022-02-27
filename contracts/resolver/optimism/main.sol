@@ -5,19 +5,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Helper} from "./helpers.sol";
 
 import {InstaFlashloanAggregatorInterface} from "./interfaces.sol";
-import "hardhat/console.sol";
 
-contract FlashResolverPolygon is Helper {
+contract FlashResolverOptimism is Helper {
     function getRoutesInfo()
         public
         view
         returns (uint16[] memory routes_)
     {
         routes_ = flashloanAggregator.getRoutes();
-        // fees_ = new uint256[](routes_.length);
-        // for (uint256 i = 0; i < routes_.length; i++) {
-        //     fees_[i] = flashloanAggregator.calculateFeeBPS(routes_[i]);
-        // }
     }
 
     function getBestRoutes(address[] memory _tokens, uint256[] memory _amounts)
@@ -64,21 +59,6 @@ contract FlashResolverPolygon is Helper {
                     _data[j] = dt;
                     j++;
                 }
-            } else if (routesWithAvailability_[i] != 0) {
-                uint256 routeFeeBPS_ = flashloanAggregator.calculateFeeBPS(
-                    routesWithAvailability_[i]
-                );
-                bytes memory dt;
-                if (feeBPS_ > routeFeeBPS_) {
-                    feeBPS_ = routeFeeBPS_;
-                    bRoutes_[0] = routesWithAvailability_[i];
-                    _data[0] = dt;
-                    j = 1;
-                } else if (feeBPS_ == routeFeeBPS_) {
-                    bRoutes_[j] = routesWithAvailability_[i];
-                    _data[j] = dt;
-                    j++;
-                }
             }
         }
         uint16[] memory bestRoutes_ = new uint16[](j);
@@ -94,7 +74,6 @@ contract FlashResolverPolygon is Helper {
         public
         returns (
             uint16[] memory routes_,
-            //uint256[] memory fees_,
             uint16[] memory bestRoutes_,
             uint256 bestFee_,
             bytes[] memory bestData_
@@ -106,6 +85,6 @@ contract FlashResolverPolygon is Helper {
     }
 }
 
-contract InstaFlashloanResolverPolygon is FlashResolverPolygon {
+contract InstaFlashloanResolverOptimism is FlashResolverOptimism {
     receive() external payable {}
 }
