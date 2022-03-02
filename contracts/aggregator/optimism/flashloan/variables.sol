@@ -14,7 +14,7 @@ contract ConstantVariables {
         0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
-    address public constant factory =
+    address public constant uniswapFactoryAddr =
         0x1F98431c8aD98523631AE4a59f267346ea31F984;
 }
 

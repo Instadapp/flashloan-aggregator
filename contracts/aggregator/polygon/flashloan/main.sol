@@ -224,7 +224,7 @@ contract FlashAggregatorPolygon is Helper {
             uniswapFlashData_.data
         ) = abi.decode(data, (uint256, uint256, address, PoolKey, bytes));
 
-        address pool = computeAddress(factory, uniswapFlashData_.key);
+        address pool = computeAddress(uniswapFactoryAddr, uniswapFlashData_.key);
         require(msg.sender == pool, "invalid-sender");
 
         FlashloanVariables memory instaLoanVariables_;
@@ -417,7 +417,7 @@ contract FlashAggregatorPolygon is Helper {
             revert("Number of tokens does not match");
         }
 
-        IUniswapV3Pool pool = IUniswapV3Pool(computeAddress(factory, key));
+        IUniswapV3Pool pool = IUniswapV3Pool(computeAddress(uniswapFactoryAddr, key));
 
         bytes memory data_ = abi.encode(
             amount0_,
