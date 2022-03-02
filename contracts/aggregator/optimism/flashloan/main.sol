@@ -41,10 +41,13 @@ contract FlashAggregatorOptimism is Helper {
     ) external verifyDataHash(data) {
         UniswapInfo memory uniswapFlashData_;
 
-        (uniswapFlashData_.amount0, uniswapFlashData_.amount1, uniswapFlashData_.sender_, uniswapFlashData_.key, uniswapFlashData_.data) = abi.decode(
-            data,
-            (uint256, uint256, address, PoolKey, bytes)
-        );
+        (
+            uniswapFlashData_.amount0,
+            uniswapFlashData_.amount1,
+            uniswapFlashData_.sender_,
+            uniswapFlashData_.key,
+            uniswapFlashData_.data
+        ) = abi.decode(data, (uint256, uint256, address, PoolKey, bytes));
 
         address pool = computeAddress(factory, uniswapFlashData_.key);
         require(msg.sender == pool, "invalid-sender");
@@ -66,7 +69,7 @@ contract FlashAggregatorOptimism is Helper {
         if (feeBPS < InstaFeeBPS) {
             feeBPS = InstaFeeBPS;
         }
-        
+
         instaLoanVariables_._instaFees = calculateFees(
             instaLoanVariables_._amounts,
             feeBPS
@@ -81,13 +84,14 @@ contract FlashAggregatorOptimism is Helper {
                 "DSA-flashloan-fallback-failed"
             );
         } else {
-            InstaFlashReceiverInterface(uniswapFlashData_.sender_).executeOperation(
-                instaLoanVariables_._tokens,
-                instaLoanVariables_._amounts,
-                instaLoanVariables_._instaFees,
-                uniswapFlashData_.sender_,
-                uniswapFlashData_.data
-            );
+            InstaFlashReceiverInterface(uniswapFlashData_.sender_)
+                .executeOperation(
+                    instaLoanVariables_._tokens,
+                    instaLoanVariables_._amounts,
+                    instaLoanVariables_._instaFees,
+                    uniswapFlashData_.sender_,
+                    uniswapFlashData_.data
+                );
         }
 
         instaLoanVariables_._finBals = calculateBalances(

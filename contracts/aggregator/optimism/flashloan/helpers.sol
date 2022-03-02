@@ -5,9 +5,8 @@ import {Variables} from "./variables.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "hardhat/console.sol";
 
-import {TokenInterface, InstaFlashReceiverInterface, IUniswapV3PoolImmutables} from "./interfaces.sol";
+import {TokenInterface} from "./interfaces.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
