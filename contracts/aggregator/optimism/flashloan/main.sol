@@ -19,7 +19,7 @@ contract FlashAggregatorOptimism is Helper {
         uint256[] amounts
     );
 
-    struct UniswapInfo {
+    struct UniswapFlashInfo {
         uint256 amount0;
         uint256 amount1;
         address sender_;
@@ -39,7 +39,7 @@ contract FlashAggregatorOptimism is Helper {
         uint256 fee1,
         bytes memory data
     ) external verifyDataHash(data) {
-        UniswapInfo memory uniswapFlashData_;
+        UniswapFlashInfo memory uniswapFlashData_;
 
         (
             uniswapFlashData_.amount0,

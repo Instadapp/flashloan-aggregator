@@ -194,7 +194,7 @@ contract FlashAggregatorPolygon is Helper {
         }
     }
 
-    struct UniswapInfo {
+    struct UniswapFlashInfo {
         uint256 amount0;
         uint256 amount1;
         address sender_;
@@ -214,7 +214,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256 fee1,
         bytes memory data
     ) external verifyDataHash(data) {
-        UniswapInfo memory uniswapFlashData_;
+        UniswapFlashInfo memory uniswapFlashData_;
 
         (
             uniswapFlashData_.amount0,
