@@ -194,14 +194,6 @@ contract FlashAggregatorPolygon is Helper {
         }
     }
 
-    struct info {
-        uint256 amount0;
-        uint256 amount1;
-        address sender_;
-        PoolKey key;
-        bytes data;
-    }
-
     struct UniswapInfo {
         uint256 amount0;
         uint256 amount1;
