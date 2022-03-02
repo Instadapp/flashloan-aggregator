@@ -11,8 +11,6 @@ import {
   InstaFlashReceiver,
   InstaFlashAggregatorProxy,
   InstaFlashAggregatorProxy__factory,
-  InstaFlashAggregatorAdmin,
-  InstaFlashAggregatorAdmin__factory,
 } from "../../typechain";
 
 describe("FlashLoan", function () {
@@ -21,9 +19,8 @@ describe("FlashLoan", function () {
     Receiver,
     receiver: InstaFlashReceiver,
     Proxy,
-    proxy,
-    Admin,
-    admin;
+    proxy;
+    
   let signer: SignerWithAddress;
 
   const master = "0xa9061100d29C3C562a2e2421eb035741C1b42137";
@@ -52,12 +49,8 @@ describe("FlashLoan", function () {
     aggregator = await Aggregator.deploy();
     await aggregator.deployed();
 
-    Admin = new InstaFlashAggregatorAdmin__factory(signer);
-    admin = await Admin.deploy(master);
-    await admin.deployed();
-
     Proxy = new InstaFlashAggregatorProxy__factory(signer);
-    proxy = await Proxy.deploy(aggregator.address, admin.address, data);
+    proxy = await Proxy.deploy(aggregator.address, master, data);
     await proxy.deployed();
 
     Receiver = new InstaFlashReceiver__factory(signer);
