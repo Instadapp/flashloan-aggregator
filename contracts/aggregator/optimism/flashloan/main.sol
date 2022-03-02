@@ -19,7 +19,7 @@ contract FlashAggregatorOptimism is Helper {
         uint256[] amounts
     );
 
-    struct info {
+    struct UniswapInfo {
         uint256 amount0;
         uint256 amount1;
         address sender_;
@@ -27,45 +27,42 @@ contract FlashAggregatorOptimism is Helper {
         bytes data;
     }
 
-    /// @param fee0 The fee from calling flash for token0
-    /// @param fee1 The fee from calling flash for token1
-    /// @param data The data needed in the callback passed as FlashCallbackData from `initFlash`
-    /// @notice implements the callback called from flash
-    /// @dev fails if the flash is not profitable, meaning the amountOut from the flash is less than the amount borrowed
+    /**
+     * @dev Callback function for uniswap flashloan.
+     * @notice Callback function for uniswap flashloan.
+     * @param fee0 The fee from calling flash for token0
+     * @param fee1 The fee from calling flash for token1
+     * @param data extra data passed(includes route info aswell).
+     */
     function uniswapV3FlashCallback(
         uint256 fee0,
         uint256 fee1,
         bytes memory data
     ) external verifyDataHash(data) {
-        info memory _data;
+        UniswapInfo memory uniswapFlashData_;
 
-        (_data.amount0, _data.amount1, _data.sender_, _data.key, _data.data) = abi.decode(
+        (uniswapFlashData_.amount0, uniswapFlashData_.amount1, uniswapFlashData_.sender_, uniswapFlashData_.key, uniswapFlashData_.data) = abi.decode(
             data,
             (uint256, uint256, address, PoolKey, bytes)
         );
 
-        address pool = computeAddress(factory, _data.key);
+        address pool = computeAddress(factory, uniswapFlashData_.key);
         require(msg.sender == pool, "invalid-sender");
 
         FlashloanVariables memory instaLoanVariables_;
-
         instaLoanVariables_._amounts = new uint256[](2);
         instaLoanVariables_._tokens = new address[](2);
-        uint256[] memory fees_ = new uint256[](2);
-
-        instaLoanVariables_._tokens[0] = _data.key.token0;
-        instaLoanVariables_._tokens[1] = _data.key.token1;
-        instaLoanVariables_._amounts[0] = _data.amount0;
-        instaLoanVariables_._amounts[1] = _data.amount1;
-        fees_[0] = fee0;
-        fees_[1] = fee1;
+        instaLoanVariables_._tokens[0] = uniswapFlashData_.key.token0;
+        instaLoanVariables_._tokens[1] = uniswapFlashData_.key.token1;
+        instaLoanVariables_._amounts[0] = uniswapFlashData_.amount0;
+        instaLoanVariables_._amounts[1] = uniswapFlashData_.amount1;
 
         instaLoanVariables_._iniBals = calculateBalances(
             instaLoanVariables_._tokens,
             address(this)
         );
 
-        uint256 feeBPS = uint256(_data.key.fee / 100);
+        uint256 feeBPS = uint256(uniswapFlashData_.key.fee / 100);
         if (feeBPS < InstaFeeBPS) {
             feeBPS = InstaFeeBPS;
         }
@@ -75,21 +72,21 @@ contract FlashAggregatorOptimism is Helper {
             feeBPS
         );
 
-        safeTransfer(instaLoanVariables_, _data.sender_);
+        safeTransfer(instaLoanVariables_, uniswapFlashData_.sender_);
 
-        if (checkIfDsa(_data.sender_)) {
+        if (checkIfDsa(uniswapFlashData_.sender_)) {
             Address.functionCall(
-                _data.sender_,
-                _data.data,
+                uniswapFlashData_.sender_,
+                uniswapFlashData_.data,
                 "DSA-flashloan-fallback-failed"
             );
         } else {
-            InstaFlashReceiverInterface(_data.sender_).executeOperation(
+            InstaFlashReceiverInterface(uniswapFlashData_.sender_).executeOperation(
                 instaLoanVariables_._tokens,
                 instaLoanVariables_._amounts,
                 instaLoanVariables_._instaFees,
-                _data.sender_,
-                _data.data
+                uniswapFlashData_.sender_,
+                uniswapFlashData_.data
             );
         }
 
@@ -99,6 +96,10 @@ contract FlashAggregatorOptimism is Helper {
         );
 
         validateFlashloan(instaLoanVariables_);
+
+        uint256[] memory fees_ = new uint256[](2);
+        fees_[0] = fee0;
+        fees_[1] = fee1;
         safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
     }
 
