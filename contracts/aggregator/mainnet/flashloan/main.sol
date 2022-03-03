@@ -640,19 +640,19 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    // function initialize(address[] memory _ctokens) public {
-    //     require(status == 0, "cannot-call-again");
-    //     IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
-    //     addTokenToCToken(_ctokens);
-    //     address[] memory cTokens_ = new address[](2);
-    //     cTokens_[0] = cEthToken;
-    //     cTokens_[1] = cDaiToken;
-    //     uint256[] memory errors_ = troller.enterMarkets(cTokens_);
-    //     for (uint256 j = 0; j < errors_.length; j++) {
-    //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
-    //     }
-    //     status = 1;
-    // }
+    function initialize(address[] memory _ctokens) public {
+        require(status == 0, "cannot-call-again");
+        IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
+        addTokenToCToken(_ctokens);
+        address[] memory cTokens_ = new address[](2);
+        cTokens_[0] = cEthToken;
+        cTokens_[1] = cDaiToken;
+        uint256[] memory errors_ = troller.enterMarkets(cTokens_);
+        for (uint256 j = 0; j < errors_.length; j++) {
+            require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
+        }
+        status = 1;
+    }
 
     receive() external payable {}
 }

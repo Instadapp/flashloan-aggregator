@@ -11,8 +11,6 @@ import {
   InstaFlashReceiver,
   InstaFlashAggregatorProxy,
   InstaFlashAggregatorProxy__factory,
-  InstaFlashAggregatorAdmin,
-  InstaFlashAggregatorAdmin__factory,
 } from '../../typechain'
 
 describe('FlashLoan', function () {
@@ -21,9 +19,8 @@ describe('FlashLoan', function () {
     Receiver,
     receiver: InstaFlashReceiver,
     Proxy,
-    proxy,
-    Admin,
-    admin
+    proxy;
+
   let signer: SignerWithAddress
 
   const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137'
@@ -45,18 +42,18 @@ describe('FlashLoan', function () {
   const zeroAddr =
     '0x0000000000000000000000000000000000000000000000000000000000000000'
 
+    let _instaData = ''
+
+
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
     Aggregator = new InstaFlashAggregatorAvalanche__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
 
-    Admin = new InstaFlashAggregatorAdmin__factory(signer)
-    admin = await Admin.deploy(master)
-    await admin.deployed()
 
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
-    proxy = await Proxy.deploy(aggregator.address, admin.address, data)
+    proxy = await Proxy.deploy(aggregator.address, master, data)
     await proxy.deployed()
 
     Receiver = new InstaFlashReceiver__factory(signer)
@@ -86,11 +83,12 @@ describe('FlashLoan', function () {
       method: 'hardhat_stopImpersonatingAccount',
       params: [ACC_DAI],
     })
+    _instaData = '0x'
   })
 
   describe('Single token', async function () {
     it('Should be able to take flashLoan of a single token from AAVE', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr,_instaData)
     })
   })
 
@@ -119,9 +117,10 @@ describe('FlashLoan', function () {
         method: 'hardhat_stopImpersonatingAccount',
         params: [ACC_USDT],
       })
+      _instaData = '0x'
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE', async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr)
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr,_instaData )
     })
   })
 })
