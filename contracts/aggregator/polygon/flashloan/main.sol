@@ -224,7 +224,10 @@ contract FlashAggregatorPolygon is Helper {
             uniswapFlashData_.data
         ) = abi.decode(data, (uint256, uint256, address, PoolKey, bytes));
 
-        address pool = computeAddress(uniswapFactoryAddr, uniswapFlashData_.key);
+        address pool = computeAddress(
+            uniswapFactoryAddr,
+            uniswapFlashData_.key
+        );
         require(msg.sender == pool, "invalid-sender");
 
         FlashloanVariables memory instaLoanVariables_;
@@ -280,6 +283,49 @@ contract FlashAggregatorPolygon is Helper {
         fees_[0] = fee0;
         fees_[1] = fee1;
         safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
+    }
+
+    function ownRouteFlashCallback(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal verifyDataHash(_data) {
+        FlashloanVariables memory instaLoanVariables_;
+
+        instaLoanVariables_._tokens = _tokens;
+        instaLoanVariables_._amounts = _amounts;
+        instaLoanVariables_._iniBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        instaLoanVariables_._instaFees = calculateFees(
+            _amounts,
+            calculateFeeBPS(9)
+        );
+
+        safeTransfer(instaLoanVariables_, msg.sender);
+
+        if (checkIfDsa(msg.sender)) {
+            Address.functionCall(
+                msg.sender,
+                _data,
+                "DSA-flashloan-fallback-failed"
+            );
+        } else {
+            InstaFlashReceiverInterface(msg.sender).executeOperation(
+                _tokens,
+                _amounts,
+                instaLoanVariables_._instaFees,
+                msg.sender,
+                _data
+            );
+        }
+
+        instaLoanVariables_._finBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        validateFlashloan(instaLoanVariables_);
     }
 
     /**
@@ -417,7 +463,9 @@ contract FlashAggregatorPolygon is Helper {
             revert("Number of tokens does not match");
         }
 
-        IUniswapV3Pool pool = IUniswapV3Pool(computeAddress(uniswapFactoryAddr, key));
+        IUniswapV3Pool pool = IUniswapV3Pool(
+            computeAddress(uniswapFactoryAddr, key)
+        );
 
         bytes memory data_ = abi.encode(
             amount0_,
@@ -428,6 +476,29 @@ contract FlashAggregatorPolygon is Helper {
         );
         dataHash = bytes32(keccak256(data_));
         pool.flash(address(this), amount0_, amount1_, data_);
+    }
+
+    /**
+     * @dev Middle function for route 9.
+     * @notice Middle function for route 9.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _data extra data passed.
+     */
+    function routeOwnFlashloan(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal {
+        bytes memory data_ = abi.encode(
+            9,
+            _tokens,
+            _amounts,
+            msg.sender,
+            _data
+        );
+        dataHash = bytes32(keccak256(data_));
+        ownRouteFlashCallback(_tokens, _amounts, data_);
     }
 
     /**
@@ -458,6 +529,8 @@ contract FlashAggregatorPolygon is Helper {
             routeBalancerAave(_tokens, _amounts, _data);
         } else if (_route == 8) {
             routeUniswap(_tokens, _amounts, _data, _instadata);
+        } else if (_route == 9) {
+            routeOwnFlashloan(_tokens, _amounts, _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -470,11 +543,12 @@ contract FlashAggregatorPolygon is Helper {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](4);
+        routes_ = new uint16[](5);
         routes_[0] = 1;
         routes_[1] = 5;
         routes_[2] = 7;
         routes_[3] = 8;
+        routes_[4] = 9;
     }
 
     /**
