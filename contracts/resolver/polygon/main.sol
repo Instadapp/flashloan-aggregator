@@ -8,16 +8,8 @@ import {InstaFlashloanAggregatorInterface} from "./interfaces.sol";
 import "hardhat/console.sol";
 
 contract FlashResolverPolygon is Helper {
-    function getRoutesInfo()
-        public
-        view
-        returns (uint16[] memory routes_)
-    {
-        routes_ = flashloanAggregator.getRoutes();
-        // fees_ = new uint256[](routes_.length);
-        // for (uint256 i = 0; i < routes_.length; i++) {
-        //     fees_[i] = flashloanAggregator.calculateFeeBPS(routes_[i]);
-        // }
+    function getRoutes() public view returns (uint16[] memory) {
+        return flashloanAggregator.getRoutes();
     }
 
     function getBestRoutes(address[] memory _tokens, uint256[] memory _amounts)
@@ -37,7 +29,7 @@ contract FlashResolverPolygon is Helper {
 
         uint16[] memory bRoutes_;
         uint256 feeBPS_;
-        uint16[] memory routes_ = flashloanAggregator.getRoutes();
+        uint16[] memory routes_ = getRoutes();
         uint16[] memory routesWithAvailability_ = getRoutesWithAvailability(
             routes_,
             _tokens,
@@ -49,36 +41,36 @@ contract FlashResolverPolygon is Helper {
         feeBPS_ = type(uint256).max;
         for (uint256 i = 0; i < routesWithAvailability_.length; i++) {
             if (routesWithAvailability_[i] == 8) {
-                uint256 length = _tokens.length;
-                require(length == 1 || length == 2, "Number of tokens exceed");
                 PoolKey memory bestKey = getUniswapBestFee(_tokens, _amounts);
-                bytes memory dt;
-                dt = abi.encode(bestKey);
-                if (feeBPS_ > bestKey.fee) {
-                    feeBPS_ = uint256(bestKey.fee);
+                uint256 uniswapFeeBPS_ = uint256(bestKey.fee / 100);
+                uint256 instaFeeBps_ = flashloanAggregator.InstaFeeBPS();
+                if (uniswapFeeBPS_ < instaFeeBps_) {
+                    uniswapFeeBPS_ = instaFeeBps_;
+                }
+                if (feeBPS_ > uniswapFeeBPS_) {
+                    feeBPS_ = uniswapFeeBPS_;
                     bRoutes_[0] = routesWithAvailability_[i];
-                    _data[0] = dt;
+                    _data[0] = abi.encode(bestKey);
                     j = 1;
                 } else if (feeBPS_ == bestKey.fee) {
                     bRoutes_[j] = routesWithAvailability_[i];
-                    _data[j] = dt;
+                    _data[j] = abi.encode(bestKey);
                     j++;
                 }
             } else if (routesWithAvailability_[i] != 0) {
                 uint256 routeFeeBPS_ = flashloanAggregator.calculateFeeBPS(
                     routesWithAvailability_[i]
                 );
-                bytes memory dt;
                 if (feeBPS_ > routeFeeBPS_) {
                     feeBPS_ = routeFeeBPS_;
                     bRoutes_[0] = routesWithAvailability_[i];
-                    _data[0] = dt;
                     j = 1;
                 } else if (feeBPS_ == routeFeeBPS_) {
                     bRoutes_[j] = routesWithAvailability_[i];
-                    _data[j] = dt;
                     j++;
                 }
+            } else {
+                break;
             }
         }
         uint16[] memory bestRoutes_ = new uint16[](j);
@@ -100,9 +92,9 @@ contract FlashResolverPolygon is Helper {
             bytes[] memory bestData_
         )
     {
-        (routes_) = getRoutesInfo();
-        (bestRoutes_, bestFee_,bestData_) = getBestRoutes(_tokens, _amounts);
-        return (routes_, bestRoutes_, bestFee_,bestData_);
+        (routes_) = getRoutes();
+        (bestRoutes_, bestFee_, bestData_) = getBestRoutes(_tokens, _amounts);
+        return (routes_, bestRoutes_, bestFee_, bestData_);
     }
 }
 
