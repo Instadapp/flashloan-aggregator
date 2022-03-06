@@ -15,8 +15,10 @@ contract Helper is Variables {
         uint256 j = 0;
         for (uint256 i = 0; i < _routes.length; i++) {
             if (_routes[i] == 8) {
-                routesWithAvailability_[j] = _routes[i];
-                j++;
+                if (_tokens.length == 1 || _tokens.length == 2) {
+                    routesWithAvailability_[j] = _routes[i];
+                    j++;
+                }
             } else {
                 require(false, "invalid-route");
             }
@@ -83,164 +85,76 @@ contract Helper is Variables {
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal returns (PoolKey memory) {
-        uint256 length = _tokens.length;
-        if (length == 1) {
-            address token0 = _tokens[0];
-
+        if (_tokens.length == 1) {
             PoolKey memory bestKey;
+
+            address[] memory checkTokens_ = new address[](2);
+            checkTokens_[0] = USDC;
+            checkTokens_[1] = Weth;
+        
+            uint24[] memory checkFees_ = new uint24[](3);
+            checkFees_[0] = 100;
+            checkFees_[1] = 500;
+            checkFees_[2] = 3000;
+
+            for (uint256 i = 0; i < checkTokens_.length; i++) {
+                for (uint256 j = 0; j < checkFees_.length; i++) {
+                    if (_tokens[0] == checkTokens_[i]) {
+                        break;
+                    }
+                    bestKey.fee = checkFees_[j];
+                    if (_tokens[0] < checkTokens_[i]) {
+                        bestKey.token0 = _tokens[0];
+                        bestKey.token1 = checkTokens_[i];
+                    } else {
+                        bestKey.token0 = checkTokens_[i];
+                        bestKey.token1 = _tokens[0];
+                    }
+                    IUniswapV3Pool pool = IUniswapV3Pool(
+                        computeAddress(factory, bestKey)
+                    );
+                    if (_tokens[0] < checkTokens_[i]) {
+                        try pool.balance0() {
+                            if (pool.balance0() >= _amounts[0]) {
+                                return bestKey;
+                            }
+                        } catch {}
+                    } else {
+                        try pool.balance1() {
+                            if (pool.balance1() >= _amounts[0]) {
+                                return bestKey;
+                            }
+                        } catch {}
+                    }
+                }
+            }
             bestKey.fee = type(uint24).max;
-
-            PoolKey memory key;
-
-            if (token0 != Weth) {
-                if (token0 < Weth) {
-                    key.token0 = token0;
-                    key.token1 = Weth;
-                } else {
-                    key.token0 = Weth;
-                    key.token1 = token0;
-                }
-                key.fee = 100;
-                address uniswapPoolAddress = computeAddress(factory, key);
-                IUniswapV3Pool pool1 = IUniswapV3Pool(uniswapPoolAddress);
-
-                if (pool1.balance0() >= _amounts[0]) {
-                    if (key.fee < bestKey.fee) bestKey = key;
-                }
-            }
-
-            if (token0 != Weth) {
-                if (token0 < Weth) {
-                    key.token0 = token0;
-                    key.token1 = Weth;
-                } else {
-                    key.token0 = Weth;
-                    key.token1 = token0;
-                }
-                key.fee = 500;
-                address uniswapPoolAddress = computeAddress(factory, key);
-                IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-
-                if (pool.balance0() >= _amounts[0]) {
-                    if (key.fee < bestKey.fee) bestKey = key;
-                }
-            }
-
-            if (token0 != Weth) {
-                if (token0 < Weth) {
-                    key.token0 = token0;
-                    key.token1 = Weth;
-                } else {
-                    key.token0 = Weth;
-                    key.token1 = token0;
-                }
-                key.fee = 3000;
-                address uniswapPoolAddress = computeAddress(factory, key);
-                IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-
-                if (pool.balance0() >= _amounts[0]) {
-                    if (key.fee < bestKey.fee) bestKey = key;
-                }
-            }
-
-            if (token0 != USDC) {
-                if (token0 < USDC) {
-                    key.token0 = token0;
-                    key.token1 = USDC;
-                } else {
-                    key.token0 = USDC;
-                    key.token1 = token0;
-                }
-                key.fee = 100;
-                address uniswapPoolAddress = computeAddress(factory, key);
-                IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-
-                if (pool.balance0() >= _amounts[0]) {
-                    if (key.fee < bestKey.fee) bestKey = key;
-                }
-            }
-
-            if (token0 != USDC) {
-                if (token0 < USDC) {
-                    key.token0 = token0;
-                    key.token1 = USDC;
-                } else {
-                    key.token0 = USDC;
-                    key.token1 = token0;
-                }
-                key.fee = 500;
-                address uniswapPoolAddress = computeAddress(factory, key);
-                IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-
-                if (pool.balance0() >= _amounts[0]) {
-                    if (key.fee < bestKey.fee) bestKey = key;
-                }
-            }
-
-            if (token0 != USDC) {
-                if (token0 < USDC) {
-                    key.token0 = token0;
-                    key.token1 = USDC;
-                } else {
-                    key.token0 = USDC;
-                    key.token1 = token0;
-                }
-                key.fee = 3000;
-                address uniswapPoolAddress = computeAddress(factory, key);
-                IUniswapV3Pool pool = IUniswapV3Pool(uniswapPoolAddress);
-
-                if (pool.balance0() >= _amounts[0]) {
-                    if (key.fee < bestKey.fee) bestKey = key;
-                }
-            }
-
             return bestKey;
         } else {
-            bubbleSort(_tokens, _amounts);
-            address token0 = _tokens[0];
-            address token1 = _tokens[1];
-
             PoolKey memory bestKey;
+            bestKey.token0 = _tokens[0];
+            bestKey.token1 = _tokens[1];
+
+            uint24[] memory checkFees_ = new uint24[](3);
+            checkFees_[0] = 100;
+            checkFees_[1] = 500;
+            checkFees_[2] = 3000;
+
+            for (uint256 i = 0; i < checkFees_.length; i++) {
+                bestKey.fee = checkFees_[i];
+                IUniswapV3Pool pool = IUniswapV3Pool(
+                    computeAddress(factory, bestKey)
+                );
+                try pool.balance0() {
+                    if (
+                        pool.balance0() >= _amounts[0] &&
+                        pool.balance1() >= _amounts[1]
+                    ) {
+                        return bestKey;
+                    }
+                } catch {}
+            }
             bestKey.fee = type(uint24).max;
-
-            PoolKey memory key;
-
-            key.token0 = token0;
-            key.token1 = token1;
-            key.fee = 100;
-
-            address uniswapPoolAddress1 = computeAddress(factory, key);
-            IUniswapV3Pool pool1 = IUniswapV3Pool(uniswapPoolAddress1);
-
-            if (
-                pool1.balance0() >= _amounts[0] &&
-                pool1.balance1() >= _amounts[1]
-            ) {
-                if (key.fee < bestKey.fee) bestKey = key;
-            }
-
-            key.fee = 500;
-            address uniswapPoolAddress2 = computeAddress(factory, key);
-            IUniswapV3Pool pool2 = IUniswapV3Pool(uniswapPoolAddress2);
-
-            if (
-                pool2.balance0() >= _amounts[0] &&
-                pool2.balance1() >= _amounts[1]
-            ) {
-                if (key.fee < bestKey.fee) bestKey = key;
-            }
-
-            key.fee = 3000;
-            address uniswapPoolAddress3 = computeAddress(factory, key);
-            IUniswapV3Pool pool3 = IUniswapV3Pool(uniswapPoolAddress3);
-
-            if (
-                pool3.balance0() >= _amounts[0] &&
-                pool3.balance1() >= _amounts[1]
-            ) {
-                if (key.fee < bestKey.fee) bestKey = key;
-            }
-
             return bestKey;
         }
     }

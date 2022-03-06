@@ -26,7 +26,7 @@ describe('Resolver', function () {
   })
 
   it('Should be able to return routes info', async function () {
-    console.log((await resolver.getRoutesInfo()).toString())
+    console.log((await resolver.getRoutes()).toString())
   })
 
   it('Should be able to return the best route for flashloan', async function () {
