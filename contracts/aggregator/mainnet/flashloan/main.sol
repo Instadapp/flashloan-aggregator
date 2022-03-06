@@ -652,7 +652,7 @@ contract InstaFlashAggregator is FlashAggregator {
     //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
     //     }
     //     status = 1;
-    }
+    // }
 
     receive() external payable {}
 }
