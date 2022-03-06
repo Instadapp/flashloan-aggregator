@@ -49,7 +49,10 @@ contract FlashAggregatorOptimism is Helper {
             uniswapFlashData_.data
         ) = abi.decode(data, (uint256, uint256, address, PoolKey, bytes));
 
-        address pool = computeAddress(uniswapFactoryAddr, uniswapFlashData_.key);
+        address pool = computeAddress(
+            uniswapFactoryAddr,
+            uniswapFlashData_.key
+        );
         require(msg.sender == pool, "invalid-sender");
 
         FlashloanVariables memory instaLoanVariables_;
@@ -147,7 +150,9 @@ contract FlashAggregatorOptimism is Helper {
             revert("Number of tokens does not match");
         }
 
-        IUniswapV3Pool pool = IUniswapV3Pool(computeAddress(uniswapFactoryAddr, key));
+        IUniswapV3Pool pool = IUniswapV3Pool(
+            computeAddress(uniswapFactoryAddr, key)
+        );
 
         bytes memory data_ = abi.encode(
             amount0_,
@@ -222,9 +227,6 @@ contract FlashAggregatorOptimism is Helper {
 }
 
 contract InstaFlashAggregatorOptimism is FlashAggregatorOptimism {
-    /* 
-     Deprecated
-    */
     function initialize() public {
         require(status == 0, "cannot-call-again");
         status = 1;
