@@ -128,9 +128,9 @@ contract Helper is Variables {
             PoolKey memory bestKey;
 
             address[] memory checkTokens_ = new address[](3);
-            checkTokens_[0] = USDC;
-            checkTokens_[1] = Weth;
-            checkTokens_[2] = MATIC;
+            checkTokens_[0] = usdcAddr;
+            checkTokens_[1] = wethAddr;
+            checkTokens_[2] = wmaticAddr;
 
             uint24[] memory checkFees_ = new uint24[](3);
             checkFees_[0] = 100;
@@ -151,7 +151,7 @@ contract Helper is Variables {
                         bestKey.token1 = _tokens[0];
                     }
                     IUniswapV3Pool pool = IUniswapV3Pool(
-                        computeAddress(factory, bestKey)
+                        computeAddress(uniswapFactoryAddr, bestKey)
                     );
                     if (_tokens[0] < checkTokens_[i]) {
                         try pool.balance0() {
@@ -183,7 +183,7 @@ contract Helper is Variables {
             for (uint256 i = 0; i < checkFees_.length; i++) {
                 bestKey.fee = checkFees_[i];
                 IUniswapV3Pool pool = IUniswapV3Pool(
-                    computeAddress(factory, bestKey)
+                    computeAddress(uniswapFactoryAddr, bestKey)
                 );
                 try pool.balance0() {
                     if (

@@ -80,7 +80,6 @@ contract FlashResolverOptimism is Helper {
     {
         (routes_) = getRoutes();
         (bestRoutes_, bestFee_, bestData_) = getBestRoutes(_tokens, _amounts);
-        return (routes_, bestRoutes_, bestFee_, bestData_);
     }
 }
 

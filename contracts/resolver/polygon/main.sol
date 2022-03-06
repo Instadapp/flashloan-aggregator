@@ -86,7 +86,6 @@ contract FlashResolverPolygon is Helper {
         public
         returns (
             uint16[] memory routes_,
-            //uint256[] memory fees_,
             uint16[] memory bestRoutes_,
             uint256 bestFee_,
             bytes[] memory bestData_
@@ -94,7 +93,6 @@ contract FlashResolverPolygon is Helper {
     {
         (routes_) = getRoutes();
         (bestRoutes_, bestFee_, bestData_) = getBestRoutes(_tokens, _amounts);
-        return (routes_, bestRoutes_, bestFee_, bestData_);
     }
 }
 

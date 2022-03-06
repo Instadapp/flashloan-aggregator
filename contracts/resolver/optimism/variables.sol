@@ -10,10 +10,10 @@ contract Variables {
     InstaFlashloanAggregatorInterface internal flashloanAggregator =
         InstaFlashloanAggregatorInterface(flashloanAggregatorAddr);
     
-    address public constant Weth = 0x4200000000000000000000000000000000000006;
-    address public constant USDC = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
+    address public constant wethAddr = 0x4200000000000000000000000000000000000006;
+    address public constant usdcAddr = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
    
-    address public constant factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
+    address public constant uniswapFactoryAddr = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
     bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
 
     struct PoolKey {
