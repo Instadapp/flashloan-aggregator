@@ -178,7 +178,7 @@ contract FlashAggregatorOptimism is Helper {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes calldata _instadata // kept for future use by instadapp. Currently not used anywhere.
+        bytes calldata _instadata
     ) external reentrancy {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
