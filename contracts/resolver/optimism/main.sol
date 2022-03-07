@@ -1,10 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Helper} from "./helpers.sol";
-
-import {InstaFlashloanAggregatorInterface} from "./interfaces.sol";
+import "./helpers.sol";
 
 contract FlashResolverOptimism is Helper {
     function getRoutes() public view returns (uint16[] memory) {

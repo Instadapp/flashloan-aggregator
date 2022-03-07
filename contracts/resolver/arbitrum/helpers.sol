@@ -1,9 +1,8 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import {Variables} from "./variables.sol";
+import "./variables.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IUniswapV3Pool} from "./interfaces.sol";
 
 contract Helper is Variables {
     function getBalancerAvailability(
