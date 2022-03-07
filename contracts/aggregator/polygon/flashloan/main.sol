@@ -197,7 +197,7 @@ contract FlashAggregatorPolygon is Helper {
     struct UniswapFlashInfo {
         uint256 amount0;
         uint256 amount1;
-        address sender_;
+        address sender;
         PoolKey key;
         bytes data;
     }
@@ -219,7 +219,7 @@ contract FlashAggregatorPolygon is Helper {
         (
             uniswapFlashData_.amount0,
             uniswapFlashData_.amount1,
-            uniswapFlashData_.sender_,
+            uniswapFlashData_.sender,
             uniswapFlashData_.key,
             uniswapFlashData_.data
         ) = abi.decode(data, (uint256, uint256, address, PoolKey, bytes));
@@ -253,21 +253,21 @@ contract FlashAggregatorPolygon is Helper {
             feeBPS
         );
 
-        safeTransfer(instaLoanVariables_, uniswapFlashData_.sender_);
+        safeTransfer(instaLoanVariables_, uniswapFlashData_.sender);
 
-        if (checkIfDsa(uniswapFlashData_.sender_)) {
+        if (checkIfDsa(uniswapFlashData_.sender)) {
             Address.functionCall(
-                uniswapFlashData_.sender_,
+                uniswapFlashData_.sender,
                 uniswapFlashData_.data,
                 "DSA-flashloan-fallback-failed"
             );
         } else {
-            InstaFlashReceiverInterface(uniswapFlashData_.sender_)
+            InstaFlashReceiverInterface(uniswapFlashData_.sender)
                 .executeOperation(
                     instaLoanVariables_._tokens,
                     instaLoanVariables_._amounts,
                     instaLoanVariables_._instaFees,
-                    uniswapFlashData_.sender_,
+                    uniswapFlashData_.sender,
                     uniswapFlashData_.data
                 );
         }
