@@ -414,7 +414,7 @@ contract FlashAggregatorPolygon is Helper {
             amount0_ = _amounts[0];
             amount1_ = _amounts[1];
         } else {
-            revert("Number of tokens does not match");
+            revert("Number of tokens do not match");
         }
 
         IUniswapV3Pool pool = IUniswapV3Pool(
