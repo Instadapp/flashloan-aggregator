@@ -106,7 +106,7 @@ contract Helper is Variables {
      * @dev Calculates the balances..
      * @notice Calculates the balances of the account passed for the tokens.
      * @param _tokens list of token addresses to calculate balance for.
-     * @param _account account to calculate balance for.
+     * @param _account account to calculate balances for.
      */
     function calculateBalances(address[] memory _tokens, address _account)
         internal
@@ -211,10 +211,12 @@ contract Helper is Variables {
         return instaList.accountID(_account) > 0;
     }
 
-    /// @notice Deterministically computes the pool address given the factory and PoolKey
-    /// @param factory The Uniswap V3 factory contract address
-    /// @param key The PoolKey
-    /// @return pool The contract address of the V3 pool
+    /**
+     * @notice Deterministically computes the pool address given the factory and PoolKey
+     * @param factory The Uniswap V3 factory contract address
+     * @param key The PoolKey
+     * @return pool The contract address of the V3 pool
+     */
     function computeAddress(address factory, PoolKey memory key)
         internal
         pure
