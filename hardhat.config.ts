@@ -99,30 +99,30 @@ const config: HardhatUserConfig = {
     //   },
     //   gasPrice: 151101000000,
     // },
-    // mainnet: {
-    //   url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
-    //   chainId: 1,
-    //   gasPrice: 52101000000,
-    //   accounts: [`0x${process.env.PRIVATE_KEY}`]
-    // },
-    // avalanche_mainnet: {
-    //   url: 'https://api.avax.network/ext/bc/C/rpc',
-    //   chainId: 43114,
-    //   accounts: [`0x${process.env.PRIVATE_KEY}`],
-    //   gasPrice: 40110000000,
-    // },
-    // arbitrum_mainnet: {
-    //   url: `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
-    //   chainId: 42161,
-    //   accounts: [`0x${process.env.PRIVATE_KEY}`],
-    //   gasPrice: 1500000000
-    // },
-    // polygon_mainnet: {
-    //   url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
-    //   chainId: 137,
-    //   accounts: [`0x${process.env.PRIVATE_KEY}`],
-    //   gasPrice: 70000000000,
-    // }
+    mainnet: {
+      url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
+      chainId: 1,
+      gasPrice: 52101000000,
+      accounts: [`0x${process.env.PRIVATE_KEY}`]
+    },
+    avalanche_mainnet: {
+      url: 'https://api.avax.network/ext/bc/C/rpc',
+      chainId: 43114,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 40110000000,
+    },
+    arbitrum_mainnet: {
+      url: `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+      chainId: 42161,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 1500000000
+    },
+    polygon_mainnet: {
+      url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+      chainId: 137,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 70000000000,
+    }
   },
   paths: {
     artifacts: "./artifacts",
