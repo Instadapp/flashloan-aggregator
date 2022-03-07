@@ -39,9 +39,6 @@ describe("FlashLoan", function () {
   const Usdc = ethers.utils.parseUnits("5000", 6);
   const Usdt = ethers.utils.parseUnits("5000", 6);
 
-  const zeroAddr =
-    "0x0000000000000000000000000000000000000000000000000000000000000000";
-
   const _data = "0x";
   let _instaData = "0x";
 
@@ -87,7 +84,7 @@ describe("FlashLoan", function () {
 
   describe("Single token", async function () {
     it("Should be able to take flashLoan of a single token from Balancer", async function () {
-      await receiver.flashBorrow([USDC], [Usdc], 5, zeroAddr, _instaData);
+      await receiver.flashBorrow([USDC], [Usdc], 5, _data, _instaData);
     });
   });
 
@@ -135,7 +132,7 @@ describe("FlashLoan", function () {
         [USDT, USDC],
         [Usdt, Usdc],
         5,
-        zeroAddr,
+        _data,
         _instaData
       );
     });
@@ -144,7 +141,7 @@ describe("FlashLoan", function () {
         [USDT, USDC],
         [Usdc, Usdt],
         5,
-        zeroAddr,
+        _data,
         _instaData
       );
     });
