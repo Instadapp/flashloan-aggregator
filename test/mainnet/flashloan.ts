@@ -11,8 +11,6 @@ import {
   InstaFlashReceiver,
   InstaFlashAggregatorProxy,
   InstaFlashAggregatorProxy__factory,
-  InstaFlashAggregatorAdmin,
-  InstaFlashAggregatorAdmin__factory,
 } from '../../typechain'
 
 describe('FlashLoan', function () {
@@ -21,9 +19,8 @@ describe('FlashLoan', function () {
     Receiver,
     receiver: InstaFlashReceiver,
     Proxy,
-    proxy: InstaFlashAggregatorProxy,
-    Admin,
-    admin
+    proxy: InstaFlashAggregatorProxy;
+
   let signer: SignerWithAddress
 
   const master = '0xa8c31E39e40E6765BEdBd83D92D6AA0B33f1CCC5'
@@ -64,8 +61,10 @@ describe('FlashLoan', function () {
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
   const Weth = ethers.utils.parseUnits('1000', 18)
-  const zeroAddr =
-    '0x0000000000000000000000000000000000000000000000000000000000000000'
+
+  const _data = '0x'
+
+  let _instaData = '0x'
 
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
@@ -74,12 +73,8 @@ describe('FlashLoan', function () {
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
 
-    Admin = new InstaFlashAggregatorAdmin__factory(signer)
-    admin = await Admin.deploy(master)
-    await admin.deployed()
-
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
-    proxy = await Proxy.deploy(aggregator.address, admin.address, data)
+    proxy = await Proxy.deploy(aggregator.address, master, data)
     await proxy.deployed()
 
     Receiver = new InstaFlashReceiver__factory(signer)
@@ -127,29 +122,30 @@ describe('FlashLoan', function () {
       method: 'hardhat_stopImpersonatingAccount',
       params: [proxy.address],
     })
+    _instaData = '0x'
   })
 
   describe('Single token', async function () {
     it('Should be able to take flashLoan of a single token from AAVE', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 1, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from MakerDAO', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 2, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 2, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from Compound(MakerDAO)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 3, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 3, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from AAVE(MakerDAO)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 4, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 4, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from Balancer', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 5, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 5, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from Compound(Balancer)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 6, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 6, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 7, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 7, _data,_instaData)
     })
   })
 
@@ -215,13 +211,15 @@ describe('FlashLoan', function () {
         method: 'hardhat_stopImpersonatingAccount',
         params: [proxy.address],
       })
+      _instaData = '0x'
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE', async function () {
       await receiver.flashBorrow(
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         1,
-        zeroAddr,
+        _data,
+        _instaData
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from MakerDAO', async function () {
@@ -229,7 +227,8 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         2,
-        zeroAddr,
+        _data,
+        _instaData
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from Compound(MakerDAO)', async function () {
@@ -237,7 +236,8 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         3,
-        zeroAddr,
+        _data,
+        _instaData
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE(MakerDAO)', async function () {
@@ -245,7 +245,8 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         4,
-        zeroAddr,
+        _data,
+        _instaData
       )
     })
     it('Should be able to take flashLoan of multiple sorted tokens together from Balancer', async function () {
@@ -253,7 +254,8 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         5,
-        zeroAddr,
+        _data,
+        _instaData
       )
     })
     it('Should be able to take flashLoan of multiple unsorted tokens together from Balancer', async function () {
@@ -261,7 +263,8 @@ describe('FlashLoan', function () {
         [USDT, DAI, WETH],
         [Usdt, Dai, Weth],
         5,
-        zeroAddr,
+        _data,
+        _instaData 
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from Compound(Balancer)', async function () {
@@ -269,7 +272,8 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         6,
-        zeroAddr,
+        _data,
+        _instaData
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE(Balancer)', async function () {
@@ -277,7 +281,8 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         7,
-        zeroAddr,
+        _data,
+        _instaData
       )
     })
   })

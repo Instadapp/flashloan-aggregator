@@ -7,6 +7,8 @@ interface InstaFlashloanAggregatorInterface {
     function calculateFeeBPS(uint256 _route) external view returns (uint256);
 
     function tokenToCToken(address) external view returns (address);
+
+    function InstaFeeBPS() external view returns (uint256);
 }
 
 interface IAaveProtocolDataProvider {
@@ -34,4 +36,10 @@ interface IAaveProtocolDataProvider {
             address,
             address
         );
+}
+
+interface IUniswapV3Pool {
+    function balance0() external returns (uint256);
+
+    function balance1() external returns (uint256);
 }

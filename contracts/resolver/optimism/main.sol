@@ -3,11 +3,9 @@ pragma solidity ^0.8.0;
 
 import "./helpers.sol";
 
-import {InstaFlashloanAggregatorInterface} from "./interfaces.sol";
-
-contract FlashResolverArbitrum is Helper {
-    function getRoutes() public view returns (uint16[] memory routes_) {
-        routes_ = flashloanAggregator.getRoutes();
+contract FlashResolverOptimism is Helper {
+    function getRoutes() public view returns (uint16[] memory) {
+        return flashloanAggregator.getRoutes();
     }
 
     function getBestRoutes(address[] memory _tokens, uint256[] memory _amounts)
@@ -55,18 +53,8 @@ contract FlashResolverArbitrum is Helper {
                     _data[j] = abi.encode(bestKey);
                     j++;
                 }
-            } else if (routesWithAvailability_[i] != 0) {
-                uint256 routeFeeBPS_ = flashloanAggregator.calculateFeeBPS(
-                    routesWithAvailability_[i]
-                );
-                if (feeBPS_ > routeFeeBPS_) {
-                    feeBPS_ = routeFeeBPS_;
-                    bRoutes_[0] = routesWithAvailability_[i];
-                    j = 1;
-                } else if (feeBPS_ == routeFeeBPS_) {
-                    bRoutes_[j] = routesWithAvailability_[i];
-                    j++;
-                }
+            } else {
+                break;
             }
         }
         uint16[] memory bestRoutes_ = new uint16[](j);
@@ -92,6 +80,6 @@ contract FlashResolverArbitrum is Helper {
     }
 }
 
-contract InstaFlashloanResolverArbitrum is FlashResolverArbitrum {
+contract InstaFlashloanResolverOptimism is FlashResolverOptimism {
     receive() external payable {}
 }

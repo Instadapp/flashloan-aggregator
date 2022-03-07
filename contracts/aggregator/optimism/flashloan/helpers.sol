@@ -6,7 +6,7 @@ import {Variables} from "./variables.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {TokenInterface, InstaFlashReceiverInterface, IUniswapV3Pool} from "./interfaces.sol";
+import {TokenInterface} from "./interfaces.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
@@ -74,8 +74,8 @@ contract Helper is Variables {
             "Lengths of parameters not same"
         );
         for (uint256 i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-            token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
+            IERC20 token_ = IERC20(_instaLoanVariables._tokens[i]);
+            token_.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
         }
     }
 
@@ -98,8 +98,8 @@ contract Helper is Variables {
         );
         require(length_ == _fees.length, "Lengths of parameters not same");
         for (uint256 i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-            token.safeTransfer(
+            IERC20 token_ = IERC20(_instaLoanVariables._tokens[i]);
+            token_.safeTransfer(
                 _receiver,
                 _instaLoanVariables._amounts[i] + _fees[i]
             );
@@ -153,33 +153,6 @@ contract Helper is Variables {
     function validateTokens(address[] memory _tokens) internal pure {
         for (uint256 i = 0; i < _tokens.length - 1; i++) {
             require(_tokens[i] != _tokens[i + 1], "non-unique-tokens");
-        }
-    }
-
-    /**
-     * @dev Returns fee for the passed route in BPS.
-     * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
-     * @param _route route number for flashloan.
-     */
-    function calculateFeeBPS(uint256 _route)
-        public
-        view
-        returns (uint256 BPS_)
-    {
-        if (_route == 5) {
-            BPS_ =
-                (
-                    balancerLending
-                        .getProtocolFeesCollector()
-                        .getFlashLoanFeePercentage()
-                ) *
-                100;
-        } else {
-            revert("Invalid source");
-        }
-
-        if (BPS_ < InstaFeeBPS) {
-            BPS_ = InstaFeeBPS;
         }
     }
 

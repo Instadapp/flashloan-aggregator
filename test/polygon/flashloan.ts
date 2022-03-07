@@ -11,8 +11,6 @@ import {
   InstaFlashReceiver,
   InstaFlashAggregatorProxy,
   InstaFlashAggregatorProxy__factory,
-  InstaFlashAggregatorAdmin,
-  InstaFlashAggregatorAdmin__factory,
 } from '../../typechain'
 
 describe('FlashLoan', function () {
@@ -21,9 +19,8 @@ describe('FlashLoan', function () {
     Receiver,
     receiver: InstaFlashReceiver,
     Proxy,
-    proxy,
-    Admin,
-    admin
+    proxy
+
   let signer: SignerWithAddress
 
   const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137'
@@ -37,13 +34,14 @@ describe('FlashLoan', function () {
   const ACC_DAI = '0x4a35582a710e1f4b2030a3f826da20bfb6703c09'
   const ACC_USDT = '0x0d0707963952f2fba59dd06f2b425ace40b492fe'
 
-  const dai = ethers.utils.parseUnits('10', 18)
-  const usdt = ethers.utils.parseUnits('10', 6)
+  const dai = ethers.utils.parseUnits('1000', 18)
+  const usdt = ethers.utils.parseUnits('1000', 6)
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
 
-  const zeroAddr =
-    '0x0000000000000000000000000000000000000000000000000000000000000000'
+  const _data = '0x'
+
+  let _instaData = '0x'
 
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
@@ -51,12 +49,8 @@ describe('FlashLoan', function () {
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
 
-    Admin = new InstaFlashAggregatorAdmin__factory(signer)
-    admin = await Admin.deploy(master)
-    await admin.deployed()
-
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
-    proxy = await Proxy.deploy(aggregator.address, admin.address, data)
+    proxy = await Proxy.deploy(aggregator.address, master, data)
     await proxy.deployed()
 
     Receiver = new InstaFlashReceiver__factory(signer)
@@ -86,17 +80,30 @@ describe('FlashLoan', function () {
       method: 'hardhat_stopImpersonatingAccount',
       params: [ACC_DAI],
     })
+    _instaData = '0x'
   })
 
   describe('Single token', async function () {
     it('Should be able to take flashLoan of a single token from AAVE', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 1, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from Balancer', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 5, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 5, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 7, zeroAddr)
+      await receiver.flashBorrow([DAI], [Dai], 7, _data, _instaData)
+    })
+
+    describe('Uniswap Route', async function () {
+      beforeEach(async function () {
+        _instaData = await ethers.utils.defaultAbiCoder.encode(
+          ['tuple(address, address, uint24)'],
+          [[DAI, USDT, '500']],
+        )
+      })
+      it('Should be able to take flashLoan of a single token from Uniswap', async function () {
+        await receiver.flashBorrow([DAI], [Dai], 8, _data, _instaData)
+      })
     })
   })
 
@@ -125,18 +132,37 @@ describe('FlashLoan', function () {
         method: 'hardhat_stopImpersonatingAccount',
         params: [ACC_USDT],
       })
+      _instaData = '0x'
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE', async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr)
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, _data, _instaData)
     })
     it('Should be able to take flashLoan of multiple sorted tokens together from Balancer', async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 5, zeroAddr)
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 5, _data, _instaData)
     })
     it('Should be able to take flashLoan of multiple unsorted tokens together from Balancer', async function () {
-      await receiver.flashBorrow([USDT, DAI], [Usdt, Dai], 5, zeroAddr)
+      await receiver.flashBorrow([USDT, DAI], [Usdt, Dai], 5, _data, _instaData)
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE(Balancer)', async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 7, zeroAddr)
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 7, _data, _instaData)
+    })
+
+    describe('Uniswap Route', async function () {
+      beforeEach(async function () {
+        _instaData = await ethers.utils.defaultAbiCoder.encode(
+          ['tuple(address, address, uint24)'],
+          [[DAI, USDT, '500']],
+        )
+      })
+      it('Should be able to take flashLoan of multiple tokens together from Uniswap', async function () {
+        await receiver.flashBorrow(
+          [DAI, USDT],
+          [Dai, Usdt],
+          8,
+          _data,
+          _instaData,
+        )
+      })
     })
   })
 })

@@ -3,12 +3,12 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 const { ethers } = hre
 
 import {
-  InstaFlashloanResolverPolygon,
-  InstaFlashloanResolverPolygon__factory,
+  InstaFlashloanResolverOptimism,
+  InstaFlashloanResolverOptimism__factory,
 } from '../../typechain'
 
 describe('Resolver', function () {
-  let Resolver, resolver: InstaFlashloanResolverPolygon
+  let Resolver, resolver: InstaFlashloanResolverOptimism
   let signer: SignerWithAddress
 
   const DAI = '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063'
@@ -20,7 +20,7 @@ describe('Resolver', function () {
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
 
-    Resolver = new InstaFlashloanResolverPolygon__factory(signer)
+    Resolver = new InstaFlashloanResolverOptimism__factory(signer)
     resolver = await Resolver.deploy()
     await resolver.deployed()
   })

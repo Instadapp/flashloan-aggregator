@@ -45,24 +45,6 @@ interface TokenInterface {
     function totalSupply() external view returns (uint256);
 }
 
-interface ProtocolFeesCollector {
-    function getFlashLoanFeePercentage() external view returns (uint256);
-}
-
-interface IBalancerLending {
-    function flashLoan(
-        InstaFlashReceiverInterface recipient,
-        IERC20[] memory tokens,
-        uint256[] memory amounts,
-        bytes memory userData
-    ) external;
-
-    function getProtocolFeesCollector()
-        external
-        view
-        returns (ProtocolFeesCollector);
-}
-
 interface IUniswapV3Pool {
     function flash(
         address recipient,
