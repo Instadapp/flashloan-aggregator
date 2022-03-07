@@ -85,8 +85,8 @@ contract FlashAggregatorPolygon is Helper {
     }
 
     /**
-     * @dev Fallback function for balancer flashloan.
-     * @notice Fallback function for balancer flashloan.
+     * @dev Callback function for balancer flashloan.
+     * @notice Callback function for balancer flashloan.
      * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
      * @param _fees list of fees for the corresponding addresses for flashloan.
      * @param _data extra data passed(includes route info aswell).
