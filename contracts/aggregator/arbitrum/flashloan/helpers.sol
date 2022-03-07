@@ -1,12 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Variables} from "./variables.sol";
-
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./variables.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
-import {TokenInterface, InstaFlashReceiverInterface, IUniswapV3Pool} from "./interfaces.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
