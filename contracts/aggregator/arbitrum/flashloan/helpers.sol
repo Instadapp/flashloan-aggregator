@@ -6,7 +6,7 @@ import {Variables} from "./variables.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {TokenInterface, InstaFlashReceiverInterface} from "./interfaces.sol";
+import {TokenInterface, InstaFlashReceiverInterface, IUniswapV3Pool} from "./interfaces.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
@@ -240,6 +240,34 @@ contract Helper is Variables {
      */
     function checkIfDsa(address _account) internal view returns (bool) {
         return instaList.accountID(_account) > 0;
+    }
+
+    /// @notice Deterministically computes the pool address given the factory and PoolKey
+    /// @param factory The Uniswap V3 factory contract address
+    /// @param key The PoolKey
+    /// @return pool The contract address of the V3 pool
+    function computeAddress(address factory, PoolKey memory key)
+        internal
+        pure
+        returns (address pool)
+    {
+        require(key.token0 < key.token1, "Token not sorted");
+        pool = address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            hex"ff",
+                            factory,
+                            keccak256(
+                                abi.encode(key.token0, key.token1, key.fee)
+                            ),
+                            POOL_INIT_CODE_HASH
+                        )
+                    )
+                )
+            )
+        );
     }
 
     /**

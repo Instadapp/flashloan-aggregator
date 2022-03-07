@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import {IndexInterface, ListInterface, IBalancerLending} from "./interfaces.sol";
+import {IndexInterface, ListInterface, IBalancerLending, IUniswapV3Pool} from "./interfaces.sol";
 
 contract ConstantVariables {
     address public constant balancerLendingAddr =
@@ -14,6 +14,12 @@ contract ConstantVariables {
     address private constant instaListAddr =
         0x3565F6057b7fFE36984779A507fC87b31EFb0f09;
     ListInterface public constant instaList = ListInterface(instaListAddr);
+
+    bytes32 internal constant POOL_INIT_CODE_HASH =
+        0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+
+    address public constant uniswapFactoryAddr =
+        0x1F98431c8aD98523631AE4a59f267346ea31F984;
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 }
@@ -29,5 +35,12 @@ contract Variables is ConstantVariables {
         uint256[] _iniBals;
         uint256[] _finBals;
         uint256[] _instaFees;
+    }
+
+    /// @notice The identifying key of the pool
+    struct PoolKey {
+        address token0;
+        address token1;
+        uint24 fee;
     }
 }
