@@ -3,8 +3,8 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 const { ethers } = hre
 
 import {
-  InstaFlashAggregatorAvalanche,
-  InstaFlashAggregatorAvalanche__factory,
+  InstaFlashAggregatorOptimism,
+  InstaFlashAggregatorOptimism__factory,
   IERC20__factory,
   IERC20,
   InstaFlashReceiver__factory,
@@ -19,7 +19,7 @@ describe('FlashLoan', function () {
     Receiver,
     receiver: InstaFlashReceiver,
     Proxy,
-    proxy;
+    proxy
 
   let signer: SignerWithAddress
 
@@ -29,28 +29,25 @@ describe('FlashLoan', function () {
   let iface = new ethers.utils.Interface(ABI)
   const data = iface.encodeFunctionData('initialize')
 
-  const DAI = '0xd586e7f844cea2f87f50152665bcbc2c279d8d70'
-  const USDT = '0xc7198437980c041c805a1edcba50c1ce5db95118'
-  const ACC_DAI = '0xed2a7edd7413021d440b09d654f3b87712abab66'
-  const ACC_USDT = '0xed2a7edd7413021d440b09d654f3b87712abab66'
+  const DAI = '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1'
+  const USDT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'
+  const ACC_DAI = '0xadb35413ec50e0afe41039eac8b930d313e94fa4'
+  const ACC_USDT = '0x9d39fc627a6d9d9f8c831c16995b209548cc3401'
 
-  const dai = ethers.utils.parseUnits('10', 18)
-  const usdt = ethers.utils.parseUnits('10', 6)
+  const dai = ethers.utils.parseUnits('1000', 18)
+  const usdt = ethers.utils.parseUnits('1000', 6)
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
 
-  const zeroAddr =
-    '0x0000000000000000000000000000000000000000000000000000000000000000'
+  const _data = '0x'
 
-    let _instaData = ''
-
+  let _instaData = '0x'
 
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
-    Aggregator = new InstaFlashAggregatorAvalanche__factory(signer)
+    Aggregator = new InstaFlashAggregatorOptimism__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
-
 
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
     proxy = await Proxy.deploy(aggregator.address, master, data)
@@ -83,12 +80,16 @@ describe('FlashLoan', function () {
       method: 'hardhat_stopImpersonatingAccount',
       params: [ACC_DAI],
     })
-    _instaData = '0x'
+
+    _instaData = await ethers.utils.defaultAbiCoder.encode(
+      ['tuple(address, address, uint24)'],
+      [[USDT, DAI, '500']],
+    )
   })
 
   describe('Single token', async function () {
-    it('Should be able to take flashLoan of a single token from AAVE', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr,_instaData)
+    it('Should be able to take flashLoan of a single token from Uniswap', async function () {
+      await receiver.flashBorrow([DAI], [Dai], 8, _data, _instaData)
     })
   })
 
@@ -117,10 +118,13 @@ describe('FlashLoan', function () {
         method: 'hardhat_stopImpersonatingAccount',
         params: [ACC_USDT],
       })
-      _instaData = '0x'
+      _instaData = await ethers.utils.defaultAbiCoder.encode(
+        ['tuple(address, address, uint24)'],
+        [[USDT, DAI, '500']],
+      )
     })
-    it('Should be able to take flashLoan of multiple tokens together from AAVE', async function () {
-      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr,_instaData )
+    it('Should be able to take flashLoan of multiple tokens together from Uniswap', async function () {
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 8, _data, _instaData)
     })
   })
 })

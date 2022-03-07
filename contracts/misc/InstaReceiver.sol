@@ -17,15 +17,16 @@ interface IFlashLoan {
 
 contract InstaFlashReceiver {
     using SafeERC20 for IERC20;
-    IFlashLoan internal immutable flashloan; // TODO: Contract/Protocol address to get flashloan
+    IFlashLoan internal immutable flashloan;
 
+    
     function flashBorrow(
         address[] calldata tokens_,
         uint256[] calldata amts_,
         uint256 route,
-        bytes calldata data_
+        bytes calldata data_,
+        bytes calldata _instaData
     ) public {
-        bytes memory _instaData;
         flashloan.flashLoan(tokens_, amts_, route, data_, _instaData);
     }
 
