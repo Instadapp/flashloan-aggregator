@@ -15,8 +15,6 @@ contract FlashAggregatorOptimism is Helper {
     );
 
     struct UniswapFlashInfo {
-        uint256 amount0;
-        uint256 amount1;
         address sender;
         PoolKey key;
         bytes data;
@@ -34,30 +32,21 @@ contract FlashAggregatorOptimism is Helper {
         uint256 fee1,
         bytes memory data
     ) external verifyDataHash(data) {
+        FlashloanVariables memory instaLoanVariables_;
         UniswapFlashInfo memory uniswapFlashData_;
-
         (
-            uniswapFlashData_.amount0,
-            uniswapFlashData_.amount1,
+            instaLoanVariables_._tokens,
+            instaLoanVariables_._amounts,
             uniswapFlashData_.sender,
             uniswapFlashData_.key,
             uniswapFlashData_.data
-        ) = abi.decode(data, (uint256, uint256, address, PoolKey, bytes));
+        ) = abi.decode(data, (address[], uint256[], address, PoolKey, bytes));
 
         address pool = computeAddress(
             uniswapFactoryAddr,
             uniswapFlashData_.key
         );
         require(msg.sender == pool, "invalid-sender");
-
-        FlashloanVariables memory instaLoanVariables_;
-        instaLoanVariables_._amounts = new uint256[](2);
-        instaLoanVariables_._tokens = new address[](2);
-        instaLoanVariables_._tokens[0] = uniswapFlashData_.key.token0;
-        instaLoanVariables_._tokens[1] = uniswapFlashData_.key.token1;
-        instaLoanVariables_._amounts[0] = uniswapFlashData_.amount0;
-        instaLoanVariables_._amounts[1] = uniswapFlashData_.amount1;
-
         instaLoanVariables_._iniBals = calculateBalances(
             instaLoanVariables_._tokens,
             address(this)
@@ -98,10 +87,20 @@ contract FlashAggregatorOptimism is Helper {
         );
 
         validateFlashloan(instaLoanVariables_);
-
-        uint256[] memory fees_ = new uint256[](2);
-        fees_[0] = fee0;
-        fees_[1] = fee1;
+        uint256[] memory fees_;
+        if (instaLoanVariables_._tokens.length == 2) {
+            fees_ = new uint256[](2);
+            fees_[0] = fee0;
+            fees_[1] = fee1;
+        } else if (
+            instaLoanVariables_._tokens[0] == uniswapFlashData_.key.token0
+        ) {
+            fees_ = new uint256[](1);
+            fees_[0] = fee0;
+        } else {
+            fees_ = new uint256[](1);
+            fees_[0] = fee1;
+        }
         safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
     }
 
@@ -150,8 +149,8 @@ contract FlashAggregatorOptimism is Helper {
         );
 
         bytes memory data_ = abi.encode(
-            amount0_,
-            amount1_,
+            _tokens,
+            _amounts,
             msg.sender,
             key,
             _data
