@@ -41,7 +41,7 @@ describe('FlashLoan', function () {
 
   const _data = '0x'
 
-  let _instaData = ''
+  let _instaData = '0x'
 
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()

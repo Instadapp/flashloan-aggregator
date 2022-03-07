@@ -25,7 +25,6 @@ describe('FlashLoan', function () {
 
   const master = '0xa8c31E39e40E6765BEdBd83D92D6AA0B33f1CCC5'
   const aaveLendingAddr = '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9'
-  let _instaData = ''
 
   let ABI = ['function initialize(address[])']
   let iface = new ethers.utils.Interface(ABI)
@@ -62,8 +61,10 @@ describe('FlashLoan', function () {
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
   const Weth = ethers.utils.parseUnits('1000', 18)
-  const zeroAddr =
-    '0x0000000000000000000000000000000000000000000000000000000000000000'
+
+  const _data = '0x'
+
+  let _instaData = '0x'
 
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
@@ -126,25 +127,25 @@ describe('FlashLoan', function () {
 
   describe('Single token', async function () {
     it('Should be able to take flashLoan of a single token from AAVE', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 1, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from MakerDAO', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 2, zeroAddr,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 2, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from Compound(MakerDAO)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 3, zeroAddr,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 3, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from AAVE(MakerDAO)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 4, zeroAddr,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 4, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from Balancer', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 5, zeroAddr,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 5, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from Compound(Balancer)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 6, zeroAddr,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 6, _data,_instaData)
     })
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 7, zeroAddr,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 7, _data,_instaData)
     })
   })
 
@@ -217,7 +218,7 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         1,
-        zeroAddr,
+        _data,
         _instaData
       )
     })
@@ -226,7 +227,7 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         2,
-        zeroAddr,
+        _data,
         _instaData
       )
     })
@@ -235,7 +236,7 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         3,
-        zeroAddr,
+        _data,
         _instaData
       )
     })
@@ -244,7 +245,7 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         4,
-        zeroAddr,
+        _data,
         _instaData
       )
     })
@@ -253,7 +254,7 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         5,
-        zeroAddr,
+        _data,
         _instaData
       )
     })
@@ -262,7 +263,7 @@ describe('FlashLoan', function () {
         [USDT, DAI, WETH],
         [Usdt, Dai, Weth],
         5,
-        zeroAddr,
+        _data,
         _instaData 
       )
     })
@@ -271,7 +272,7 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         6,
-        zeroAddr,
+        _data,
         _instaData
       )
     })
@@ -280,7 +281,7 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         7,
-        zeroAddr,
+        _data,
         _instaData
       )
     })
