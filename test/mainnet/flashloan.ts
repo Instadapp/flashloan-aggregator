@@ -147,6 +147,20 @@ describe('FlashLoan', function () {
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
       await receiver.flashBorrow([DAI], [Dai], 7, _data,_instaData)
     })
+
+
+     describe('Uniswap Route', async function () {
+      beforeEach(async function () {
+        _instaData = await ethers.utils.defaultAbiCoder.encode(
+          ['tuple(address, address, uint24)'],
+          [[DAI, USDT, '500']],
+        )
+      })
+      it('Should be able to take flashLoan of a single token from Uniswap', async function () {
+        await receiver.flashBorrow([DAI], [Dai], 8, _data, _instaData)
+      })
+    })
+
   })
 
   describe('Multi token', async function () {
@@ -285,5 +299,24 @@ describe('FlashLoan', function () {
         _instaData
       )
     })
+
+    describe('Uniswap Route', async function () {
+      beforeEach(async function () {
+        _instaData = await ethers.utils.defaultAbiCoder.encode(
+          ['tuple(address, address, uint24)'],
+          [[DAI, USDT, '500']],
+        )
+      })
+      it('Should be able to take flashLoan of multiple tokens together from Uniswap', async function () {
+        await receiver.flashBorrow(
+          [DAI, USDT],
+          [Dai, Usdt],
+          8,
+          _data,
+          _instaData,
+        )
+      })
+    })
+
   })
 })

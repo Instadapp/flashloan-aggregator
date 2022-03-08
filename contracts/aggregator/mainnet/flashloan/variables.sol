@@ -7,7 +7,8 @@ import {
     IERC3156FlashLender, 
     Comptroller,
     IBalancerLending,
-    IWeth
+    IWeth,
+    IUniswapV3Pool
 } from "./interfaces.sol";
 
 contract ConstantVariables {
@@ -38,6 +39,12 @@ contract ConstantVariables {
     address private constant instaListAddr = 0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb;
     ListInterface public constant instaList = ListInterface(instaListAddr);
 
+     bytes32 internal constant POOL_INIT_CODE_HASH =
+        0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+
+    address public constant uniswapFactoryAddr =
+        0x1F98431c8aD98523631AE4a59f267346ea31F984;
+
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 
 }
@@ -57,5 +64,12 @@ contract Variables is ConstantVariables{
     }
 
     mapping(address => address) public tokenToCToken;
+
+      /// @notice The identifying key of the pool
+    struct PoolKey {
+        address token0;
+        address token1;
+        uint24 fee;
+    }
 
 }
