@@ -122,6 +122,12 @@ const config: HardhatUserConfig = {
       chainId: 137,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
       gasPrice: 70000000000,
+    },
+    optimism_mainnet: {
+      url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
+      chainId: 10,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 1000000,
     }
   },
   paths: {
