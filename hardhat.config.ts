@@ -124,7 +124,7 @@ const config: HardhatUserConfig = {
       gasPrice: 70000000000,
     },
     optimism_mainnet: {
-      url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
+      url: `https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
       chainId: 10,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
       gasPrice: 1000000,
