@@ -6,7 +6,7 @@ import {InstaFlashloanAggregatorInterface, IUniswapV3Pool} from "./interfaces.so
 contract Variables {
 
     address private flashloanAggregatorAddr =
-        0x0000000000000000000000000000000000000000;
+        0x84E6b05A089d5677A702cF61dc14335b4bE5b282;
     InstaFlashloanAggregatorInterface internal flashloanAggregator =
         InstaFlashloanAggregatorInterface(flashloanAggregatorAddr);
     
