@@ -5,7 +5,7 @@ import "./interfaces.sol";
 
 contract ConstantVariables {
     address public constant treasuryAddr =
-        0x0000000000000000000000000000000000000000;
+        0xDAF12965b3D5BF60843AA1FB49E2688919e697a0;
     address private constant instaListAddr =
         0x9926955e0Dd681Dc303370C52f4Ad0a4dd061687;
     ListInterface public constant instaList = ListInterface(instaListAddr);

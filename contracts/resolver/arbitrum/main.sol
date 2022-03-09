@@ -92,6 +92,6 @@ contract FlashResolverArbitrum is Helper {
     }
 }
 
-contract InstaFlashloanResolverArbitrum is FlashResolverArbitrum {
+contract InstaFlashResolverArbitrum is FlashResolverArbitrum {
     receive() external payable {}
 }

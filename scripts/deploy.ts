@@ -15,7 +15,7 @@ async function scriptRunner() {
   let signer: SignerWithAddress
   let Proxy, proxy
 
-  const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137'
+  const master = '0xD4E5e20eF32b4750d4cD185a8E970b89851E7775'
   let ABI = ['function initialize()']
   let iface = new ethers.utils.Interface(ABI)
   const data = iface.encodeFunctionData('initialize')

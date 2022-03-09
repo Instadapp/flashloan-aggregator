@@ -80,6 +80,6 @@ contract FlashResolverOptimism is Helper {
     }
 }
 
-contract InstaFlashloanResolverOptimism is FlashResolverOptimism {
+contract InstaFlashResolverOptimism is FlashResolverOptimism {
     receive() external payable {}
 }

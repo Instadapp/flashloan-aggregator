@@ -92,6 +92,6 @@ contract FlashResolverPolygon is Helper {
     }
 }
 
-contract InstaFlashloanResolverPolygon is FlashResolverPolygon {
+contract InstaFlashResolverPolygon is FlashResolverPolygon {
     receive() external payable {}
 }
