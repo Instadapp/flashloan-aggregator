@@ -66,7 +66,7 @@ function getBlockNumber(networkType: string) {
   if (networkType === "avalanche") return 7675580;
   else if (networkType === "polygon") return 25258271;
   else if (networkType === "arbitrum") return 3493087;
-  else if (networkType === "optimism") return 3832744;
+  else if (networkType === "optimism") return 4287798;
   else return 13722340;
 }
 

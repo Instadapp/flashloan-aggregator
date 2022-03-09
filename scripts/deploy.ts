@@ -20,21 +20,21 @@ async function scriptRunner() {
   let iface = new ethers.utils.Interface(ABI)
   const data = iface.encodeFunctionData('initialize')
 
-  // ;[signer] = await ethers.getSigners()
-  // Aggregator = new InstaFlashAggregatorOptimism__factory(signer)
-  // aggregator = await Aggregator.deploy()
-  // await aggregator.deployed()
+  ;[signer] = await ethers.getSigners()
+  Aggregator = new InstaFlashAggregatorOptimism__factory(signer)
+  aggregator = await Aggregator.deploy()
+  await aggregator.deployed()
 
-  // Proxy = new InstaFlashAggregatorProxy__factory(signer)
-  // proxy = await Proxy.deploy(aggregator.address, master, data)
-  // await proxy.deployed()
+  Proxy = new InstaFlashAggregatorProxy__factory(signer)
+  proxy = await Proxy.deploy(aggregator.address, master, data)
+  await proxy.deployed()
 
-  // proxyAddr = proxy.address
+  proxyAddr = proxy.address
 
-  // await hre.run('verify:verify', {
-  //   address: aggregator.address,
-  //   constructorArguments: [],
-  // })
+  await hre.run('verify:verify', {
+    address: aggregator.address,
+    constructorArguments: [],
+  })
 
   await hre.run('verify:verify', {
     address: "0x84E6b05A089d5677A702cF61dc14335b4bE5b282",
@@ -42,7 +42,7 @@ async function scriptRunner() {
     contracts: 'contracts/proxy/proxy.sol:InstaFlashAggregatorProxy'
   })
 
-  //console.log((await ethers.provider.getBalance(signer.address)).toString())
+  console.log((await ethers.provider.getBalance(signer.address)).toString())
 }
 
 scriptRunner()
