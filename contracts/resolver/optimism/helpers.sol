@@ -83,7 +83,7 @@ contract Helper is Variables {
     function getUniswapBestFee(
         address[] memory _tokens,
         uint256[] memory _amounts
-    ) internal returns (PoolKey memory) {
+    ) internal view returns (PoolKey memory) {
         if (_tokens.length == 1) {
             PoolKey memory bestKey;
 

@@ -10,6 +10,7 @@ contract FlashResolverOptimism is Helper {
 
     function getBestRoutes(address[] memory _tokens, uint256[] memory _amounts)
         public
+        view
         returns (
             uint16[] memory,
             uint256,
@@ -17,12 +18,9 @@ contract FlashResolverOptimism is Helper {
         )
     {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
-
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
-
         bytes[] memory _data;
-
         uint16[] memory bRoutes_;
         uint256 feeBPS_;
         uint16[] memory routes_ = getRoutes();
@@ -68,6 +66,7 @@ contract FlashResolverOptimism is Helper {
 
     function getData(address[] memory _tokens, uint256[] memory _amounts)
         public
+        view
         returns (
             uint16[] memory routes_,
             uint16[] memory bestRoutes_,
