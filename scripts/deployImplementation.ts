@@ -19,6 +19,7 @@ async function scriptRunner() {
   Aggregator = new InstaFlashAggregatorArbitrum__factory(signer)
   aggregator = await Aggregator.deploy()
   await aggregator.deployed()
+  console.log('Aggregator deployed to: ', aggregator.address)
 
   await hre.run('verify:verify', {
     address: aggregator.address,

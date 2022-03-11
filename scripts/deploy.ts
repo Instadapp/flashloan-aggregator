@@ -24,10 +24,12 @@ async function scriptRunner() {
   Aggregator = new InstaFlashAggregatorOptimism__factory(signer)
   aggregator = await Aggregator.deploy()
   await aggregator.deployed()
+  console.log('Aggregator deployed to: ', aggregator.address)
 
   Proxy = new InstaFlashAggregatorProxy__factory(signer)
   proxy = await Proxy.deploy(aggregator.address, master, data)
   await proxy.deployed()
+  console.log('Proxy deployed to: ', proxy.address)
 
   proxyAddr = proxy.address
 
@@ -37,9 +39,13 @@ async function scriptRunner() {
   })
 
   await hre.run('verify:verify', {
-    address: "0x84E6b05A089d5677A702cF61dc14335b4bE5b282",
-    constructorArguments: ["0xDAa3F68f0033d8ad252e0a53b402943221705714",master,data],
-    contracts: 'contracts/proxy/proxy.sol:InstaFlashAggregatorProxy'
+    address: '0x84E6b05A089d5677A702cF61dc14335b4bE5b282',
+    constructorArguments: [
+      '0xDAa3F68f0033d8ad252e0a53b402943221705714',
+      master,
+      data,
+    ],
+    contracts: 'contracts/proxy/proxy.sol:InstaFlashAggregatorProxy',
   })
 
   console.log((await ethers.provider.getBalance(signer.address)).toString())

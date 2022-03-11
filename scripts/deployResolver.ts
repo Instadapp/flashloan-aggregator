@@ -3,8 +3,8 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 const { ethers } = hre
 
 import {
-    InstaFlashResolverOptimism,
-    InstaFlashResolverOptimism__factory,
+  InstaFlashResolverOptimism,
+  InstaFlashResolverOptimism__factory,
 } from '../typechain'
 
 let Resolver, resolver: InstaFlashResolverOptimism
@@ -19,6 +19,7 @@ async function scriptRunner() {
   Resolver = new InstaFlashResolverOptimism__factory(signer)
   resolver = await Resolver.deploy()
   await resolver.deployed()
+  console.log('Resolver deployed to: ', resolver.address)
 
   await hre.run('verify:verify', {
     address: resolver.address,
