@@ -90,14 +90,14 @@ contract Helper is Variables {
             address[] memory checkTokens_ = new address[](2);
             checkTokens_[0] = usdcAddr;
             checkTokens_[1] = wethAddr;
-        
+
             uint24[] memory checkFees_ = new uint24[](3);
             checkFees_[0] = 100;
             checkFees_[1] = 500;
             checkFees_[2] = 3000;
 
             for (uint256 i = 0; i < checkTokens_.length; i++) {
-                for (uint256 j = 0; j < checkFees_.length; i++) {
+                for (uint256 j = 0; j < checkFees_.length; j++) {
                     if (_tokens[0] == checkTokens_[i]) {
                         break;
                     }
@@ -113,25 +113,24 @@ contract Helper is Variables {
                         computeAddress(uniswapFactoryAddr, bestKey)
                     );
 
-                     IERC20 token0 = IERC20(bestKey.token0);
-                     uint256 balance0 = token0.balanceOf(address(pool)); 
-                     IERC20 token1 = IERC20(bestKey.token1);
-                     uint256 balance1 = token1.balanceOf(address(pool)); 
-               
-                    if (_tokens[0] < checkTokens_[i]) {
-                         if(address(pool).code.length > 0) {
+                    if (address(pool).code.length > 0) {
+                        uint256 balance0 = IERC20(bestKey.token0).balanceOf(
+                            address(pool)
+                        );
+                        uint256 balance1 = IERC20(bestKey.token1).balanceOf(
+                            address(pool)
+                        );
+                        if (_tokens[0] < checkTokens_[i]) {
                             if (balance0 >= _amounts[0]) {
                                 return bestKey;
                             }
-                        }
-                    } else {
-                          if(address(pool).code.length > 0) {
+                        } else {
                             if (balance1 >= _amounts[0]) {
                                 return bestKey;
                             }
                         }
                     }
-                 }
+                }
             }
             bestKey.fee = type(uint24).max;
             return bestKey;
@@ -150,19 +149,16 @@ contract Helper is Variables {
                 IUniswapV3Pool pool = IUniswapV3Pool(
                     computeAddress(uniswapFactoryAddr, bestKey)
                 );
-               
-                IERC20 token0 = IERC20(bestKey.token0);
-                uint256 balance0 = token0.balanceOf(address(pool)); 
-                IERC20 token1 = IERC20(bestKey.token1);
-                uint256 balance1 = token1.balanceOf(address(pool)); 
-               
-                   if(address(pool).code.length > 0) {
-                    if (
-                        balance0 >= _amounts[0] &&
-                        balance1 >= _amounts[1]
-                    ) {
+
+                if (address(pool).code.length > 0) {
+                    uint256 balance0 = IERC20(bestKey.token0).balanceOf(
+                        address(pool)
+                    );
+                    uint256 balance1 = IERC20(bestKey.token1).balanceOf(
+                        address(pool)
+                    );
+                    if (balance0 >= _amounts[0] && balance1 >= _amounts[1]) {
                         return bestKey;
-           
                     }
                 }
             }
