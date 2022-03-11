@@ -137,7 +137,7 @@ contract Helper is Variables {
             checkFees_[2] = 3000;
 
             for (uint256 i = 0; i < checkTokens_.length; i++) {
-                for (uint256 j = 0; j < checkFees_.length; i++) {
+                for (uint256 j = 0; j < checkFees_.length; j++) {
                     if (_tokens[0] == checkTokens_[i]) {
                         break;
                     }
@@ -152,18 +152,22 @@ contract Helper is Variables {
                     IUniswapV3Pool pool = IUniswapV3Pool(
                         computeAddress(uniswapFactoryAddr, bestKey)
                     );
-                    if (_tokens[0] < checkTokens_[i]) {
-                        try pool.balance0() {
-                            if (pool.balance0() >= _amounts[0]) {
+                    if (address(pool).code.length > 0) {
+                        uint256 balance0 = IERC20(bestKey.token0).balanceOf(
+                            address(pool)
+                        );
+                        uint256 balance1 = IERC20(bestKey.token1).balanceOf(
+                            address(pool)
+                        );
+                        if (_tokens[0] < checkTokens_[i]) {
+                            if (balance0 >= _amounts[0]) {
                                 return bestKey;
                             }
-                        } catch {}
-                    } else {
-                        try pool.balance1() {
-                            if (pool.balance1() >= _amounts[0]) {
+                        } else {
+                            if (balance1 >= _amounts[0]) {
                                 return bestKey;
                             }
-                        } catch {}
+                        }
                     }
                 }
             }
@@ -184,14 +188,17 @@ contract Helper is Variables {
                 IUniswapV3Pool pool = IUniswapV3Pool(
                     computeAddress(uniswapFactoryAddr, bestKey)
                 );
-                try pool.balance0() {
-                    if (
-                        pool.balance0() >= _amounts[0] &&
-                        pool.balance1() >= _amounts[1]
-                    ) {
+                if (address(pool).code.length > 0) {
+                    uint256 balance0 = IERC20(bestKey.token0).balanceOf(
+                        address(pool)
+                    );
+                    uint256 balance1 = IERC20(bestKey.token1).balanceOf(
+                        address(pool)
+                    );
+                    if (balance0 >= _amounts[0] && balance1 >= _amounts[1]) {
                         return bestKey;
                     }
-                } catch {}
+                }
             }
             bestKey.fee = type(uint24).max;
             return bestKey;
