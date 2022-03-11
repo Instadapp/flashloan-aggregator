@@ -11,8 +11,8 @@ describe('Resolver', function () {
   let Resolver, resolver: InstaFlashResolverOptimism
   let signer: SignerWithAddress
 
-  const DAI = '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063'
-  const USDT = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
+  const DAI = '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1'
+  const USDT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'
 
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
