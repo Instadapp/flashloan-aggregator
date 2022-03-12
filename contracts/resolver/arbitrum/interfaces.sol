@@ -8,9 +8,3 @@ interface InstaFlashloanAggregatorInterface {
 
     function InstaFeeBPS() external view returns (uint256);
 }
-
-interface IUniswapV3Pool {
-    function balance0() external returns (uint256);
-
-    function balance1() external returns (uint256);
-}

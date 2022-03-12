@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import {InstaFlashloanAggregatorInterface, IAaveProtocolDataProvider, IUniswapV3Pool} from "./interfaces.sol";
+import "./interfaces.sol";
 
 contract Variables {
     address public constant aaveLendingAddr =
