@@ -48,7 +48,7 @@ contract FlashResolverPolygon is Helper {
                     bRoutes_[0] = routesWithAvailability_[i];
                     _data[0] = abi.encode(bestKey);
                     j = 1;
-                } else if (feeBPS_ == bestKey.fee) {
+                } else if (feeBPS_ == uniswapFeeBPS_) {
                     bRoutes_[j] = routesWithAvailability_[i];
                     _data[j] = abi.encode(bestKey);
                     j++;
