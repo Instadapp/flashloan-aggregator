@@ -57,8 +57,6 @@ contract Helper is Variables {
                     routesWithAvailability_[j] = _routes[i];
                     j++;
                 }
-            } else {
-                require(false, "invalid-route");
             }
         }
         return routesWithAvailability_;
