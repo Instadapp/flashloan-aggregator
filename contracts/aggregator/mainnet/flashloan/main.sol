@@ -203,8 +203,6 @@ contract FlashAggregator is Setups {
         if (route_ == 5) {
             if (tokens_[0] == stEth) {
                 wstEth.unwrap(_amounts[0]);
-                // adding 10 wei to avoid any possible decimal errors in final calculations
-                instaLoanVariables_._iniBals[0] = instaLoanVariables_._iniBals[0] + 10;
             }
             safeTransfer(instaLoanVariables_, sender_);
 
@@ -219,6 +217,11 @@ contract FlashAggregator is Setups {
             }
 
             instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
+            if (tokens_[0] == stEth) {
+                // adding 10 wei to avoid any possible decimal errors in final calculations
+                instaLoanVariables_._finBals[0] = instaLoanVariables_._finBals[0] + 10;
+                instaLoanVariables_._tokens[0] = address(wstEth);
+            }
             validateFlashloan(instaLoanVariables_);
             safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
         } else if (route_ == 6 || route_ == 7) {
@@ -338,7 +341,7 @@ contract FlashAggregator is Setups {
         dataHash = bytes32(keccak256(data_));
         if (_tokens[0] == stEth) {
             require(length_ == 1, "steth-length-should-be-1");
-            _tokens[0] = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
+            tokens_[0] = IERC20(address(wstEth));
             _amounts[0] = wstEth.getWstETHByStETH(_amounts[0]);
         }
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
