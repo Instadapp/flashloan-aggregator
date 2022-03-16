@@ -25,6 +25,7 @@ const chainIds = {
   ropsten: 3,
   avalanche: 43114,
   polygon: 137,
+  optimism: 10,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -57,13 +58,15 @@ function getNetworkUrl(networkType: string) {
   if (networkType === "avalanche") return "https://api.avax.network/ext/bc/C/rpc";
   else if (networkType === "polygon") return `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "arbitrum") return `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
+  else if (networkType === "optimism") return `https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else return `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`;
 }
 
 function getBlockNumber(networkType: string) {
   if (networkType === "avalanche") return 7675580;
-  else if (networkType === "polygon") return 22019000;
-  else if (networkType === "arbitrum") return 3493087;
+  else if (networkType === "polygon") return 25941254;
+  else if (networkType === "arbitrum") return 7719792;
+  else if (networkType === "optimism") return 4346343;
   else return 13722340;
 }
 
@@ -119,6 +122,12 @@ const config: HardhatUserConfig = {
       chainId: 137,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
       gasPrice: 70000000000,
+    },
+    optimism_mainnet: {
+      url: `https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+      chainId: 10,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 1000000,
     }
   },
   paths: {

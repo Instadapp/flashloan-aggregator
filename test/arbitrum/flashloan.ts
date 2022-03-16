@@ -11,17 +11,21 @@ import {
   InstaFlashReceiver,
   InstaFlashAggregatorProxy,
   InstaFlashAggregatorProxy__factory,
-  InstaFlashAggregatorAdmin,
-  InstaFlashAggregatorAdmin__factory,
 } from "../../typechain";
 
 describe("FlashLoan", function () {
-  let Aggregator, aggregator, Receiver, receiver: InstaFlashReceiver, Proxy, proxy, Admin, admin;
+  let Aggregator,
+    aggregator,
+    Receiver,
+    receiver: InstaFlashReceiver,
+    Proxy,
+    proxy;
+
   let signer: SignerWithAddress;
 
-  const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137';
+  const master = "0xa9061100d29C3C562a2e2421eb035741C1b42137";
 
-  let ABI = [ "function initialize()" ];
+  let ABI = ["function initialize()"];
   let iface = new ethers.utils.Interface(ABI);
   const data = iface.encodeFunctionData("initialize");
 
@@ -34,9 +38,9 @@ describe("FlashLoan", function () {
   const usdt = ethers.utils.parseUnits("10", 6);
   const Usdc = ethers.utils.parseUnits("5000", 6);
   const Usdt = ethers.utils.parseUnits("5000", 6);
-  
-  const zeroAddr =
-    "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+  const _data = "0x";
+  let _instaData = "0x";
 
   beforeEach(async function () {
     [signer] = await ethers.getSigners();
@@ -44,12 +48,8 @@ describe("FlashLoan", function () {
     aggregator = await Aggregator.deploy();
     await aggregator.deployed();
 
-    Admin = new InstaFlashAggregatorAdmin__factory(signer);
-    admin = await Admin.deploy(master);
-    await admin.deployed();
-
     Proxy = new InstaFlashAggregatorProxy__factory(signer);
-    proxy = await Proxy.deploy(aggregator.address, admin.address, data);
+    proxy = await Proxy.deploy(aggregator.address, master, data);
     await proxy.deployed();
 
     Receiver = new InstaFlashReceiver__factory(signer);
@@ -79,11 +79,24 @@ describe("FlashLoan", function () {
       method: "hardhat_stopImpersonatingAccount",
       params: [ACC_USDC],
     });
+    _instaData = "0x";
   });
 
   describe("Single token", async function () {
     it("Should be able to take flashLoan of a single token from Balancer", async function () {
-      await receiver.flashBorrow([USDC], [Usdc], 5, zeroAddr);
+      await receiver.flashBorrow([USDC], [Usdc], 5, _data, _instaData);
+    });
+  });
+
+  describe("Uniswap Route", async function () {
+    beforeEach(async function () {
+      _instaData = await ethers.utils.defaultAbiCoder.encode(
+        ["tuple(address, address, uint24)"],
+        [[USDT, USDC, "500"]]
+      );
+    });
+    it("Should be able to take flashLoan of a single token from Uniswap", async function () {
+      await receiver.flashBorrow([USDC], [Usdc], 8, _data, _instaData);
     });
   });
 
@@ -112,12 +125,43 @@ describe("FlashLoan", function () {
         method: "hardhat_stopImpersonatingAccount",
         params: [ACC_USDT],
       });
+      _instaData = "0x";
     });
     it("Should be able to take flashLoan of multiple sorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([USDT, USDC], [Usdt, Usdc], 5, zeroAddr);
+      await receiver.flashBorrow(
+        [USDT, USDC],
+        [Usdt, Usdc],
+        5,
+        _data,
+        _instaData
+      );
     });
     it("Should be able to take flashLoan of multiple unsorted tokens together from Balancer", async function () {
-      await receiver.flashBorrow([USDC, USDT], [Usdc, Usdt], 5, zeroAddr);
+      await receiver.flashBorrow(
+        [USDT, USDC],
+        [Usdc, Usdt],
+        5,
+        _data,
+        _instaData
+      );
+    });
+
+    describe("Uniswap Route", async function () {
+      beforeEach(async function () {
+        _instaData = await ethers.utils.defaultAbiCoder.encode(
+          ["tuple(address, address, uint24)"],
+          [[USDT, USDC, "500"]]
+        );
+      });
+      it("Should be able to take flashLoan of multiple tokens together from Uniswap", async function () {
+        await receiver.flashBorrow(
+          [USDT, USDC],
+          [Usdc, Usdt],
+          8,
+          _data,
+          _instaData
+        );
+      });
     });
   });
 });
