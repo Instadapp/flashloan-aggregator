@@ -5,18 +5,8 @@ pragma solidity ^0.8.0;
  * @title Flashloan.
  * @dev Flashloan aggregator.
  */
-
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import { Helper } from "./helpers.sol";
-
-import { 
-    TokenInterface,
-    CTokenInterface,
-    InstaFlashReceiverInterface,
-    IUniswapV3Pool
-} from "./interfaces.sol";
 
 contract Setups is Helper {
     using SafeERC20 for IERC20;
@@ -65,7 +55,7 @@ contract FlashAggregator is Setups {
         bytes memory _data
     ) external verifyDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
-        require(msg.sender == aaveLendingAddr, "not-aave-sender");
+        require(msg.sender == address(aaveLending), "not-aave-sender");
 
         FlashloanVariables memory instaLoanVariables_;
 
@@ -79,7 +69,7 @@ contract FlashAggregator is Setups {
         instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(1));
         instaLoanVariables_._iniBals = calculateBalances(_assets, address(this));
 
-        safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
+        safeApprove(instaLoanVariables_, _premiums, address(aaveLending));
         safeTransfer(instaLoanVariables_, sender_);
         
         if (checkIfDsa(sender_)) {
@@ -110,7 +100,7 @@ contract FlashAggregator is Setups {
         bytes calldata _data
     ) external verifyDataHash(_data) returns (bytes32) {
         require(_initiator == address(this), "not-same-sender");
-        require(msg.sender == makerLendingAddr, "not-maker-sender");
+        require(msg.sender == address(makerLending), "not-maker-sender");
 
         FlashloanVariables memory instaLoanVariables_;
 
@@ -138,7 +128,7 @@ contract FlashAggregator is Setups {
 
             address[] memory _daiTokenList = new address[](1);
             uint256[] memory _daiTokenAmountsList = new uint256[](1);
-            _daiTokenList[0] = daiToken;
+            _daiTokenList[0] = daiTokenAddr;
             _daiTokenAmountsList[0] = _amount;
 
             if (route_ == 3) {
@@ -187,7 +177,7 @@ contract FlashAggregator is Setups {
         uint256[] memory _fees,
         bytes memory _data
     ) external verifyDataHash(_data) {
-        require(msg.sender == balancerLendingAddr, "not-balancer-sender");
+        require(msg.sender == address(balancerLending), "not-balancer-sender");
 
         FlashloanVariables memory instaLoanVariables_;
 
@@ -212,12 +202,12 @@ contract FlashAggregator is Setups {
 
             instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
             validateFlashloan(instaLoanVariables_);
-            safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
+            safeTransferWithFee(instaLoanVariables_, _fees, address(balancerLending));
         } else if (route_ == 6 || route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
 
             address[] memory wEthTokenList = new address[](1);
-            wEthTokenList[0] = wEthToken;
+            wEthTokenList[0] = address(wethToken);
 
             if (route_ == 6) {
                 compoundSupply(wEthTokenList, _amounts);
@@ -246,14 +236,14 @@ contract FlashAggregator is Setups {
             validateFlashloan(instaLoanVariables_);
             instaLoanVariables_._tokens = wEthTokenList;
             instaLoanVariables_._amounts = _amounts;
-            safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
+            safeTransferWithFee(instaLoanVariables_, _fees, address(balancerLending));
         } else {
             revert("wrong-route");
         }
     }
 
 
-     struct UniswapFlashInfo {
+    struct UniswapFlashInfo {
         address sender;
         PoolKey key;
         bytes data;
@@ -395,7 +385,7 @@ contract FlashAggregator is Setups {
     function routeMakerCompound(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(3, _tokens, _amounts, msg.sender, _data);
         dataHash = bytes32(keccak256(data_));
-        makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), daiToken, daiBorrowAmount, data_);
+        makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), daiTokenAddr, daiBorrowAmount, data_);
     }
     
     /**
@@ -408,7 +398,7 @@ contract FlashAggregator is Setups {
     function routeMakerAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
         bytes memory data_ = abi.encode(4, _tokens, _amounts, msg.sender, _data);
         dataHash = bytes32(keccak256(data_));
-        makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), daiToken, daiBorrowAmount, data_);
+        makerLending.flashLoan(InstaFlashReceiverInterface(address(this)), daiTokenAddr, daiBorrowAmount, data_);
     }
 
     /**
@@ -440,7 +430,7 @@ contract FlashAggregator is Setups {
         bytes memory data_ = abi.encode(6, _tokens, _amounts, msg.sender, _data);
         IERC20[] memory wethTokenList_ = new IERC20[](1);
         uint256[] memory wethAmountList_ = new uint256[](1);
-        wethTokenList_[0] = IERC20(wEthToken);
+        wethTokenList_[0] = wethToken;
         wethAmountList_[0] = getWEthBorrowAmount();
         dataHash = bytes32(keccak256(data_));
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), wethTokenList_, wethAmountList_, data_);
@@ -457,7 +447,7 @@ contract FlashAggregator is Setups {
         bytes memory data_ = abi.encode(7, _tokens, _amounts, msg.sender, _data);
         IERC20[] memory wethTokenList_ = new IERC20[](1);
         uint256[] memory wethAmountList_ = new uint256[](1);
-        wethTokenList_[0] = IERC20(wEthToken);
+        wethTokenList_[0] = wethToken;
         wethAmountList_[0] = getWEthBorrowAmount();
         dataHash = bytes32(keccak256(data_));
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), wethTokenList_, wethAmountList_, data_);
@@ -577,7 +567,7 @@ contract FlashAggregator is Setups {
      * @dev Function to get the list of available routes.
      * @notice Function to get the list of available routes.
     */
-    function getRoutes() public pure returns (uint16[] memory routes_) {
+    function getRoutes() external pure returns (uint16[] memory routes_) {
         routes_ = new uint16[](8);
         routes_[0] = 1;
         routes_[1] = 2;
@@ -594,7 +584,7 @@ contract FlashAggregator is Setups {
      * @notice Function to transfer fee to the treasury. Will be called manually.
      * @param _tokens token addresses for transferring fee to treasury.
     */
-    function transferFeeToTreasury(address[] memory _tokens) public {
+    function transferFeeToTreasury(address[] memory _tokens) external {
         for (uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
             uint decimals_ = TokenInterface(_tokens[i]).decimals();
@@ -610,19 +600,19 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    // function initialize(address[] memory _ctokens) public {
-    //     require(status == 0, "cannot-call-again");
-    //     IERC20(daiToken).safeApprove(makerLendingAddr, type(uint256).max);
-    //     addTokenToCToken(_ctokens);
-    //     address[] memory cTokens_ = new address[](2);
-    //     cTokens_[0] = cEthToken;
-    //     cTokens_[1] = cDaiToken;
-    //     uint256[] memory errors_ = troller.enterMarkets(cTokens_);
-    //     for(uint256 j = 0; j < errors_.length; j++){
-    //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
-    //     }
-    //     status = 1;
-    // }
+    function initialize(address[] memory _ctokens) external {
+        require(status == 0, "cannot-call-again");
+        IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
+        addTokenToCToken(_ctokens);
+        address[] memory cTokens_ = new address[](2);
+        cTokens_[0] = cethTokenAddr;
+        cTokens_[1] = cdaiTokenAddr;
+        uint256[] memory errors_ = troller.enterMarkets(cTokens_);
+        for(uint256 j = 0; j < errors_.length; j++){
+            require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
+        }
+        status = 1;
+    }
 
     receive() external payable {}
 

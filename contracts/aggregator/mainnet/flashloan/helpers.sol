@@ -1,16 +1,8 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import {Variables} from "./variables.sol";
-
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./variables.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
-import {
-    TokenInterface,
-    CTokenInterface,
-    CEthInterface
-} from "./interfaces.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
@@ -146,11 +138,11 @@ contract Helper is Variables {
         require(_amounts.length == length_, "array-lengths-not-same");
         address[] memory cTokens_ = new address[](length_);
         for(uint256 i = 0; i < length_; i++) {
-            if (_tokens[i] == wEthToken) {
-                wEth.withdraw(_amounts[i]);
-                CEthInterface cEth_ = CEthInterface(cEthToken);
+            if (_tokens[i] == address(wethToken)) {
+                wethToken.withdraw(_amounts[i]);
+                CEthInterface cEth_ = CEthInterface(cethTokenAddr);
                 cEth_.mint{value: _amounts[i]}();
-                cTokens_[i] = cEthToken;
+                cTokens_[i] = cethTokenAddr;
             } else {
                 CTokenInterface cToken_ = CTokenInterface(tokenToCToken[_tokens[i]]);
                 // Approved already in addTokenToctoken function
@@ -173,10 +165,10 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for(uint i=0; i < length_; i++) {
-            if (_tokens[i] == wEthToken) {
-                CEthInterface cEth = CEthInterface(cEthToken);
+            if (_tokens[i] == address(wethToken)) {
+                CEthInterface cEth = CEthInterface(cethTokenAddr);
                 require(cEth.borrow(_amounts[i]) == 0, "borrow failed");
-                wEth.deposit{value: _amounts[i]}();
+                wethToken.deposit{value: _amounts[i]}();
             } else {
                 CTokenInterface cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
                 require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
@@ -197,9 +189,9 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for(uint i=0; i < length_; i++) {
-            if ( _tokens[i] == wEthToken ) {
-                wEth.withdraw(_amounts[i]);
-                CEthInterface cToken = CEthInterface(cEthToken);
+            if ( _tokens[i] == address(wethToken) ) {
+                wethToken.withdraw(_amounts[i]);
+                CEthInterface cToken = CEthInterface(cethTokenAddr);
                 cToken.repayBorrow{value : _amounts[i]}();
             } else {
                 CTokenInterface cToken = CTokenInterface(tokenToCToken[_tokens[i]]);
@@ -219,10 +211,10 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for(uint256 i = 0; i < length_; i++) {
-            if (_tokens[i] == wEthToken) {
-                CEthInterface cEth_ = CEthInterface(cEthToken);
+            if (_tokens[i] == address(wethToken)) {
+                CEthInterface cEth_ = CEthInterface(cethTokenAddr);
                 require(cEth_.redeemUnderlying(_amounts[i]) == 0, "redeem failed");
-                wEth.deposit{value: _amounts[i]}();
+                wethToken.deposit{value: _amounts[i]}();
             } else {
                 CTokenInterface cToken_ = CTokenInterface(tokenToCToken[_tokens[i]]);    
                 require(cToken_.redeemUnderlying(_amounts[i]) == 0, "redeem failed");
@@ -240,7 +232,7 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for(uint256 i = 0; i < length_; i++) {
-            approve(_tokens[i], aaveLendingAddr, _amounts[i]);
+            approve(_tokens[i], address(aaveLending), _amounts[i]);
             aaveLending.deposit(_tokens[i], _amounts[i], address(this), 3228);
             aaveLending.setUserUseReserveAsCollateral(_tokens[i], true);
         }
@@ -276,7 +268,7 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for(uint i=0; i < length_; i++) {
-            approve(_tokens[i], aaveLendingAddr, _amounts[i]);
+            approve(_tokens[i], address(aaveLending), _amounts[i]);
             aaveLending.repay(_tokens[i], _amounts[i], 2, address(this));
         }
     }
@@ -353,7 +345,7 @@ contract Helper is Variables {
      * @notice Returns to wEth amount to be borrowed.
     */
     function getWEthBorrowAmount() internal view returns (uint256) {
-        uint256 amount_ = wEth.balanceOf(balancerLendingAddr);
+        uint256 amount_ = wethToken.balanceOf(address(balancerLending));
         return (amount_ * wethBorrowAmountPercentage) / 100;
     }
     
