@@ -7,7 +7,8 @@ import {
     IERC3156FlashLender, 
     Comptroller,
     IBalancerLending,
-    IWeth
+    IWeth,
+    IWstETH
 } from "./interfaces.sol";
 
 contract ConstantVariables {
@@ -30,6 +31,9 @@ contract ConstantVariables {
 
     address public constant cEthToken = 0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
     uint256 public constant wethBorrowAmountPercentage = 80;
+
+    address internal constant stEth = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
+    IWstETH internal constant wstEth = IWstETH(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
 
     address public constant comptrollerAddr = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
     Comptroller public constant troller = Comptroller(comptrollerAddr);
@@ -57,5 +61,8 @@ contract Variables is ConstantVariables{
     }
 
     mapping(address => address) public tokenToCToken;
+
+    // stETH allowance status
+    uint internal stETHStatus;
 
 }

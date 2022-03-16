@@ -201,12 +201,21 @@ contract FlashAggregator is Setups {
         instaLoanVariables_._instaFees = calculateFees(amounts_, calculateFeeBPS(route_));
 
         if (route_ == 5) {
+            if (tokens_[0] == stEth) {
+                wstEth.unwrap(_amounts[0]);
+                // adding 10 wei to avoid any possible decimal errors in final calculations
+                instaLoanVariables_._iniBals[0] = instaLoanVariables_._iniBals[0] + 10;
+            }
             safeTransfer(instaLoanVariables_, sender_);
 
             if (checkIfDsa(sender_)) {
                 Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
             } else {
                 InstaFlashReceiverInterface(sender_).executeOperation(tokens_, amounts_, instaLoanVariables_._instaFees, sender_, data_);
+            }
+
+            if (tokens_[0] == stEth) {
+                wstEth.wrap(amounts_[0]);
             }
 
             instaLoanVariables_._finBals = calculateBalances(tokens_, address(this));
@@ -327,6 +336,11 @@ contract FlashAggregator is Setups {
         }
         bytes memory data_ = abi.encode(5, _tokens, _amounts, msg.sender, _data);
         dataHash = bytes32(keccak256(data_));
+        if (_tokens[0] == stEth) {
+            require(length_ == 1, "steth-length-should-be-1");
+            _tokens[0] = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
+            _amounts[0] = wstEth.getWstETHByStETH(_amounts[0]);
+        }
         balancerLending.flashLoan(InstaFlashReceiverInterface(address(this)), tokens_, _amounts, data_);
     }
 
@@ -460,6 +474,13 @@ contract InstaFlashAggregator is FlashAggregator {
     //     }
     //     status = 1;
     // }
+
+    // new initialize for stEth allowance
+    function initialize() external {
+        require(stETHStatus == 0, "only-once");
+        IERC20(stEth).approve(address(wstEth), type(uint256).max);
+        stETHStatus = 1;
+    }
 
     receive() external payable {}
 
