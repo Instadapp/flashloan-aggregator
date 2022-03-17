@@ -145,7 +145,6 @@ interface IBalancerLending {
         bytes memory userData
     ) external;
     function getProtocolFeesCollector() external view returns (ProtocolFeesCollector);
-}
 
 interface IWstETH {
     function getWstETHByStETH(uint256 _stETHAmount) external view returns (uint256);

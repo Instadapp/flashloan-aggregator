@@ -70,8 +70,8 @@ contract Helper is Variables {
             "Lengths of parameters not same"
         );
         for (uint256 i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-            token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
+            IERC20 token_ = IERC20(_instaLoanVariables._tokens[i]);
+            token_.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
         }
     }
 
@@ -94,8 +94,8 @@ contract Helper is Variables {
         );
         require(length_ == _fees.length, "Lengths of parameters not same");
         for (uint256 i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-            token.safeTransfer(
+            IERC20 token_ = IERC20(_instaLoanVariables._tokens[i]);
+            token_.safeTransfer(
                 _receiver,
                 _instaLoanVariables._amounts[i] + _fees[i]
             );
@@ -106,7 +106,7 @@ contract Helper is Variables {
      * @dev Calculates the balances..
      * @notice Calculates the balances of the account passed for the tokens.
      * @param _tokens list of token addresses to calculate balance for.
-     * @param _account account to calculate balance for.
+     * @param _account account to calculate balances for.
      */
     function calculateBalances(address[] memory _tokens, address _account)
         internal
@@ -149,33 +149,6 @@ contract Helper is Variables {
     function validateTokens(address[] memory _tokens) internal pure {
         for (uint256 i = 0; i < _tokens.length - 1; i++) {
             require(_tokens[i] != _tokens[i + 1], "non-unique-tokens");
-        }
-    }
-
-    /**
-     * @dev Returns fee for the passed route in BPS.
-     * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
-     * @param _route route number for flashloan.
-     */
-    function calculateFeeBPS(uint256 _route)
-        public
-        view
-        returns (uint256 BPS_)
-    {
-        if (_route == 5) {
-            BPS_ =
-                (
-                    balancerLending
-                        .getProtocolFeesCollector()
-                        .getFlashLoanFeePercentage()
-                ) *
-                100;
-        } else {
-            revert("Invalid source");
-        }
-
-        if (BPS_ < InstaFeeBPS) {
-            BPS_ = InstaFeeBPS;
         }
     }
 
@@ -238,10 +211,12 @@ contract Helper is Variables {
         return instaList.accountID(_account) > 0;
     }
 
-    /// @notice Deterministically computes the pool address given the factory and PoolKey
-    /// @param factory The Uniswap V3 factory contract address
-    /// @param key The PoolKey
-    /// @return pool The contract address of the V3 pool
+    /**
+     * @notice Deterministically computes the pool address given the factory and PoolKey
+     * @param factory The Uniswap V3 factory contract address
+     * @param key The PoolKey
+     * @return pool The contract address of the V3 pool
+     */
     function computeAddress(address factory, PoolKey memory key)
         internal
         pure

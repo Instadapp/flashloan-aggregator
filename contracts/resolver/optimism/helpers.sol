@@ -5,33 +5,15 @@ import "./variables.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Helper is Variables {
-    function getBalancerAvailability(
-        address[] memory _tokens,
-        uint256[] memory _amounts
-    ) internal view returns (bool) {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            IERC20 token_ = IERC20(_tokens[i]);
-            if (token_.balanceOf(balancerLendingAddr) < _amounts[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     function getRoutesWithAvailability(
         uint16[] memory _routes,
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal view returns (uint16[] memory) {
-        uint16[] memory routesWithAvailability_ = new uint16[](_routes.length);
+        uint16[] memory routesWithAvailability_ = new uint16[](7);
         uint256 j = 0;
         for (uint256 i = 0; i < _routes.length; i++) {
-            if (_routes[i] == 5) {
-                if (getBalancerAvailability(_tokens, _amounts)) {
-                    routesWithAvailability_[j] = _routes[i];
-                    j++;
-                }
-            } else if (_routes[i] == 8) {
+            if (_routes[i] == 8) {
                 if (_tokens.length == 1 || _tokens.length == 2) {
                     routesWithAvailability_[j] = _routes[i];
                     j++;
@@ -126,6 +108,7 @@ contract Helper is Variables {
                         bestKey.token1 = _tokens[0];
                     }
                     address pool = computeAddress(uniswapFactoryAddr, bestKey);
+
                     if (pool.code.length > 0) {
                         uint256 balance0 = IERC20(bestKey.token0).balanceOf(
                             pool
@@ -160,6 +143,7 @@ contract Helper is Variables {
             for (uint256 i = 0; i < checkFees_.length; i++) {
                 bestKey.fee = checkFees_[i];
                 address pool = computeAddress(uniswapFactoryAddr, bestKey);
+
                 if (pool.code.length > 0) {
                     uint256 balance0 = IERC20(bestKey.token0).balanceOf(pool);
                     uint256 balance1 = IERC20(bestKey.token1).balanceOf(pool);

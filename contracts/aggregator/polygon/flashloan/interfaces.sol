@@ -1,6 +1,5 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface InstaFlashReceiverInterface {
@@ -26,18 +25,22 @@ interface ListInterface {
 interface TokenInterface {
     function approve(address, uint256) external;
 
-    function transfer(address, uint) external;
+    function transfer(address, uint256) external;
 
-    function transferFrom(address, address, uint) external;
+    function transferFrom(
+        address,
+        address,
+        uint256
+    ) external;
 
     function deposit() external payable;
 
-    function withdraw(uint) external;
+    function withdraw(uint256) external;
 
     function balanceOf(address) external view returns (uint256);
 
     function decimals() external view returns (uint256);
-    
+
     function totalSupply() external view returns (uint256);
 }
 
@@ -97,5 +100,18 @@ interface IBalancerLending {
         uint256[] memory amounts,
         bytes memory userData
     ) external;
-    function getProtocolFeesCollector() external view returns (ProtocolFeesCollector);
+
+    function getProtocolFeesCollector()
+        external
+        view
+        returns (ProtocolFeesCollector);
+}
+
+interface IUniswapV3Pool {
+    function flash(
+        address recipient,
+        uint256 amount0,
+        uint256 amount1,
+        bytes calldata data
+    ) external;
 }

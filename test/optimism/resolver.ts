@@ -3,16 +3,16 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 const { ethers } = hre
 
 import {
-  InstaFlashloanResolver,
-  InstaFlashloanResolver__factory,
+  InstaFlashResolverOptimism,
+  InstaFlashResolverOptimism__factory,
 } from '../../typechain'
 
 describe('Resolver', function () {
-  let Resolver, resolver: InstaFlashloanResolver
+  let Resolver, resolver: InstaFlashResolverOptimism
   let signer: SignerWithAddress
 
-  const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f'
-  const USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7'
+  const DAI = '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1'
+  const USDT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'
 
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
@@ -20,20 +20,19 @@ describe('Resolver', function () {
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
 
-    Resolver = new InstaFlashloanResolver__factory(signer)
+    Resolver = new InstaFlashResolverOptimism__factory(signer)
     resolver = await Resolver.deploy()
     await resolver.deployed()
   })
 
   it('Should be able to return routes info', async function () {
-    console.log((await resolver.getRoutesInfo()).toString())
+    console.log((await resolver.getRoutes()).toString())
   })
 
   it('Should be able to return the best route for flashloan', async function () {
     console.log(
       (await resolver.getBestRoutes([DAI, USDT], [Dai, Usdt])).toString(),
     )
-    console.log((await resolver.getBestRoutes([DAI], [Dai])).toString())
   })
 
   it('Should be able to return all the data for flashloan', async function () {
