@@ -19,7 +19,7 @@ describe('FlashLoan', function () {
     Receiver,
     receiver: InstaFlashReceiver,
     Proxy,
-    proxy: InstaFlashAggregatorProxy;
+    proxy: InstaFlashAggregatorProxy
 
   let signer: SignerWithAddress
 
@@ -160,28 +160,28 @@ describe('FlashLoan', function () {
 
   describe('Single token', async function () {
     xit('Should be able to take flashLoan of a single token from AAVE', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 1, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 1, _data, _instaData)
     })
     xit('Should be able to take flashLoan of a single token from MakerDAO', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 2, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 2, _data, _instaData)
     })
     xit('Should be able to take flashLoan of a single token from Compound(MakerDAO)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 3, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 3, _data, _instaData)
     })
     xit('Should be able to take flashLoan of a single token from AAVE(MakerDAO)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 4, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 4, _data, _instaData)
     })
     xit('Should be able to take flashLoan of a single token from Balancer', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 5, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 5, _data, _instaData)
     })
     xit('Should be able to take flashLoan of a single token from Compound(Balancer)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 6, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 6, _data, _instaData)
     })
     xit('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 7, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 7, _data, _instaData)
     })
     it('Should be able to take flashLoan of a steth token from AAVE(Balancer)', async function () {
-      await receiver.flashBorrow([STETH], [Steth], 5, _data,_instaData)
+      await receiver.flashBorrow([STETH], [Steth], 5, _data, _instaData)
     })
   })
 
@@ -255,7 +255,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         1,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from MakerDAO', async function () {
@@ -264,7 +264,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         2,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from Compound(MakerDAO)', async function () {
@@ -273,7 +273,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         3,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE(MakerDAO)', async function () {
@@ -282,7 +282,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         4,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple sorted tokens together from Balancer', async function () {
@@ -291,7 +291,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         5,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple unsorted tokens together from Balancer', async function () {
@@ -300,7 +300,7 @@ describe('FlashLoan', function () {
         [Usdt, Dai, Weth],
         5,
         _data,
-        _instaData 
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from Compound(Balancer)', async function () {
@@ -309,7 +309,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         6,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE(Balancer)', async function () {
@@ -318,7 +318,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         7,
         _data,
-        _instaData
+        _instaData,
       )
     })
   })
