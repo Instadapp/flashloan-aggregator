@@ -1,15 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import { 
-    ListInterface,
-    IAaveLending,
-    IERC3156FlashLender, 
-    Comptroller,
-    IBalancerLending,
-    IWeth,
-    IWstETH
-} from "./interfaces.sol";
+import "./interfaces.sol";
 
 contract ConstantVariables {
 
