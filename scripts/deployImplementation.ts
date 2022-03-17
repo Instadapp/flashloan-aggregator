@@ -3,11 +3,11 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 const { ethers } = hre
 
 import {
-  InstaFlashAggregatorArbitrum,
-  InstaFlashAggregatorArbitrum__factory,
+  InstaFlashAggregator,
+  InstaFlashAggregator__factory,
 } from '../typechain'
 
-let Aggregator, aggregator: InstaFlashAggregatorArbitrum
+let Aggregator, aggregator: InstaFlashAggregator
 
 async function scriptRunner() {
   let signer: SignerWithAddress
@@ -16,7 +16,7 @@ async function scriptRunner() {
   console.log((await ethers.provider.getBalance(signer.address)).toString())
   console.log(signer.address)
 
-  Aggregator = new InstaFlashAggregatorArbitrum__factory(signer)
+  Aggregator = new InstaFlashAggregator__factory(signer)
   aggregator = await Aggregator.deploy()
   await aggregator.deployed()
   console.log('Aggregator deployed to: ', aggregator.address)
