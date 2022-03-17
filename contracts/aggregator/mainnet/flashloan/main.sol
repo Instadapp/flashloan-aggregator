@@ -671,13 +671,5 @@ contract InstaFlashAggregator is FlashAggregator {
     //     status = 1;
     // }
 
-    // new initialize for stEth allowance
-    function initialize() external {
-        require(stETHStatus == 0, "only-once");
-        IERC20(stEthTokenAddr).approve(address(wstEthToken), type(uint256).max);
-        stETHStatus = 1;
-        status = 1;
-    }
-
     receive() external payable {}
 }
