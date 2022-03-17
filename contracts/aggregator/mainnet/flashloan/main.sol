@@ -213,6 +213,7 @@ contract FlashAggregator is Setups {
                 // adding 10 wei to avoid any possible decimal errors in final calculations
                 instaLoanVariables_._finBals[0] = instaLoanVariables_._finBals[0] + 10;
                 instaLoanVariables_._tokens[0] = address(wstEth);
+                instaLoanVariables_._amounts[0] = _amounts[0];
             }
             validateFlashloan(instaLoanVariables_);
             safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
