@@ -55,12 +55,17 @@ describe('FlashLoan', function () {
   const ACC_USDT = '0x6D5Be15f9Aa170e207C043CDf8E0BaDbF2A48ed0'
   const ACC_WETH = '0xe78388b4ce79068e89bf8aa7f218ef6b9ab0e9d0'
 
+  const STETH = '0xDFe66B14D37C77F4E9b180cEb433d1b164f0281D'
+  const ACC_STETH = '0xDFe66B14D37C77F4E9b180cEb433d1b164f0281D'
+
   const dai = ethers.utils.parseUnits('10', 18)
   const usdt = ethers.utils.parseUnits('10', 6)
   const weth = ethers.utils.parseUnits('10', 18)
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
   const Weth = ethers.utils.parseUnits('1000', 18)
+  const steth = ethers.utils.parseUnits('10', 18)
+  const Steth = ethers.utils.parseUnits('5000', 18)
 
   const _data = '0x'
 
@@ -81,6 +86,12 @@ describe('FlashLoan', function () {
     receiver = await Receiver.deploy(proxy.address)
     await receiver.deployed()
 
+    const token_steth = new ethers.Contract(
+      STETH,
+      IERC20__factory.abi,
+      ethers.provider,
+    )
+
     const token_dai = new ethers.Contract(
       DAI,
       IERC20__factory.abi,
@@ -89,6 +100,11 @@ describe('FlashLoan', function () {
 
     await hre.network.provider.send('hardhat_setBalance', [
       ACC_DAI,
+      ethers.utils.parseEther('10.0').toHexString(),
+    ])
+
+    await hre.network.provider.send('hardhat_setBalance', [
+      ACC_STETH,
       ethers.utils.parseEther('10.0').toHexString(),
     ])
 
@@ -108,6 +124,19 @@ describe('FlashLoan', function () {
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
       params: [ACC_DAI],
+    })
+
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [ACC_STETH],
+    })
+
+    const signer_steth = await ethers.getSigner(ACC_STETH)
+    await token_steth.connect(signer_steth).transfer(receiver.address, steth)
+
+    await hre.network.provider.request({
+      method: 'hardhat_stopImpersonatingAccount',
+      params: [ACC_STETH],
     })
 
     await hre.network.provider.request({
@@ -147,9 +176,12 @@ describe('FlashLoan', function () {
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
       await receiver.flashBorrow([DAI], [Dai], 7, _data,_instaData)
     })
+    it('Should be able to take flashLoan of a steth token from AAVE(Balancer)', async function () {
+      await receiver.flashBorrow([STETH], [Steth], 5, _data,_instaData)
+    })
   })
 
-  describe('Multi token', async function () {
+  xdescribe('Multi token', async function () {
     beforeEach(async function () {
       const token_usdt = new ethers.Contract(
         USDT,
