@@ -19,7 +19,7 @@ describe('FlashLoan', function () {
     Receiver,
     receiver: InstaFlashReceiver,
     Proxy,
-    proxy: InstaFlashAggregatorProxy;
+    proxy: InstaFlashAggregatorProxy
 
   let signer: SignerWithAddress
 
@@ -27,6 +27,7 @@ describe('FlashLoan', function () {
   const aaveLendingAddr = '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9'
 
   let ABI = ['function initialize(address[])']
+  // let ABI = ['function initialize()']
   let iface = new ethers.utils.Interface(ABI)
   const data = iface.encodeFunctionData('initialize', [
     [
@@ -48,6 +49,8 @@ describe('FlashLoan', function () {
     ],
   ])
 
+  // const data = iface.encodeFunctionData('initialize')
+
   const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f'
   const USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7'
   const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
@@ -55,8 +58,8 @@ describe('FlashLoan', function () {
   const ACC_USDT = '0x6D5Be15f9Aa170e207C043CDf8E0BaDbF2A48ed0'
   const ACC_WETH = '0xe78388b4ce79068e89bf8aa7f218ef6b9ab0e9d0'
 
-  const STETH = '0xDFe66B14D37C77F4E9b180cEb433d1b164f0281D'
-  const ACC_STETH = '0xDFe66B14D37C77F4E9b180cEb433d1b164f0281D'
+  const STETH = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
+  const ACC_STETH = '0xdc24316b9ae028f1497c275eb9192a3ea0f67022'
 
   const dai = ethers.utils.parseUnits('10', 18)
   const usdt = ethers.utils.parseUnits('10', 6)
@@ -64,8 +67,8 @@ describe('FlashLoan', function () {
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
   const Weth = ethers.utils.parseUnits('1000', 18)
-  const steth = ethers.utils.parseUnits('10', 18)
-  const Steth = ethers.utils.parseUnits('5000', 18)
+  const steth = ethers.utils.parseUnits('1', 18)
+  const Steth = ethers.utils.parseUnits('100', 18)
 
   const _data = '0x'
 
@@ -133,6 +136,7 @@ describe('FlashLoan', function () {
 
     const signer_steth = await ethers.getSigner(ACC_STETH)
     await token_steth.connect(signer_steth).transfer(receiver.address, steth)
+    await token_steth.connect(signer_steth).transfer(proxy.address, steth)
 
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
@@ -156,32 +160,32 @@ describe('FlashLoan', function () {
 
   describe('Single token', async function () {
     it('Should be able to take flashLoan of a single token from AAVE', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 1, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 1, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from MakerDAO', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 2, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 2, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from Compound(MakerDAO)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 3, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 3, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from AAVE(MakerDAO)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 4, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 4, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from Balancer', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 5, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 5, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from Compound(Balancer)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 6, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 6, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 7, _data,_instaData)
+      await receiver.flashBorrow([DAI], [Dai], 7, _data, _instaData)
     })
     it('Should be able to take flashLoan of a steth token from AAVE(Balancer)', async function () {
-      await receiver.flashBorrow([STETH], [Steth], 5, _data,_instaData)
+      await receiver.flashBorrow([STETH], [Steth], 5, _data, _instaData)
     })
   })
 
-  xdescribe('Multi token', async function () {
+  describe('Multi token', async function () {
     beforeEach(async function () {
       const token_usdt = new ethers.Contract(
         USDT,
@@ -251,7 +255,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         1,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from MakerDAO', async function () {
@@ -260,7 +264,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         2,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from Compound(MakerDAO)', async function () {
@@ -269,7 +273,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         3,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE(MakerDAO)', async function () {
@@ -278,7 +282,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         4,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple sorted tokens together from Balancer', async function () {
@@ -287,7 +291,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         5,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple unsorted tokens together from Balancer', async function () {
@@ -296,7 +300,7 @@ describe('FlashLoan', function () {
         [Usdt, Dai, Weth],
         5,
         _data,
-        _instaData 
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from Compound(Balancer)', async function () {
@@ -305,7 +309,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         6,
         _data,
-        _instaData
+        _instaData,
       )
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE(Balancer)', async function () {
@@ -314,7 +318,7 @@ describe('FlashLoan', function () {
         [Dai, Usdt, Weth],
         7,
         _data,
-        _instaData
+        _instaData,
       )
     })
   })
