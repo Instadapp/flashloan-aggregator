@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface InstaFlashReceiverInterface {
@@ -25,12 +25,23 @@ interface ListInterface {
 
 interface TokenInterface {
     function approve(address, uint256) external;
-    function transfer(address, uint) external;
-    function transferFrom(address, address, uint) external;
+
+    function transfer(address, uint256) external;
+
+    function transferFrom(
+        address,
+        address,
+        uint256
+    ) external;
+
     function deposit() external payable;
-    function withdraw(uint) external;
+
+    function withdraw(uint256) external;
+
     function balanceOf(address) external view returns (uint256);
+
     function decimals() external view returns (uint256);
+
     function totalSupply() external view returns (uint256);
 }
 
@@ -49,9 +60,9 @@ interface CTokenInterface {
 interface CEthInterface {
     function mint() external payable;
 
-    function redeemUnderlying(uint) external returns (uint);
+    function redeemUnderlying(uint256) external returns (uint256);
 
-    function borrow(uint) external returns (uint);
+    function borrow(uint256) external returns (uint256);
 
     function repayBorrow() external payable;
 }
@@ -66,7 +77,16 @@ interface Comptroller {
     function enterMarkets(address[] calldata)
         external
         returns (uint256[] memory);
-    function markets(address) external view returns (bool, uint, bool);
+
+    function markets(address)
+        external
+        view
+        returns (
+            bool,
+            uint256,
+            bool
+        );
+
     function getAllMarkets() external view returns (CTokenInterface[] memory);
 }
 
@@ -144,5 +164,29 @@ interface IBalancerLending {
         uint256[] memory amounts,
         bytes memory userData
     ) external;
-    function getProtocolFeesCollector() external view returns (ProtocolFeesCollector);
+
+    function getProtocolFeesCollector()
+        external
+        view
+        returns (ProtocolFeesCollector);
+}
+
+interface IWstETH {
+    function getWstETHByStETH(uint256 _stETHAmount)
+        external
+        view
+        returns (uint256);
+
+    function getStETHByWstETH(uint256 _wstETHAmount)
+        external
+        view
+        returns (uint256);
+
+    function stEthPerToken() external view returns (uint256);
+
+    function tokensPerStEth() external view returns (uint256);
+
+    function wrap(uint256 _stETHAmount) external returns (uint256);
+
+    function unwrap(uint256 _wstETHAmount) external returns (uint256);
 }
