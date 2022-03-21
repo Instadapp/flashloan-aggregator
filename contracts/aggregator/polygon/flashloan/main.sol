@@ -55,8 +55,10 @@ contract FlashAggregatorPolygon is Helper {
         );
         if (route_ == 1) {
             safeApprove(instaLoanVariables_, _premiums, aaveV2LendingAddr);
-        } else {
+        } else if (route_ == 9) {
             safeApprove(instaLoanVariables_, _premiums, aaveV3LendingAddr);
+        } else {
+            revert("wrong-route");
         }
         safeTransfer(instaLoanVariables_, sender_);
 
@@ -510,11 +512,12 @@ contract FlashAggregatorPolygon is Helper {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](4);
+        routes_ = new uint16[](5);
         routes_[0] = 1;
         routes_[1] = 5;
         routes_[2] = 7;
         routes_[3] = 8;
+        routes_[4] = 9;
     }
 
     /**
@@ -544,10 +547,10 @@ contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     /* 
      Deprecated
     */
-    function initialize() public {
-        require(status == 0, "cannot-call-again");
-        status = 1;
-    }
+    // function initialize() public {
+    //     require(status == 0, "cannot-call-again");
+    //     status = 1;
+    // }
 
     receive() external payable {}
 }
