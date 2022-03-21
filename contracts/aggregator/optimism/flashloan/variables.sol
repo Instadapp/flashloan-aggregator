@@ -4,6 +4,11 @@ pragma solidity ^0.8.0;
 import "./interfaces.sol";
 
 contract ConstantVariables {
+    address public constant aaveV3LendingAddr =
+        0x794a61358D6845594F94dc1DB02A252b5b4814aD;
+    IAaveV3Lending public constant aaveV3Lending =
+        IAaveV3Lending(aaveV3LendingAddr);
+
     address public constant treasuryAddr =
         0xDAF12965b3D5BF60843AA1FB49E2688919e697a0;
     address private constant instaListAddr =
