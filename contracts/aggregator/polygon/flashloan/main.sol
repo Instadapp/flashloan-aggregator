@@ -31,27 +31,33 @@ contract FlashAggregatorPolygon is Helper {
         bytes memory _data
     ) external verifyDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
-        require(msg.sender == aaveLendingAddr, "not-aave-sender");
+        require(
+            msg.sender == aaveV2LendingAddr || msg.sender == aaveV3LendingAddr,
+            "not-aave-sender"
+        );
 
         FlashloanVariables memory instaLoanVariables_;
 
-        (address sender_, bytes memory data_) = abi.decode(
+        (uint256 route_, address sender_, bytes memory data_) = abi.decode(
             _data,
-            (address, bytes)
+            (uint256, address, bytes)
         );
 
         instaLoanVariables_._tokens = _assets;
         instaLoanVariables_._amounts = _amounts;
         instaLoanVariables_._instaFees = calculateFees(
             _amounts,
-            calculateFeeBPS(1)
+            calculateFeeBPS(route_)
         );
         instaLoanVariables_._iniBals = calculateBalances(
             _assets,
             address(this)
         );
-
-        safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
+        if (route_ == 1) {
+            safeApprove(instaLoanVariables_, _premiums, aaveV2LendingAddr);
+        } else {
+            safeApprove(instaLoanVariables_, _premiums, aaveV3LendingAddr);
+        }
         safeTransfer(instaLoanVariables_, sender_);
 
         if (checkIfDsa(sender_)) {
@@ -289,19 +295,49 @@ contract FlashAggregatorPolygon is Helper {
      * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
      * @param _data extra data passed.
      */
-    function routeAave(
+    function routeAaveV2(
         address[] memory _tokens,
         uint256[] memory _amounts,
         bytes memory _data
     ) internal {
-        bytes memory data_ = abi.encode(msg.sender, _data);
+        bytes memory data_ = abi.encode(1, msg.sender, _data);
         uint256 length_ = _tokens.length;
         uint256[] memory _modes = new uint256[](length_);
         for (uint256 i = 0; i < length_; i++) {
             _modes[i] = 0;
         }
         dataHash = bytes32(keccak256(data_));
-        aaveLending.flashLoan(
+        aaveV2Lending.flashLoan(
+            address(this),
+            _tokens,
+            _amounts,
+            _modes,
+            address(0),
+            data_,
+            3228
+        );
+    }
+
+    /**
+     * @dev Middle function for route 9.
+     * @notice Middle function for route 9.
+     * @param _tokens list of token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+     * @param _data extra data passed.
+     */
+    function routeAaveV3(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal {
+        bytes memory data_ = abi.encode(9, msg.sender, _data);
+        uint256 length_ = _tokens.length;
+        uint256[] memory _modes = new uint256[](length_);
+        for (uint256 i = 0; i < length_; i++) {
+            _modes[i] = 0;
+        }
+        dataHash = bytes32(keccak256(data_));
+        aaveV3Lending.flashLoan(
             address(this),
             _tokens,
             _amounts,
@@ -453,13 +489,15 @@ contract FlashAggregatorPolygon is Helper {
         validateTokens(_tokens);
 
         if (_route == 1) {
-            routeAave(_tokens, _amounts, _data);
+            routeAaveV2(_tokens, _amounts, _data);
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
         } else if (_route == 7) {
             routeBalancerAave(_tokens, _amounts, _data);
         } else if (_route == 8) {
             routeUniswap(_tokens, _amounts, _data, _instadata);
+        } else if (_route == 9) {
+            routeAaveV3(_tokens, _amounts, _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -506,10 +544,10 @@ contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     /* 
      Deprecated
     */
-    // function initialize() public {
-    //     require(status == 0, "cannot-call-again");
-    //     status = 1;
-    // }
+    function initialize() public {
+        require(status == 0, "cannot-call-again");
+        status = 1;
+    }
 
     receive() external payable {}
 }
