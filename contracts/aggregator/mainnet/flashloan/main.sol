@@ -9,7 +9,50 @@ pragma solidity ^0.8.0;
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-contract Setups is Helper {
+contract AdminModule is Helper {
+    event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
+
+    event updateWhitelistLog(
+        address indexed account,
+        bool indexed isWhitelisted_
+    );
+
+    /**
+     * @dev owner gaurd.
+     * @notice owner gaurd.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner, "not-owner");
+        _;
+    }
+
+    /**
+     * @dev Update owner.
+     * @notice Update owner.
+     * @param newOwner_ address of new owner.
+     */
+    function updateOwner(address newOwner_) external onlyOwner {
+        address oldOwner_ = owner;
+        owner = newOwner_;
+        emit updateOwnerLog(oldOwner_, newOwner_);
+    }
+
+    /**
+     * @dev Update whitelist.
+     * @notice Update whitelist.
+     * @param account_ address to update the whitelist for.
+     * @param whitelist_ want to whitelist -> true, else false.
+     */
+    function updateWhitelist(address account_, bool whitelist_)
+        external
+        onlyOwner
+    {
+        isWhitelisted[account_] = whitelist_;
+        emit updateWhitelistLog(account_, whitelist_);
+    }
+}
+
+contract Setups is AdminModule {
     using SafeERC20 for IERC20;
 
     /**
@@ -69,7 +112,7 @@ contract FlashAggregator is Setups {
         instaLoanVariables_._amounts = _amounts;
         instaLoanVariables_._instaFees = calculateFees(
             _amounts,
-            calculateFeeBPS(1)
+            calculateFeeBPS(1, sender_)
         );
         instaLoanVariables_._iniBals = calculateBalances(
             _assets,
@@ -140,7 +183,7 @@ contract FlashAggregator is Setups {
         );
         instaLoanVariables_._instaFees = calculateFees(
             amounts_,
-            calculateFeeBPS(route_)
+            calculateFeeBPS(route_, sender_)
         );
 
         if (route_ == 2) {
@@ -248,7 +291,7 @@ contract FlashAggregator is Setups {
         );
         instaLoanVariables_._instaFees = calculateFees(
             amounts_,
-            calculateFeeBPS(route_)
+            calculateFeeBPS(route_, sender_)
         );
 
         if (route_ == 5) {
@@ -670,6 +713,12 @@ contract InstaFlashAggregator is FlashAggregator {
     //     stETHStatus = 1;
     //     status = 1;
     // }
+
+    function initialize(address owner_) public {
+        require(ownerStatus == 0, "only-once");
+        owner = owner_;
+        ownerStatus = 1;
+    }
 
     receive() external payable {}
 }
