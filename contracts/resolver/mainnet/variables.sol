@@ -29,5 +29,5 @@ contract Variables {
     InstaFlashloanAggregatorInterface internal flashloanAggregator =
         InstaFlashloanAggregatorInterface(flashloanAggregatorAddr);
 
-    address internal randomAddr_ = 0xa9061100d29C3C562a2e2421eb035741C1b42137;
+    address internal constant randomAddr_ = 0xa9061100d29C3C562a2e2421eb035741C1b42137;
 }
