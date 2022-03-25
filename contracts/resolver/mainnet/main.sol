@@ -15,7 +15,7 @@ contract FlashResolver is Helper {
         routes_ = flashloanAggregator.getRoutes();
         fees_ = new uint256[](routes_.length);
         for (uint256 i = 0; i < routes_.length; i++) {
-            fees_[i] = flashloanAggregator.calculateFeeBPS(routes_[i]);
+            fees_[i] = flashloanAggregator.calculateFeeBPS(routes_[i], randomAddr_);
         }
     }
 
@@ -43,7 +43,8 @@ contract FlashResolver is Helper {
         for (uint256 i = 0; i < routesWithAvailability_.length; i++) {
             if (routesWithAvailability_[i] != 0) {
                 uint256 routeFeeBPS_ = flashloanAggregator.calculateFeeBPS(
-                    routesWithAvailability_[i]
+                    routesWithAvailability_[i],
+                    randomAddr_
                 );
                 if (feeBPS_ > routeFeeBPS_) {
                     feeBPS_ = routeFeeBPS_;
