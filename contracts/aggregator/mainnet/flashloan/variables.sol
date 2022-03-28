@@ -50,4 +50,10 @@ contract Variables is ConstantVariables {
 
     // stETH allowance status
     uint256 internal stETHStatus;
+
+    address public owner;
+
+    uint256 internal ownerStatus;
+
+    mapping(address => bool) public isWhitelisted;
 }

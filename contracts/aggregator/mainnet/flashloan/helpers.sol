@@ -337,7 +337,7 @@ contract Helper is Variables {
      * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
      * @param _route route number for flashloan.
      */
-    function calculateFeeBPS(uint256 _route)
+    function calculateFeeBPS(uint256 _route, address account_)
         public
         view
         returns (uint256 BPS_)
@@ -358,7 +358,7 @@ contract Helper is Variables {
             revert("Invalid source");
         }
 
-        if (BPS_ < InstaFeeBPS) {
+        if (!isWhitelisted[account_] && BPS_ < InstaFeeBPS) {
             BPS_ = InstaFeeBPS;
         }
     }
