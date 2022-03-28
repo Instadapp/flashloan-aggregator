@@ -170,6 +170,8 @@ contract Helper is Variables {
                         .getFlashLoanFeePercentage()
                 ) *
                 100;
+        } else if (_route == 9) {
+            BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
         } else {
             revert("Invalid source");
         }

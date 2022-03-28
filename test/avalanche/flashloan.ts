@@ -87,8 +87,11 @@ describe('FlashLoan', function () {
   })
 
   describe('Single token', async function () {
-    it('Should be able to take flashLoan of a single token from AAVE', async function () {
+    it('Should be able to take flashLoan of a single token from AAVE V2', async function () {
       await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr,_instaData)
+    })
+    it('Should be able to take flashLoan of a single token from AAVE V3', async function () {
+      await receiver.flashBorrow([DAI], [Dai], 9, zeroAddr,_instaData)
     })
   })
 
@@ -119,8 +122,11 @@ describe('FlashLoan', function () {
       })
       _instaData = '0x'
     })
-    it('Should be able to take flashLoan of multiple tokens together from AAVE', async function () {
+    it('Should be able to take flashLoan of multiple tokens together from AAVE V2', async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr,_instaData )
+    })
+    it('Should be able to take flashLoan of multiple tokens together from AAVE V3', async function () {
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 9, zeroAddr,_instaData )
     })
   })
 })

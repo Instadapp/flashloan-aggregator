@@ -84,7 +84,7 @@ describe('FlashLoan', function () {
   })
 
   describe('Single token', async function () {
-    it('Should be able to take flashLoan of a single token from AAVE', async function () {
+    it('Should be able to take flashLoan of a single token from AAVE V2', async function () {
       await receiver.flashBorrow([DAI], [Dai], 1, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from Balancer', async function () {
@@ -104,6 +104,10 @@ describe('FlashLoan', function () {
       it('Should be able to take flashLoan of a single token from Uniswap', async function () {
         await receiver.flashBorrow([DAI], [Dai], 8, _data, _instaData)
       })
+    })
+
+    it('Should be able to take flashLoan of a single token from AAVE V3', async function () {
+      await receiver.flashBorrow([DAI], [Dai], 9, _data, _instaData)
     })
   })
 
@@ -134,7 +138,7 @@ describe('FlashLoan', function () {
       })
       _instaData = '0x'
     })
-    it('Should be able to take flashLoan of multiple tokens together from AAVE', async function () {
+    it('Should be able to take flashLoan of multiple tokens together from AAVE V2', async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, _data, _instaData)
     })
     it('Should be able to take flashLoan of multiple sorted tokens together from Balancer', async function () {
@@ -163,6 +167,10 @@ describe('FlashLoan', function () {
           _instaData,
         )
       })
+    })
+
+    it('Should be able to take flashLoan of multiple tokens together from AAVE V3', async function () {
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 9, _data, _instaData)
     })
   })
 })
