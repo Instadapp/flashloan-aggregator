@@ -3,11 +3,11 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 const { ethers } = hre
 
 import {
-  InstaFlashResolverArbitrum,
-  InstaFlashResolverArbitrum__factory,
+  InstaFlashResolver,
+  InstaFlashResolver__factory,
 } from '../typechain'
 
-let Resolver, resolver: InstaFlashResolverArbitrum
+let Resolver, resolver: InstaFlashResolver
 
 async function scriptRunner() {
   let signer: SignerWithAddress
@@ -16,7 +16,7 @@ async function scriptRunner() {
   console.log((await ethers.provider.getBalance(signer.address)).toString())
   console.log(signer.address)
 
-  Resolver = new InstaFlashResolverArbitrum__factory(signer)
+  Resolver = new InstaFlashResolver__factory(signer)
   resolver = await Resolver.deploy()
   await resolver.deployed()
   console.log('Resolver deployed to: ', resolver.address)
