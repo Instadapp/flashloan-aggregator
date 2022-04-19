@@ -37,3 +37,26 @@ interface IAaveProtocolDataProvider {
             address
         );
 }
+
+interface IAaveV3DataProvider {
+
+    function getSiloedBorrowing(address asset) external view returns (bool);
+
+    function getReserveConfigurationData(address asset)
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            bool,
+            bool,
+            bool,
+            bool,
+            bool
+        );
+
+    function getReserveTokensAddresses(address asset) external view returns (address, address, address);
+}
