@@ -28,12 +28,10 @@ contract Helper is Variables {
         uint length = _tokens.length;
         for (uint256 i = 0; i < length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
-            (bool siloedBorrowing) = aaveV3DataProvider.getSiloedBorrowing(_tokens[i]);
             (, , , , , , , , bool isActive, ) = aaveV3DataProvider
                 .getReserveConfigurationData(_tokens[i]);
             (address aTokenAddr, , ) = aaveV3DataProvider
                 .getReserveTokensAddresses(_tokens[i]);
-            if (siloedBorrowing == true && length > 1) return false;
             if (isActive == false) return false;
             if (token_.balanceOf(aTokenAddr) < _amounts[i]) return false;
         }

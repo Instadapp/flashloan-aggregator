@@ -40,8 +40,6 @@ interface IAaveProtocolDataProvider {
 
 interface IAaveV3DataProvider {
 
-    function getSiloedBorrowing(address asset) external view returns (bool);
-
     function getReserveConfigurationData(address asset)
         external
         view
