@@ -26,6 +26,7 @@ const chainIds = {
   avalanche: 43114,
   polygon: 137,
   optimism: 10,
+  arbitrum: 42161,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -66,8 +67,8 @@ function getBlockNumber(networkType: string) {
   if (networkType === "avalanche") return 13683815;
   else if (networkType === "polygon") return 27300159;
   else if (networkType === "arbitrum") return 10350332;
-  else if (networkType === "optimism") return 14636755;
-  else return 27300159;
+  else if (networkType === "optimism") return 6261116;
+  else return 14637205;
 }
 
 const config: HardhatUserConfig = {
@@ -103,7 +104,7 @@ const config: HardhatUserConfig = {
       url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
       chainId: 1,
       gasPrice: 52101000000,
-      accounts: [`0x${process.env.PRIVATE_KEY}`]
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
     },
     avalanche_mainnet: {
       url: 'https://api.avax.network/ext/bc/C/rpc',
@@ -115,7 +116,7 @@ const config: HardhatUserConfig = {
       url: `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
       chainId: 42161,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
-      gasPrice: 1500000000
+      gasPrice: 1110000000,
     },
     polygon_mainnet: {
       url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
