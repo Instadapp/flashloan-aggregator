@@ -63,11 +63,11 @@ function getNetworkUrl(networkType: string) {
 }
 
 function getBlockNumber(networkType: string) {
-  if (networkType === "avalanche") return 7675580;
+  if (networkType === "avalanche") return 13683815;
   else if (networkType === "polygon") return 27300159;
-  else if (networkType === "arbitrum") return 7719792;
-  else if (networkType === "optimism") return 4346343;
-  else return 14456907;
+  else if (networkType === "arbitrum") return 10350332;
+  else if (networkType === "optimism") return 14636755;
+  else return 27300159;
 }
 
 const config: HardhatUserConfig = {
