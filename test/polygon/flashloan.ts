@@ -22,6 +22,8 @@ describe('FlashLoan', function () {
     proxy
 
   let signer: SignerWithAddress
+  let proxyAddr = '0xB2A7F20D10A006B0bEA86Ce42F2524Fde5D6a0F4'
+  let admin = '0x90cf378a297c7ef6dabed36ea5e112c6646bb3a4'
 
   const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137'
 
@@ -48,14 +50,36 @@ describe('FlashLoan', function () {
     Aggregator = new InstaFlashAggregatorPolygon__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
+    console.log("Aggregator deployed at: ", aggregator.address);
 
-    Proxy = new InstaFlashAggregatorProxy__factory(signer)
-    proxy = await Proxy.deploy(aggregator.address, master, data)
-    await proxy.deployed()
+    proxy = new hre.ethers.Contract(
+      proxyAddr,
+      [{"inputs":[{"internalType":"address","name":"_logic","type":"address"},{"internalType":"address","name":"admin_","type":"address"},{"internalType":"bytes","name":"_data","type":"bytes"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"previousAdmin","type":"address"},{"indexed":false,"internalType":"address","name":"newAdmin","type":"address"}],"name":"AdminChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"beacon","type":"address"}],"name":"BeaconUpgraded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"implementation","type":"address"}],"name":"Upgraded","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"admin","outputs":[{"internalType":"address","name":"admin_","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newAdmin","type":"address"}],"name":"changeAdmin","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"implementation","outputs":[{"internalType":"address","name":"implementation_","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newImplementation","type":"address"}],"name":"upgradeTo","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newImplementation","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"upgradeToAndCall","outputs":[],"stateMutability":"payable","type":"function"},{"stateMutability":"payable","type":"receive"}],
+      ethers.provider,
+    )
+
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [admin],
+    })
+
+    await hre.network.provider.send("hardhat_setBalance", [
+      admin,
+      ethers.utils.parseEther("10.0").toHexString(),
+    ]);
+
+    let impersonateAcc = await ethers.getSigner(admin);
+
+    let tx = await proxy.connect(impersonateAcc).upgradeTo(aggregator.address);
+    let receipt = tx.wait();
+
+    let addr = await proxy.connect(impersonateAcc).callStatic.implementation();
+    console.log("Implementation at: ", addr);
 
     Receiver = new InstaFlashReceiver__factory(signer)
     receiver = await Receiver.deploy(proxy.address)
     await receiver.deployed()
+    console.log("Receiver deployed at: ", receiver.address);
 
     const token_dai = new ethers.Contract(
       DAI,
@@ -80,7 +104,6 @@ describe('FlashLoan', function () {
       method: 'hardhat_stopImpersonatingAccount',
       params: [ACC_DAI],
     })
-    _instaData = '0x'
   })
 
   describe('Single token', async function () {
@@ -93,6 +116,9 @@ describe('FlashLoan', function () {
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
       await receiver.flashBorrow([DAI], [Dai], 7, _data, _instaData)
     })
+    it('Should be able to take flashLoan of a single token from AAVE V3', async function () {
+      await receiver.flashBorrow([DAI], [Dai], 9, _data, _instaData)
+    })
 
     describe('Uniswap Route', async function () {
       beforeEach(async function () {
@@ -104,10 +130,6 @@ describe('FlashLoan', function () {
       it('Should be able to take flashLoan of a single token from Uniswap', async function () {
         await receiver.flashBorrow([DAI], [Dai], 8, _data, _instaData)
       })
-    })
-
-    it('Should be able to take flashLoan of a single token from AAVE V3', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 9, _data, _instaData)
     })
   })
 
