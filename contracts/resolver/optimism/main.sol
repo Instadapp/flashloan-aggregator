@@ -51,6 +51,18 @@ contract FlashResolverOptimism is Helper {
                     _data[j] = abi.encode(bestKey);
                     j++;
                 }
+            } else if (routesWithAvailability_[i] != 0) {
+                uint256 routeFeeBPS_ = flashloanAggregator.calculateFeeBPS(
+                    routesWithAvailability_[i]
+                );
+                if (feeBPS_ > routeFeeBPS_) {
+                    feeBPS_ = routeFeeBPS_;
+                    bRoutes_[0] = routesWithAvailability_[i];
+                    j = 1;
+                } else if (feeBPS_ == routeFeeBPS_) {
+                    bRoutes_[j] = routesWithAvailability_[i];
+                    j++;
+                }
             } else {
                 break;
             }
