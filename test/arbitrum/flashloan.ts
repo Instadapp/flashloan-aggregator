@@ -3,7 +3,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 const { ethers } = hre;
 
 import {
-  InstaFlashAggregatorArbitrum,
   InstaFlashAggregatorArbitrum__factory,
   IERC20__factory,
   IERC20,
@@ -22,6 +21,8 @@ describe("FlashLoan", function () {
     proxy;
 
   let signer: SignerWithAddress;
+  let proxyAddr = '0x1f882522DF99820dF8e586b6df8bAae2b91a782d';
+  let admin = '0x82D57efa1cE59A0cA3492e189c72B360c7a1Dcdd';
 
   const master = "0xa9061100d29C3C562a2e2421eb035741C1b42137";
 
@@ -42,19 +43,43 @@ describe("FlashLoan", function () {
   const _data = "0x";
   let _instaData = "0x";
 
-  beforeEach(async function () {
+  beforeEach("should set up", async function () {
     [signer] = await ethers.getSigners();
     Aggregator = new InstaFlashAggregatorArbitrum__factory(signer);
     aggregator = await Aggregator.deploy();
     await aggregator.deployed();
+    console.log("Aggregator deployed at: ", aggregator.address);
 
-    Proxy = new InstaFlashAggregatorProxy__factory(signer);
-    proxy = await Proxy.deploy(aggregator.address, master, data);
-    await proxy.deployed();
+    proxy = new hre.ethers.Contract(
+      proxyAddr,
+      [{"inputs":[{"internalType":"address","name":"_logic","type":"address"},{"internalType":"address","name":"admin_","type":"address"},{"internalType":"bytes","name":"_data","type":"bytes"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"previousAdmin","type":"address"},{"indexed":false,"internalType":"address","name":"newAdmin","type":"address"}],"name":"AdminChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"beacon","type":"address"}],"name":"BeaconUpgraded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"implementation","type":"address"}],"name":"Upgraded","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"admin","outputs":[{"internalType":"address","name":"admin_","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newAdmin","type":"address"}],"name":"changeAdmin","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"implementation","outputs":[{"internalType":"address","name":"implementation_","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newImplementation","type":"address"}],"name":"upgradeTo","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newImplementation","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"upgradeToAndCall","outputs":[],"stateMutability":"payable","type":"function"},{"stateMutability":"payable","type":"receive"}],
+      ethers.provider,
+    )
+
+    await hre.network.provider.request({
+      method: 'hardhat_impersonateAccount',
+      params: [admin],
+    })
+
+    await hre.network.provider.send("hardhat_setBalance", [
+      admin,
+      ethers.utils.parseEther("10.0").toHexString(),
+    ]);
+
+    let impersonateAcc = await ethers.getSigner(admin);
+
+    let tx = await proxy.connect(impersonateAcc).upgradeTo(aggregator.address);
+    let receipt = tx.wait();
+    console.log("Implementation updated!")
+
+    let addr = await proxy.connect(impersonateAcc).callStatic.implementation();
+
+    console.log("Implementation at: ", addr);
 
     Receiver = new InstaFlashReceiver__factory(signer);
-    receiver = await Receiver.deploy(proxy.address);
+    receiver = await Receiver.deploy(proxyAddr);
     await receiver.deployed();
+    console.log("Receiver deployed at: ", receiver.address);
 
     const token_usdc = new ethers.Contract(
       USDC,

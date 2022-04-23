@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "./interfaces.sol";
 
 contract Variables {
+    IAaveV3DataProvider public constant aaveV3DataProvider =
+        IAaveV3DataProvider(0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654);
 
     address private flashloanAggregatorAddr =
         0x84E6b05A089d5677A702cF61dc14335b4bE5b282;
