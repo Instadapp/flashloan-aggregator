@@ -673,7 +673,7 @@ contract FlashAggregator is Setups {
      * @notice Function to transfer fee to the treasury. Will be called manually.
      * @param _tokens token addresses for transferring fee to treasury.
      */
-    function transferFeeToTreasury(address[] memory _tokens) public {
+    function transferFee(address[] memory _tokens, address _to) public onlyOwner {
         for (uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
             uint256 decimals_ = TokenInterface(_tokens[i]).decimals();
@@ -686,7 +686,7 @@ contract FlashAggregator is Setups {
                 ? (token_.balanceOf(address(this)) - amtToSub_)
                 : 0;
             if (amtToTransfer_ > 0)
-                token_.safeTransfer(treasuryAddr, amtToTransfer_);
+                token_.safeTransfer(_to, amtToTransfer_);
         }
     }
 }
