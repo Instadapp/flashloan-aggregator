@@ -31,6 +31,12 @@ contract ConstantVariables {
     ListInterface internal constant instaList =
         ListInterface(0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb);
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
+    // address internal constant AAVE_PROXY;
+    // address internal constant MAKER_PROXY;
+    // address internal constant BALANCER_PROXY;
+    address internal AAVE_PROXY;
+    address internal MAKER_PROXY;
+    address internal BALANCER_PROXY;
 }
 
 contract Variables is ConstantVariables {
