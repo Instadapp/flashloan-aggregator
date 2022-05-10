@@ -5,6 +5,32 @@ import "../aggregator/mainnet/flashloan/helpers.sol";
 contract BalancerImplementation is Helper {
 
     /**
+     * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _route route for flashloan.
+     * @param _data extra data passed.
+     */
+    function flashLoan(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256 _route,
+        bytes calldata _data,
+        bytes calldata // kept for future use by instadapp. Currently not used anywhere.
+    ) external reentrancy {
+        require(_route == 5 || _route == 6 || _route == 7, "invalid BALANCER flashloan route");
+
+        if (_route == 5) {
+            routeBalancer(_tokens, _amounts, _data);
+        } else if (_route == 6) {
+            routeBalancerCompound(_tokens, _amounts, _data);
+        } else if (_route == 7) {
+            routeBalancerAave(_tokens, _amounts, _data);
+        }
+    }
+
+    /**
      * @dev Fallback function for balancer flashloan.
      * @notice Fallback function for balancer flashloan.
      * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.

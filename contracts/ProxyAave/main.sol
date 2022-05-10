@@ -5,6 +5,25 @@ import "../aggregator/mainnet/flashloan/helpers.sol";
 contract AaveImplementation is Helper {
 
     /**
+     * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _route route for flashloan.
+     * @param _data extra data passed.
+     */
+    function flashLoan(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256 _route,
+        bytes calldata _data,
+        bytes calldata // kept for future use by instadapp. Currently not used anywhere.
+    ) external reentrancy {
+        require(_route == 1, "invalid AAVE flashloan route");
+        routeAave(_tokens, _amounts, _data);
+    }
+
+    /**
      * @dev Callback function for aave flashloan.
      * @notice Callback function for aave flashloan.
      * @param _assets list of asset addresses for flashloan.

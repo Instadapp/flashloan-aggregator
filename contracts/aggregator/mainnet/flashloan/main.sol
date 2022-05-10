@@ -7,7 +7,6 @@ pragma solidity ^0.8.0;
  */
 
 import "./helpers.sol";
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 contract AdminModule is Helper {
@@ -105,7 +104,7 @@ contract FlashAggregator is Setups {
         address _initiator,
         bytes memory _data
     ) external returns (bool) {
-        bytes memory response = spell(AAVE_PROXY, msg.data);
+        bytes memory response = spell(AAVE_IMP, msg.data);
         return (abi.decode(response, (bool)));
     }
 
@@ -124,7 +123,7 @@ contract FlashAggregator is Setups {
         uint256 _fee,
         bytes calldata _data
     ) external returns (bytes32) {
-        bytes memory response = spell(MAKER_PROXY, msg.data);
+        bytes memory response = spell(MAKER_IMP, msg.data);
         return (abi.decode(response, (bytes32)));
     }
 
@@ -141,112 +140,7 @@ contract FlashAggregator is Setups {
         uint256[] memory _fees,
         bytes memory _data
     ) external {
-        spell(BALANCER_PROXY, msg.data);
-    }
-
-    /**
-     * @dev Middle function for route 1.
-     * @notice Middle function for route 1.
-     * @param _tokens list of token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
-     * @param _data extra data passed.
-     */
-    function routeAave(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        spell(AAVE_PROXY, msg.data);
-    }
-
-    /**
-     * @dev Middle function for route 2.
-     * @notice Middle function for route 2.
-     * @param _token token address for flashloan(DAI).
-     * @param _amount DAI amount for flashloan.
-     * @param _data extra data passed.
-     */
-    function routeMaker(
-        address _token,
-        uint256 _amount,
-        bytes memory _data
-    ) internal {
-        spell(MAKER_PROXY, msg.data);
-    }
-
-    /**
-     * @dev Middle function for route 3.
-     * @notice Middle function for route 3.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeMakerCompound(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        spell(MAKER_PROXY, msg.data);
-    }
-
-    /**
-     * @dev Middle function for route 4.
-     * @notice Middle function for route 4.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeMakerAave(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        spell(MAKER_PROXY, msg.data);
-    }
-
-    /**
-     * @dev Middle function for route 5.
-     * @notice Middle function for route 5.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeBalancer(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        spell(BALANCER_PROXY, msg.data);
-    }
-
-    /**
-     * @dev Middle function for route 6.
-     * @notice Middle function for route 6.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeBalancerCompound(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        spell(BALANCER_PROXY, msg.data);
-    }
-
-    /**
-     * @dev Middle function for route 7.
-     * @notice Middle function for route 7.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeBalancerAave(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        spell(BALANCER_PROXY, msg.data);
+        spell(BALANCER_IMP, msg.data);
     }
 
     /**
@@ -263,26 +157,26 @@ contract FlashAggregator is Setups {
         uint256 _route,
         bytes calldata _data,
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
-    ) external reentrancy {
+    ) external {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
 
         if (_route == 1) {
-            routeAave(_tokens, _amounts, _data);
+            spell(AAVE_IMP, msg.data);
         } else if (_route == 2) {
-            routeMaker(_tokens[0], _amounts[0], _data);
+            spell(MAKER_IMP, msg.data);
         } else if (_route == 3) {
-            routeMakerCompound(_tokens, _amounts, _data);
+            spell(MAKER_IMP, msg.data);
         } else if (_route == 4) {
-            routeMakerAave(_tokens, _amounts, _data);
+            spell(MAKER_IMP, msg.data);
         } else if (_route == 5) {
-            routeBalancer(_tokens, _amounts, _data);
+            spell(BALANCER_IMP, msg.data);
         } else if (_route == 6) {
-            routeBalancerCompound(_tokens, _amounts, _data);
+            spell(BALANCER_IMP, msg.data);
         } else if (_route == 7) {
-            routeBalancerAave(_tokens, _amounts, _data);
+            spell(BALANCER_IMP, msg.data);
         } else {
             revert("route-does-not-exist");
         }
@@ -332,13 +226,6 @@ contract FlashAggregator is Setups {
 
 contract InstaFlashAggregator is FlashAggregator {
     using SafeERC20 for IERC20;
-
-    function initialize(address aave, address maker, address balancer) public {
-        AAVE_PROXY = aave;
-        MAKER_PROXY = maker;
-        BALANCER_PROXY = balancer;
-        console.log("initialize call successful! AAVE_PROXY = ", AAVE_PROXY);
-    }
 
     /* 
      Deprecated

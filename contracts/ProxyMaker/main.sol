@@ -5,6 +5,32 @@ import "../aggregator/mainnet/flashloan/helpers.sol";
 contract MakerImplementation is Helper {
 
     /**
+     * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _route route for flashloan.
+     * @param _data extra data passed.
+     */
+    function flashLoan(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256 _route,
+        bytes calldata _data,
+        bytes calldata // kept for future use by instadapp. Currently not used anywhere.
+    ) external reentrancy {
+        require((_route == 2 || _route == 3 || _route == 4), "invalid MAKER flashloan route");
+
+        if (_route == 2) {
+            routeMaker(_tokens[0], _amounts[0], _data);
+        } else if (_route == 3) {
+            routeMakerCompound(_tokens, _amounts, _data);
+        } else if (_route == 4) {
+            routeMakerAave(_tokens, _amounts, _data);
+        }
+    }
+
+    /**
      * @dev Fallback function for makerdao flashloan.
      * @notice Fallback function for makerdao flashloan.
      * @param _initiator initiator address for flashloan.
