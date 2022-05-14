@@ -10,11 +10,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import { Helper } from "./helpers.sol";
-
-import { 
-    TokenInterface,
-    InstaFlashReceiverInterface
-} from "./interfaces.sol";
+import { InstaFlashReceiverInterface } from "./interfaces.sol";
+import { TokenInterface } from "../../common/interface.sol";
 
 contract FlashAggregatorAvalanche is Helper {
     using SafeERC20 for IERC20;
@@ -41,53 +38,9 @@ contract FlashAggregatorAvalanche is Helper {
         uint256[] memory _premiums,
         address _initiator,
         bytes memory _data
-    ) external verifyDataHash(_data) returns (bool) {
-        require(_initiator == address(this), "not-same-sender");
-        require(msg.sender == aaveLendingAddr, "not-aave-sender");
-
-        FlashloanVariables memory instaLoanVariables_;
-
-        (address sender_, bytes memory data_) = abi.decode(
-            _data,
-            (address, bytes)
-        );
-
-        instaLoanVariables_._tokens = _assets;
-        instaLoanVariables_._amounts = _amounts;
-        instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(1));
-        instaLoanVariables_._iniBals = calculateBalances(_assets, address(this));
-
-        safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
-        safeTransfer(instaLoanVariables_, sender_);
-
-        if (checkIfDsa(sender_)) {
-            Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
-        } else {
-            InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
-        }
-
-        instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
-        validateFlashloan(instaLoanVariables_);
-
-        return true;
-    }
-
-    /**
-     * @dev Middle function for route 1.
-     * @notice Middle function for route 1.
-     * @param _tokens list of token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
-     * @param _data extra data passed.
-    */
-    function routeAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
-        bytes memory data_ = abi.encode(msg.sender, _data);
-        uint length_ = _tokens.length;
-        uint[] memory _modes = new uint[](length_);
-        for (uint i = 0; i < length_; i++) {
-            _modes[i]=0;
-        }
-        dataHash = bytes32(keccak256(data_));
-        aaveLending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
+    ) external returns (bool) {
+        bytes memory response = spell(AAVE_IMP, msg.data);
+        return (abi.decode(response, (bool)));
     }
 
     /**
@@ -112,7 +65,7 @@ contract FlashAggregatorAvalanche is Helper {
         validateTokens(_tokens);
 
         if (_route == 1) {
-            routeAave(_tokens, _amounts, _data);
+            spell(AAVE_IMP, msg.data);
         } else if (_route == 2) {
             revert("this route is only for mainnet");
         } else if (_route == 3) {
