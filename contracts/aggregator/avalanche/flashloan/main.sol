@@ -6,9 +6,7 @@ pragma solidity ^0.8.0;
  * @dev Flashloan aggregator.
  */
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 import { Helper } from "./helpers.sol";
 import { InstaFlashReceiverInterface } from "./interfaces.sol";
 import { TokenInterface } from "../../common/interface.sol";
@@ -39,8 +37,8 @@ contract FlashAggregatorAvalanche is Helper {
         address _initiator,
         bytes memory _data
     ) external returns (bool) {
-        bytes memory response = spell(AAVE_IMP, msg.data);
-        return (abi.decode(response, (bool)));
+        bytes memory response_ = spell(AAVE_IMP, msg.data);
+        return (abi.decode(response_, (bool)));
     }
 
     /**

@@ -20,7 +20,7 @@ contract BalancerImplementation is Helper {
         bytes calldata _data,
         bytes calldata _instadata
     ) external reentrancy {
-        require(_route == 5 || _route == 7, "inavlid route for BALANCER");
+        require(_route == 5 || _route == 7, "invalid-BALANCER-route");
 
         if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);

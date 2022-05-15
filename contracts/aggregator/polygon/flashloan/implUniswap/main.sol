@@ -20,7 +20,7 @@ contract UniswapImplementation is Helper {
         bytes calldata _data,
         bytes calldata _instadata
     ) external reentrancy {
-        require(_route == 8, "invalid route for UNISWAP");
+        require(_route == 8, "invalid-UNISWAP-route");
         routeUniswap(_tokens, _amounts, _data, _instadata);
     }
 

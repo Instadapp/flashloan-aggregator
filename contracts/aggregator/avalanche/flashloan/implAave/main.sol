@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import "../helpers.sol";
 
 
-contract BalancerImplementation is Helper {
+contract AaveImplementation is Helper {
 
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -20,7 +20,7 @@ contract BalancerImplementation is Helper {
         bytes calldata _data,
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
-        require(_route == 1, "invalid AAVE route");
+        require(_route == 1, "invalid-AAVE-route");
         routeAave(_tokens, _amounts, _data);
     }
 

@@ -19,7 +19,7 @@ contract BalancerImplementation is Helper {
         bytes calldata _data,
         bytes memory _instadata
     ) external reentrancy {
-        require(_route == 5 , "invalid BALANCER flashloan route");
+        require(_route == 5 , "invalid-BALANCER-route");
         routeBalancer(_tokens, _amounts, _data);
     }
 

@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import "../aggregator/mainnet/flashloan/helpers.sol";
+import "../helpers.sol";
 
 contract AaveImplementation is Helper {
 
@@ -19,7 +19,7 @@ contract AaveImplementation is Helper {
         bytes calldata _data,
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
-        require(_route == 1, "invalid AAVE flashloan route");
+        require(_route == 1, "invalid-AAVE-route");
         routeAave(_tokens, _amounts, _data);
     }
 

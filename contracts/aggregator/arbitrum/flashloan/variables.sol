@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "../../common/interface.sol";
 import "./interfaces.sol";
 
 contract ConstantVariables {
@@ -43,4 +44,7 @@ contract Variables is ConstantVariables {
         address token1;
         uint24 fee;
     }
+
+    address internal BALANCER_IMP;
+    address internal UNISWAP_IMP;
 }

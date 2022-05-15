@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import "../aggregator/mainnet/flashloan/helpers.sol";
+import "../helpers.sol";
 
 contract MakerImplementation is Helper {
 
@@ -19,7 +19,7 @@ contract MakerImplementation is Helper {
         bytes calldata _data,
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
-        require((_route == 2 || _route == 3 || _route == 4), "invalid MAKER flashloan route");
+        require((_route == 2 || _route == 3 || _route == 4), "invalid-MAKER-route");
 
         if (_route == 2) {
             routeMaker(_tokens[0], _amounts[0], _data);

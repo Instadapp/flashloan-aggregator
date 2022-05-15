@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces.sol";
+import "../../common/interface.sol";
 
 contract ConstantVariables {
     IWeth internal constant wethToken =

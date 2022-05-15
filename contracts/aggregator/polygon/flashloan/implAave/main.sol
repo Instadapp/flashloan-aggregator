@@ -20,7 +20,7 @@ contract AaveImplementation is Helper {
         bytes calldata _data,
         bytes calldata _instadata
     ) external reentrancy {
-        require(_route == 1, "invalid route for Aave");
+        require(_route == 1, "invalid-AAVE-route");
         routeAave(_tokens, _amounts, _data);
     }
 

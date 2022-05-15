@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../helpers.sol";
 
-contract BalancerImplementation is Helper {
+contract UniswapImplementation is Helper {
 
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -20,7 +20,7 @@ contract BalancerImplementation is Helper {
         bytes calldata _data,
         bytes calldata _instadata
     ) external reentrancy {
-        require(_route == 8, "invalid route for Uniswap");
+        require(_route == 8, "invalid-UNISWAP-route");
         routeUniswap(_tokens, _amounts, _data, _instadata);
     }
 

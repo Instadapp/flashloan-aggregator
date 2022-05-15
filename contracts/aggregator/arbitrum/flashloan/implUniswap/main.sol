@@ -19,7 +19,7 @@ contract UniswapImplementation is Helper {
         bytes calldata _data,
         bytes memory _instadata
     ) external reentrancy {
-        require(_route == 8, "invalid UNISWAP flashloan route");
+        require(_route == 8, "invalid-UNISWAP-route");
         routeUniswap(_tokens, _amounts, _data, _instadata);
     }
 

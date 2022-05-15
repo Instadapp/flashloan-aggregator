@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import "../aggregator/mainnet/flashloan/helpers.sol";
+import "../helpers.sol";
 
 contract BalancerImplementation is Helper {
 
@@ -19,7 +19,7 @@ contract BalancerImplementation is Helper {
         bytes calldata _data,
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
-        require(_route == 5 || _route == 6 || _route == 7, "invalid BALANCER flashloan route");
+        require(_route == 5 || _route == 6 || _route == 7, "invalid-BALANCER-route");
 
         if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
@@ -265,5 +265,4 @@ contract BalancerImplementation is Helper {
             data_
         );
     }
-
 }
