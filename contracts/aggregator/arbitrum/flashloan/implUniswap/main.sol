@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 import "../helpers.sol";
 
-contract UniswapImplementation is Helper {
+contract UniswapImplementationArbitrum is Helper {
 
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.

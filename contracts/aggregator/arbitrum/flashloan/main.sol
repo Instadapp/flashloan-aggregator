@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-
 import "./helpers.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 
 contract FlashAggregatorArbitrum is Helper {
     using SafeERC20 for IERC20;
@@ -27,7 +25,7 @@ contract FlashAggregatorArbitrum is Helper {
         uint256[] memory _fees,
         bytes memory _data
     ) external {
-        spell(BALANCER_IMP, msg.data);
+        spell(BALANCER_IMPL, msg.data);
     }
 
     /**
@@ -42,7 +40,7 @@ contract FlashAggregatorArbitrum is Helper {
         uint256 fee1,
         bytes memory data
     ) external {
-        spell(UNISWAP_IMP, msg.data);
+        spell(UNISWAP_IMPL, msg.data);
     }
 
     /**
@@ -66,9 +64,9 @@ contract FlashAggregatorArbitrum is Helper {
         validateTokens(_tokens);
 
         if (_route == 5) {
-            spell(BALANCER_IMP, msg.data);
+            spell(BALANCER_IMPL, msg.data);
         } else if (_route == 8) {
-            spell(UNISWAP_IMP, msg.data);
+            spell(UNISWAP_IMPL, msg.data);
         } else {
             revert("route-does-not-exist");
         }
@@ -117,6 +115,12 @@ contract InstaFlashAggregatorArbitrum is FlashAggregatorArbitrum {
     //     require(status == 0, "cannot-call-again");
     //     status = 1;
     // }
+
+
+    function initialize(address bImp, address uImp) public {
+        BALANCER_IMPL = bImp;
+        UNISWAP_IMPL = uImp;
+    }
 
     receive() external payable {}
 }
