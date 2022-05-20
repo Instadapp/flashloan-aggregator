@@ -111,4 +111,21 @@ contract HelpersCommon {
         }
         return (_tokens, _amounts);
     }
+
+    /**
+     * @dev Sort the tokens and amounts arrays according to token addresses.
+     * @notice Sort the tokens and amounts arrays according to token addresses.
+     * @param _token0 address of token0.
+     * @param _token1 address of token1.
+     */
+    function sortTokens(address _token0, address _token1)
+        internal
+        pure
+        returns (address, address)
+    {
+        if(_token1 < _token0) {
+            (_token0, _token1) = (_token1, _token0);
+        }
+        return (_token0 , _token1);
+    }
 }
