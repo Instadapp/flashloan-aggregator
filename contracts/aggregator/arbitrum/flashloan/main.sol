@@ -1,5 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+
+/**
+ * @title Flashloan.
+ * @dev Flashloan aggregator for Arbitrum.
+ */
 import "./helpers.sol";
 
 contract FlashAggregatorArbitrum is Helper {
@@ -60,9 +65,6 @@ contract FlashAggregatorArbitrum is Helper {
     ) external {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
-        validateTokens(_tokens);
-
         if (_route == 5) {
             spell(BALANCER_IMPL, msg.data);
         } else if (_route == 8) {
@@ -117,10 +119,10 @@ contract InstaFlashAggregatorArbitrum is FlashAggregatorArbitrum {
     // }
 
 
-    function initialize(address bImp, address uImp) public {
-        BALANCER_IMPL = bImp;
-        UNISWAP_IMPL = uImp;
-    }
+    // function initialize(address bImp, address uImp) public {
+    //     BALANCER_IMPL = bImp;
+    //     UNISWAP_IMPL = uImp;
+    // }
 
     receive() external payable {}
 }

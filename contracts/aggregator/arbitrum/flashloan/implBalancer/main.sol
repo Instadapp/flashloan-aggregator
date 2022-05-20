@@ -20,6 +20,8 @@ contract BalancerImplementationArbitrum is Helper {
         bytes memory _instadata
     ) external reentrancy {
         require(_route == 5 , "invalid-BALANCER-route");
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
         routeBalancer(_tokens, _amounts, _data);
     }
 

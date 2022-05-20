@@ -20,6 +20,8 @@ contract UniswapImplementationArbitrum is Helper {
         bytes memory _instadata
     ) external reentrancy {
         require(_route == 8, "invalid-UNISWAP-route");
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
         routeUniswap(_tokens, _amounts, _data, _instadata);
     }
 
