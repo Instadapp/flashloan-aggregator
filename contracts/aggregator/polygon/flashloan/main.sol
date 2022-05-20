@@ -1,6 +1,11 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+/**
+ * @title Flashloan.
+ * @dev Flashloan aggregator for Polygon.
+ */
+
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
@@ -30,7 +35,7 @@ contract FlashAggregatorPolygon is Helper {
         address _initiator,
         bytes memory _data
     ) external returns (bool) {
-        bytes memory response_ = spell(AAVE_IMP, msg.data);
+        bytes memory response_ = spell(AAVE_IMPL, msg.data);
         return (abi.decode(response_, (bool)));
     }
 
@@ -47,7 +52,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256[] memory _fees,
         bytes memory _data
     ) external {
-        spell(BALANCER_IMP, msg.data);
+        spell(BALANCER_IMPL, msg.data);
     }
 
     /**
@@ -62,7 +67,7 @@ contract FlashAggregatorPolygon is Helper {
         uint256 fee1,
         bytes memory data
     ) external {
-        spell(UNISWAP_IMP, msg.data);
+        spell(UNISWAP_IMPL, msg.data);
     }
 
     /**
@@ -83,11 +88,13 @@ contract FlashAggregatorPolygon is Helper {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
         if (_route == 1) {
-            spell(AAVE_IMP, msg.data);
+            spell(AAVE_IMPL, msg.data);
         } else if (_route == 5 || _route == 7) {
-            spell(BALANCER_IMP, msg.data);
+            spell(BALANCER_IMPL, msg.data);
         } else if (_route == 8) {
-            spell(UNISWAP_IMP, msg.data);
+            spell(UNISWAP_IMPL, msg.data);
+        } else if (_route == 2 || _route == 3 || _route == 4 || _route == 6) {
+            revert("this route is only for mainnet");
         } else {
             revert("route-does-not-exist");
         }
@@ -137,6 +144,13 @@ contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     // function initialize() public {
     //     require(status == 0, "cannot-call-again");
     //     status = 1;
+    // }
+
+    //Function created for testing upgradable implementations 
+    // function initialize(address aave, address balancer, address uniswap) public {
+    //     AAVE_IMPL = aave;
+    //     BALANCER_IMPL = balancer;
+    //     UNISWAP_IMPL = uniswap;
     // }
 
     receive() external payable {}

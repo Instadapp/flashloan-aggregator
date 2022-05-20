@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../helpers.sol";
 
-contract UniswapImplementation is Helper {
+contract UniswapImplementationPolygon is Helper {
 
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -134,13 +134,14 @@ contract UniswapImplementation is Helper {
         bytes memory _instadata
     ) internal {
         PoolKey memory key = abi.decode(_instadata, (PoolKey));
+        (key.token0, key.token1) = sortTokens(key.token0, key.token1);
 
         uint256 amount0_;
         uint256 amount1_;
 
         if (_tokens.length == 1) {
             require(
-                (_tokens[0] == key.token0 || _tokens[0] == key.token1),
+                (_tokens[0] == key.token0 ),
                 "tokens-do-not-match-pool"
             );
             if (_tokens[0] == key.token0) {

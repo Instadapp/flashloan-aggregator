@@ -52,7 +52,7 @@ contract Variables is ConstantVariables {
         uint24 fee;
     }
 
-    address internal AAVE_IMP;
-    address internal BALANCER_IMP;
-    address internal UNISWAP_IMP;
+    address internal AAVE_IMPL;
+    address internal BALANCER_IMPL;
+    address internal UNISWAP_IMPL;
 }
