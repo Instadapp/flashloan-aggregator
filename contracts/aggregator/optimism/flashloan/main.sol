@@ -93,6 +93,10 @@ contract InstaFlashAggregatorOptimism is FlashAggregatorOptimism {
     //     require(status == 0, "cannot-call-again");
     //     status = 1;
     // }
+
+    /**
+     * @dev Function created for testing upgradable implementations
+     */
     // function initialize(address uniswap) public {
     //     UNISWAP_IMPL = uniswap;
     // }

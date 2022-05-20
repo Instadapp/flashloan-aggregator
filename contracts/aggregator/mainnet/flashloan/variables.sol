@@ -58,7 +58,7 @@ contract Variables is ConstantVariables {
 
     mapping(address => bool) public isWhitelisted;
 
-    address internal AAVE_IMP;
-    address internal MAKER_IMP;
-    address internal BALANCER_IMP;
+    address internal AAVE_IMPL;
+    address internal MAKER_IMPL;
+    address internal BALANCER_IMPL;
 }

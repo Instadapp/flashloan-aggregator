@@ -36,6 +36,7 @@ import {
     const USDT = "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9";
     const ACC_USDC = "0xce2cc46682e9c6d5f174af598fb4931a9c0be68e";
     const ACC_USDT = "0x0db3fe3b770c95a0b99d1ed6f2627933466c0dd8";
+    //usdt < usdc
 
     const usdc = ethers.utils.parseUnits("10", 6);
     const usdt = ethers.utils.parseUnits("10", 6);
@@ -173,7 +174,7 @@ import {
       });
       it("Should be able to take flashLoan of multiple unsorted tokens together from Balancer", async function () {
         await receiver.flashBorrow(
-          [USDT, USDC],
+          [USDC, USDT],
           [Usdc, Usdt],
           5,
           _data,
@@ -191,7 +192,7 @@ import {
         it("Should be able to take flashLoan of multiple tokens together from Uniswap", async function () {
           await receiver.flashBorrow(
             [USDT, USDC],
-            [Usdc, Usdt],
+            [Usdt, Usdc],
             8,
             _data,
             _instaData

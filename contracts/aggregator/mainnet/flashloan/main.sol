@@ -220,7 +220,7 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    // function initialize(address[] memory _ctokens, address owner_, address aave, address balancer, address maker) public {
+    // function initialize(address[] memory _ctokens, address owner_) public {
     //     require(status == 0, "cannot-call-again");
     //     require(stETHStatus == 0, "only-once");
     //     require(ownerStatus == 0, "only-once");
@@ -238,9 +238,6 @@ contract InstaFlashAggregator is FlashAggregator {
     //     ownerStatus = 1;
     //     stETHStatus = 1;
     //     status = 1;
-    //     AAVE_IMPL = aave;
-    //     BALANCER_IMPL = balancer;
-    //     MAKER_IMPL = maker;
     // }
 
     receive() external payable {}

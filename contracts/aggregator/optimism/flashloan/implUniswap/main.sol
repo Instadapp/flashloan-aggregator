@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../helpers.sol";
 
-contract UniswapImplementation is Helper {
+contract UniswapImplementationOptimism is Helper {
 
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -21,6 +21,8 @@ contract UniswapImplementation is Helper {
         bytes calldata _instadata
     ) external reentrancy {
         require(_route == 8, "invalid-UNISWAP-route");
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
         routeUniswap(_tokens, _amounts, _data, _instadata);
     }
 
@@ -39,6 +41,7 @@ contract UniswapImplementation is Helper {
         bytes memory _instadata
     ) internal {
         PoolKey memory key = abi.decode(_instadata, (PoolKey));
+        (key.token0, key.token1) = sortTokens(key.token0, key.token1);
 
         uint256 amount0_;
         uint256 amount1_;

@@ -48,14 +48,19 @@ describe('FlashLoan', function () {
     Aggregator = new InstaFlashAggregatorPolygon__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
+    console.log("aggregator deployed at: ", aggregator.address);
+
 
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
     proxy = await Proxy.deploy(aggregator.address, master, data)
     await proxy.deployed()
+    console.log("proxy deployed at: ", proxy.address);
+
 
     Receiver = new InstaFlashReceiver__factory(signer)
     receiver = await Receiver.deploy(proxy.address)
     await receiver.deployed()
+    console.log("receiver deployed at: ", receiver.address);
 
     const token_dai = new ethers.Contract(
       DAI,
