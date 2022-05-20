@@ -133,6 +133,7 @@ contract UniswapImplementationArbitrum is Helper {
         bytes memory _instadata
     ) internal {
         PoolKey memory key = abi.decode(_instadata, (PoolKey));
+        (key.token0, key.token1) = sortTokens(key.token0, key.token1);
 
         uint256 amount0_;
         uint256 amount1_;

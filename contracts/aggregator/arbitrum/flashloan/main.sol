@@ -118,7 +118,9 @@ contract InstaFlashAggregatorArbitrum is FlashAggregatorArbitrum {
     //     status = 1;
     // }
 
-
+    /**
+     * @dev Function created for testing upgradable implementations
+     */
     // function initialize(address bImp, address uImp) public {
     //     BALANCER_IMPL = bImp;
     //     UNISWAP_IMPL = uImp;

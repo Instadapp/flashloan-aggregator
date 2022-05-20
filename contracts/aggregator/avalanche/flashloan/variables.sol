@@ -31,6 +31,6 @@ contract Variables is ConstantVariables {
         uint256[] _instaFees;
     }
 
-    address internal AAVE_IMP;
+    address internal AAVE_IMPL;
 
 }

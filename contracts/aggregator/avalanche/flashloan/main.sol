@@ -114,10 +114,9 @@ contract InstaFlashAggregatorAvalanche is FlashAggregatorAvalanche {
     /* 
      Deprecated
     */
-    // function initialize(address aave) public {
+    // function initialize() public {
     //     require(status == 0, "cannot-call-again");
     //     status = 1;
-    //     AAVE_IMPL = aave;
     // }
 
     receive() external payable {}

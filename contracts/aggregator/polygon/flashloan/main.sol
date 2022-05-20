@@ -146,7 +146,9 @@ contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     //     status = 1;
     // }
 
-    //Function created for testing upgradable implementations 
+    /**
+     * @dev Function created for testing upgradable implementations
+     */
     // function initialize(address aave, address balancer, address uniswap) public {
     //     AAVE_IMPL = aave;
     //     BALANCER_IMPL = balancer;
