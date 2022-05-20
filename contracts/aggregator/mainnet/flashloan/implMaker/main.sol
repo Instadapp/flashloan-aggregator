@@ -20,6 +20,8 @@ contract MakerImplementation is Helper {
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
         require((_route == 2 || _route == 3 || _route == 4), "invalid-MAKER-route");
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
 
         if (_route == 2) {
             routeMaker(_tokens[0], _amounts[0], _data);

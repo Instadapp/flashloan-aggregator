@@ -20,6 +20,8 @@ contract AaveImplementation is Helper {
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
         require(_route == 1, "invalid-AAVE-route");
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
         routeAave(_tokens, _amounts, _data);
     }
 

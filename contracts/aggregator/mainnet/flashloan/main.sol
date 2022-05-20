@@ -9,6 +9,7 @@ pragma solidity ^0.8.0;
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
+
 contract AdminModule is Helper {
     event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
 
@@ -82,12 +83,6 @@ contract FlashAggregator is Setups {
         uint256[] amounts
     );
 
-    event LogCollectRevenue(
-        address to,
-        address[] tokens,
-        uint256[] amounts
-    );
-
     /**
      * @dev Callback function for aave flashloan.
      * @notice Callback function for aave flashloan.
@@ -104,8 +99,8 @@ contract FlashAggregator is Setups {
         address _initiator,
         bytes memory _data
     ) external returns (bool) {
-        bytes memory response = spell(AAVE_IMP, msg.data);
-        return (abi.decode(response, (bool)));
+        bytes memory response_ = spell(AAVE_IMPL, msg.data);
+        return (abi.decode(response_, (bool)));
     }
 
     /**
@@ -123,8 +118,8 @@ contract FlashAggregator is Setups {
         uint256 _fee,
         bytes calldata _data
     ) external returns (bytes32) {
-        bytes memory response = spell(MAKER_IMP, msg.data);
-        return (abi.decode(response, (bytes32)));
+        bytes memory response_ = spell(MAKER_IMPL, msg.data);
+        return (abi.decode(response_, (bytes32)));
     }
 
     /**
@@ -140,7 +135,7 @@ contract FlashAggregator is Setups {
         uint256[] memory _fees,
         bytes memory _data
     ) external {
-        spell(BALANCER_IMP, msg.data);
+        spell(BALANCER_IMPL, msg.data);
     }
 
     /**
@@ -160,23 +155,20 @@ contract FlashAggregator is Setups {
     ) external {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
-        validateTokens(_tokens);
-
         if (_route == 1) {
-            spell(AAVE_IMP, msg.data);
+            spell(AAVE_IMPL, msg.data);
         } else if (_route == 2) {
-            spell(MAKER_IMP, msg.data);
+            spell(MAKER_IMPL, msg.data);
         } else if (_route == 3) {
-            spell(MAKER_IMP, msg.data);
+            spell(MAKER_IMPL, msg.data);
         } else if (_route == 4) {
-            spell(MAKER_IMP, msg.data);
+            spell(MAKER_IMPL, msg.data);
         } else if (_route == 5) {
-            spell(BALANCER_IMP, msg.data);
+            spell(BALANCER_IMPL, msg.data);
         } else if (_route == 6) {
-            spell(BALANCER_IMP, msg.data);
+            spell(BALANCER_IMPL, msg.data);
         } else if (_route == 7) {
-            spell(BALANCER_IMP, msg.data);
+            spell(BALANCER_IMPL, msg.data);
         } else {
             revert("route-does-not-exist");
         }
@@ -204,8 +196,7 @@ contract FlashAggregator is Setups {
      * @notice Function to transfer fee to the treasury. Will be called manually.
      * @param _tokens token addresses for transferring fee to treasury.
      */
-    function transferFee(address[] memory _tokens, address _to) public onlyOwner {
-        uint256[] memory _amts = new uint256[](_tokens.length);
+    function transferFeeToTreasury(address[] memory _tokens) public {
         for (uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
             uint256 decimals_ = TokenInterface(_tokens[i]).decimals();
@@ -214,13 +205,12 @@ contract FlashAggregator is Setups {
                 : decimals_ > 7
                 ? 100
                 : 10;
-            _amts[i] = token_.balanceOf(address(this)) > amtToSub_
+            uint256 amtToTransfer_ = token_.balanceOf(address(this)) > amtToSub_
                 ? (token_.balanceOf(address(this)) - amtToSub_)
                 : 0;
-            if (_amts[i] > 0)
-                token_.safeTransfer(_to, _amts[i]);
+            if (amtToTransfer_ > 0)
+                token_.safeTransfer(treasuryAddr, amtToTransfer_);
         }
-        emit LogCollectRevenue(_to, _tokens, _amts);
     }
 }
 
@@ -230,7 +220,7 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    // function initialize(address[] memory _ctokens, address owner_) public {
+    // function initialize(address[] memory _ctokens, address owner_, address aave, address balancer, address maker) public {
     //     require(status == 0, "cannot-call-again");
     //     require(stETHStatus == 0, "only-once");
     //     require(ownerStatus == 0, "only-once");
@@ -248,6 +238,9 @@ contract InstaFlashAggregator is FlashAggregator {
     //     ownerStatus = 1;
     //     stETHStatus = 1;
     //     status = 1;
+    //     AAVE_IMPL = aave;
+    //     BALANCER_IMPL = balancer;
+    //     MAKER_IMPL = maker;
     // }
 
     receive() external payable {}

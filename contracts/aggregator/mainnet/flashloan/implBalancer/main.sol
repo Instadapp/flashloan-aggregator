@@ -20,6 +20,8 @@ contract BalancerImplementation is Helper {
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
         require(_route == 5 || _route == 6 || _route == 7, "invalid-BALANCER-route");
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
 
         if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);

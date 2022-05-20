@@ -82,9 +82,6 @@ contract FlashAggregatorPolygon is Helper {
     ) external {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
-        validateTokens(_tokens);
-
         if (_route == 1) {
             spell(AAVE_IMP, msg.data);
         } else if (_route == 5 || _route == 7) {

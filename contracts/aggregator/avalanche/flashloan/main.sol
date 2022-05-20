@@ -3,13 +3,9 @@ pragma solidity ^0.8.0;
 
 /**
  * @title Flashloan.
- * @dev Flashloan aggregator.
+ * @dev Flashloan aggregator for Avalanche.
  */
-
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Helper } from "./helpers.sol";
-import { InstaFlashReceiverInterface } from "./interfaces.sol";
-import { TokenInterface } from "../../common/interface.sol";
+import "./helpers.sol";
 
 contract FlashAggregatorAvalanche is Helper {
     using SafeERC20 for IERC20;
@@ -37,7 +33,7 @@ contract FlashAggregatorAvalanche is Helper {
         address _initiator,
         bytes memory _data
     ) external returns (bool) {
-        bytes memory response_ = spell(AAVE_IMP, msg.data);
+        bytes memory response_ = spell(AAVE_IMPL, msg.data);
         return (abi.decode(response_, (bool)));
     }
 
@@ -55,15 +51,14 @@ contract FlashAggregatorAvalanche is Helper {
         uint256 _route,
         bytes calldata _data,
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
-    ) external reentrancy {
-
+    ) external {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
 
         if (_route == 1) {
-            spell(AAVE_IMP, msg.data);
+            spell(AAVE_IMPL, msg.data);
         } else if (_route == 2) {
             revert("this route is only for mainnet");
         } else if (_route == 3) {
@@ -76,6 +71,8 @@ contract FlashAggregatorAvalanche is Helper {
             revert("this route is only for mainnet");
         } else if (_route == 7) {
             revert("this route is only for mainnet and polygon");
+        } else if (_route == 8) {
+            revert("this route is only for arbitrum, polygon and optimism");
         } else {
             revert("route-does-not-exist");
         }
@@ -117,9 +114,10 @@ contract InstaFlashAggregatorAvalanche is FlashAggregatorAvalanche {
     /* 
      Deprecated
     */
-    // function initialize() public {
+    // function initialize(address aave) public {
     //     require(status == 0, "cannot-call-again");
     //     status = 1;
+    //     AAVE_IMPL = aave;
     // }
 
     receive() external payable {}

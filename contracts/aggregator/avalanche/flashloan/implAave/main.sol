@@ -2,8 +2,7 @@
 pragma solidity ^0.8.0;
 import "../helpers.sol";
 
-
-contract AaveImplementation is Helper {
+contract AaveImplementationAvalanche is Helper {
 
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -21,6 +20,8 @@ contract AaveImplementation is Helper {
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
         require(_route == 1, "invalid-AAVE-route");
+        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+        validateTokens(_tokens);
         routeAave(_tokens, _amounts, _data);
     }
 
