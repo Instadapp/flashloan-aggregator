@@ -32,7 +32,7 @@ contract FlashAggregatorOptimism is Helper {
         uint256 fee1,
         bytes memory data
     ) external {
-        spell(UNISWAP_IMP, msg.data);
+        spell(UNISWAP_IMPL, msg.data);
     }
 
     /**
@@ -51,11 +51,7 @@ contract FlashAggregatorOptimism is Helper {
         bytes calldata _instadata
     ) external {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
-
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
-        validateTokens(_tokens);
-
-        spell(UNISWAP_IMP, msg.data);
+        spell(UNISWAP_IMPL, msg.data);
 
         emit LogFlashloan(msg.sender, _route, _tokens, _amounts);
     }
@@ -93,10 +89,13 @@ contract FlashAggregatorOptimism is Helper {
 }
 
 contract InstaFlashAggregatorOptimism is FlashAggregatorOptimism {
-    function initialize() public {
-        require(status == 0, "cannot-call-again");
-        status = 1;
-    }
+    // function initialize() public {
+    //     require(status == 0, "cannot-call-again");
+    //     status = 1;
+    // }
+    // function initialize(address uniswap) public {
+    //     UNISWAP_IMPL = uniswap;
+    // }
 
     receive() external payable {}
 }

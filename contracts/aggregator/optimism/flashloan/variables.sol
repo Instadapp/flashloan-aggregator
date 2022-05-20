@@ -39,5 +39,5 @@ contract Variables is ConstantVariables {
         uint24 fee;
     }
 
-    address internal UNISWAP_IMP;
+    address internal UNISWAP_IMPL;
 }
