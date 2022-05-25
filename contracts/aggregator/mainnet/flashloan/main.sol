@@ -139,6 +139,21 @@ contract FlashAggregator is Setups {
     }
 
     /**
+     * @dev Callback function for uniswap flashloan.
+     * @notice Callback function for uniswap flashloan.
+     * @param fee0 The fee from calling flash for token0
+     * @param fee1 The fee from calling flash for token1
+     * @param data extra data passed(includes route info aswell).
+     */
+    function uniswapV3FlashCallback(
+        uint256 fee0,
+        uint256 fee1,
+        bytes memory data
+    ) external {
+        spell(UNISWAP_IMPL, msg.data);
+    }
+
+    /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @param _tokens token addresses for flashloan.
@@ -169,6 +184,8 @@ contract FlashAggregator is Setups {
             spell(BALANCER_IMPL, msg.data);
         } else if (_route == 7) {
             spell(BALANCER_IMPL, msg.data);
+        } else if (_route == 8) {
+            spell(UNISWAP_IMPL, msg.data);
         } else {
             revert("route-does-not-exist");
         }
@@ -181,7 +198,7 @@ contract FlashAggregator is Setups {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](7);
+        routes_ = new uint16[](8);
         routes_[0] = 1;
         routes_[1] = 2;
         routes_[2] = 3;
@@ -189,6 +206,7 @@ contract FlashAggregator is Setups {
         routes_[4] = 5;
         routes_[5] = 6;
         routes_[6] = 7;
+        routes_[7] = 8;
     }
 
     /**
@@ -220,25 +238,37 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    // function initialize(address[] memory _ctokens, address owner_) public {
-    //     require(status == 0, "cannot-call-again");
-    //     require(stETHStatus == 0, "only-once");
-    //     require(ownerStatus == 0, "only-once");
-    //     IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
-    //     addTokenToCToken(_ctokens);
-    //     address[] memory cTokens_ = new address[](2);
-    //     cTokens_[0] = cethTokenAddr;
-    //     cTokens_[1] = cdaiTokenAddr;
-    //     uint256[] memory errors_ = troller.enterMarkets(cTokens_);
-    //     for(uint256 j = 0; j < errors_.length; j++){
-    //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
-    //     }
-    //     IERC20(stEthTokenAddr).approve(address(wstEthToken), type(uint256).max);
-    //     owner = owner_;
-    //     ownerStatus = 1;
-    //     stETHStatus = 1;
-    //     status = 1;
-    // }
+    function initialize(address[] memory _ctokens, address owner_) public {
+        require(status == 0, "cannot-call-again");
+        require(stETHStatus == 0, "only-once");
+        require(ownerStatus == 0, "only-once");
+        IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
+        addTokenToCToken(_ctokens);
+        address[] memory cTokens_ = new address[](2);
+        cTokens_[0] = cethTokenAddr;
+        cTokens_[1] = cdaiTokenAddr;
+        uint256[] memory errors_ = troller.enterMarkets(cTokens_);
+        for(uint256 j = 0; j < errors_.length; j++){
+            require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
+        }
+        IERC20(stEthTokenAddr).approve(address(wstEthToken), type(uint256).max);
+        owner = owner_;
+        ownerStatus = 1;
+        stETHStatus = 1;
+        status = 1;
+    }
+
+    /**
+     * @dev Function to set implementations
+     * @notice Function to set implementations
+     * @param uniswap uniswap implementation address
+     */
+    function setImplementations(address aave, address balancer, address maker, address uniswap) public onlyOwner {
+        AAVE_IMPL = aave;
+        BALANCER_IMPL = balancer;
+        MAKER_IMPL = maker;
+        UNISWAP_IMPL = uniswap;
+    }
 
     receive() external payable {}
 }

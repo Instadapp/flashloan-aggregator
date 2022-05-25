@@ -158,3 +158,12 @@ interface IWstETH {
 
     function unwrap(uint256 _wstETHAmount) external returns (uint256);
 }
+
+interface IUniswapV3Pool {
+    function flash(
+        address recipient,
+        uint256 amount0,
+        uint256 amount1,
+        bytes calldata data
+    ) external;
+}

@@ -350,6 +350,36 @@ contract Helper is HelpersCommon, Variables {
     }
 
     /**
+     * @notice Deterministically computes the pool address given the factory and PoolKey
+     * @param factory The Uniswap V3 factory contract address
+     * @param key The PoolKey
+     * @return pool The contract address of the V3 pool
+     */
+    function computeAddress(address factory, PoolKey memory key)
+        internal
+        pure
+        returns (address pool)
+    {
+        require(key.token0 < key.token1, "Token not sorted");
+        pool = address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            hex"ff",
+                            factory,
+                            keccak256(
+                                abi.encode(key.token0, key.token1, key.fee)
+                            ),
+                            POOL_INIT_CODE_HASH
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
      * @dev  better checking by double encoding the data.
      * @notice better checking by double encoding the data.
      * @param data_ data passed.
