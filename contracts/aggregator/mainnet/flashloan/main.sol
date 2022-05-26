@@ -8,6 +8,7 @@ pragma solidity ^0.8.0;
 
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "hardhat/console.sol";
 
 
 contract AdminModule is Helper {
@@ -104,10 +105,10 @@ contract FlashAggregator is Setups {
     }
 
     /**
-     * @dev Fallback function for makerdao flashloan.
-     * @notice Fallback function for makerdao flashloan.
+     * @dev Fallback function for makerdao and equilizer flashloan.
+     * @notice Fallback function for makerdao and equilizer flashloan.
      * @param _initiator initiator address for flashloan.
-     * @param _amount DAI amount for flashloan.
+     * @param _amount amount for flashloan.
      * @param _fee fee for the flashloan.
      * @param _data extra data passed(includes route info aswell).
      */
@@ -118,8 +119,29 @@ contract FlashAggregator is Setups {
         uint256 _fee,
         bytes calldata _data
     ) external returns (bytes32) {
-        bytes memory response_ = spell(MAKER_IMPL, msg.data);
-        return (abi.decode(response_, (bytes32)));
+        console.log("entered Main callback");
+
+        bytes memory response_;
+
+        (
+            uint256 route_,
+            ,
+            ,
+            ,
+        ) = abi.decode(_data, (uint256, address[], uint256[], address, bytes));
+        console.log("route: ", route_);
+
+        require(route_ == 2 || route_ == 3 || route_ == 4 || route_ == 9, "invalid-route-callback");
+
+        if(route_ == 2 || route_ == 3 || route_ == 4) {
+            response_ = spell(MAKER_IMPL, msg.data);
+            return (abi.decode(response_, (bytes32)));
+        } else if(route_ == 9) {
+            console.log("Entered callback Main");
+            response_ = spell(EQUILIZER_IMPL, msg.data);
+            return (abi.decode(response_, (bytes32)));
+        }
+
     }
 
     /**
@@ -186,6 +208,9 @@ contract FlashAggregator is Setups {
             spell(BALANCER_IMPL, msg.data);
         } else if (_route == 8) {
             spell(UNISWAP_IMPL, msg.data);
+        } else if (_route == 9) {
+            console.log("Entered Main flashloan");
+            spell(EQUILIZER_IMPL, msg.data);
         } else {
             revert("route-does-not-exist");
         }
@@ -198,7 +223,7 @@ contract FlashAggregator is Setups {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](8);
+        routes_ = new uint16[](9);
         routes_[0] = 1;
         routes_[1] = 2;
         routes_[2] = 3;
@@ -207,6 +232,7 @@ contract FlashAggregator is Setups {
         routes_[5] = 6;
         routes_[6] = 7;
         routes_[7] = 8;
+        routes_[8] = 9;
     }
 
     /**
@@ -238,7 +264,7 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    function initialize(address[] memory _ctokens, address owner_) public {
+    function initialize(address[] memory _ctokens, address owner_, address aave, address balancer, address maker, address uniswap, address equilizer) public {
         require(status == 0, "cannot-call-again");
         require(stETHStatus == 0, "only-once");
         require(ownerStatus == 0, "only-once");
@@ -256,18 +282,11 @@ contract InstaFlashAggregator is FlashAggregator {
         ownerStatus = 1;
         stETHStatus = 1;
         status = 1;
-    }
-
-    /**
-     * @dev Function to set implementations
-     * @notice Function to set implementations
-     * @param uniswap uniswap implementation address
-     */
-    function setImplementations(address aave, address balancer, address maker, address uniswap) public onlyOwner {
         AAVE_IMPL = aave;
         BALANCER_IMPL = balancer;
         MAKER_IMPL = maker;
         UNISWAP_IMPL = uniswap;
+        EQUILIZER_IMPL = equilizer;
     }
 
     receive() external payable {}

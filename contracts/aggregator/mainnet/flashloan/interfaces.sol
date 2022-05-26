@@ -103,6 +103,7 @@ interface IAaveLending {
         external;
 }
 
+//maker
 interface IERC3156FlashLender {
     function maxFlashLoan(address token) external view returns (uint256);
 
@@ -166,4 +167,15 @@ interface IUniswapV3Pool {
         uint256 amount1,
         bytes calldata data
     ) external;
+}
+
+interface IEquilizerLender {
+    function flashLoan(
+        InstaFlashReceiverInterface reciever,
+        address token,
+        uint256 amount,
+        bytes calldata data
+    ) external returns (bool);
+
+    function flashFee(address token, uint256 amount) external view returns (uint256);
 }

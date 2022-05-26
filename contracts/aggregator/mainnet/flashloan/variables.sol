@@ -17,6 +17,9 @@ contract ConstantVariables {
     IBalancerLending internal constant balancerLending =
         IBalancerLending(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
+    IEquilizerLender internal constant equilizerLending =
+        IEquilizerLender(0xBbe4Ed8F4d9A36F70870D479708C1D8179AF892E);
+
     IWstETH internal constant wstEthToken =
         IWstETH(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
 
@@ -87,6 +90,7 @@ contract Variables is ConstantVariables {
 
     address internal AAVE_IMPL;
     address internal BALANCER_IMPL;
+    address internal EQUILIZER_IMPL;
     address internal MAKER_IMPL;
     address internal UNISWAP_IMPL;
 }

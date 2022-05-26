@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./variables.sol";
 import "../../common/helpers.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "hardhat/console.sol";
 
 contract Helper is HelpersCommon, Variables {
     using SafeERC20 for IERC20;
@@ -71,6 +72,7 @@ contract Helper is HelpersCommon, Variables {
         for (uint256 i = 0; i < length_; i++) {
             IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
             token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
+            console.log("safe transferred: ", _instaLoanVariables._amounts[i]);
         }
     }
 
@@ -305,7 +307,7 @@ contract Helper is HelpersCommon, Variables {
      * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
      * @param _route route number for flashloan.
      */
-    function calculateFeeBPS(uint256 _route, address account_)
+    function calculateFeeBPS(uint256 _route, address account_, address _token, uint _amount)//todo:update
         public
         view
         returns (uint256 BPS_)
@@ -322,6 +324,8 @@ contract Helper is HelpersCommon, Variables {
                         .getFlashLoanFeePercentage()
                 ) *
                 100;
+        } else if (_route == 9) {
+            BPS_ = equilizerLending.flashFee(_token, _amount);
         } else {
             revert("Invalid source");
         }
