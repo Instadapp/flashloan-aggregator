@@ -94,10 +94,12 @@ contract InstaFlashAggregatorOptimism is FlashAggregatorOptimism {
     //     status = 1;
     // }
 
-    /**
-     * @dev Function created for testing upgradable implementations
-     */
-    // function initialize(address uniswap) public {
+    // /**
+    //  * @dev Function to set implementations
+    //  * @notice Function to set implementations
+    //  * @param uniswap uniswap implementation address
+    //  */
+    // function setImplementations(address uniswap) public onlyOwner {
     //     UNISWAP_IMPL = uniswap;
     // }
 

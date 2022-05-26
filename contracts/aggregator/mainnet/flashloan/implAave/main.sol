@@ -55,7 +55,7 @@ contract AaveImplementation is Helper {
         instaLoanVariables_._amounts = _amounts;
         instaLoanVariables_._instaFees = calculateFees(
             _amounts,
-            calculateFeeBPS(1, sender_)
+            calculateFeeBPS(1, sender_, address(0), 0)
         );
         instaLoanVariables_._iniBals = calculateBalances(
             _assets,

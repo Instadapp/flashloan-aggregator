@@ -65,7 +65,7 @@ contract BalancerImplementation is Helper {
         );
         instaLoanVariables_._instaFees = calculateFees(
             amounts_,
-            calculateFeeBPS(route_, sender_)
+            calculateFeeBPS(route_, sender_, address(0), 0)
         );
 
         if (route_ == 5) {
