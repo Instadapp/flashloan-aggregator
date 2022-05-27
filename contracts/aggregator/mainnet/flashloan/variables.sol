@@ -89,4 +89,5 @@ contract Variables is ConstantVariables {
     address internal BALANCER_IMPL;
     address internal MAKER_IMPL;
     address internal UNISWAP_IMPL;
+    address internal FLA_IMPL;
 }

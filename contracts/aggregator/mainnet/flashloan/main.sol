@@ -153,6 +153,50 @@ contract FlashAggregator is Setups {
         spell(UNISWAP_IMPL, msg.data);
     }
 
+    function routeFLA(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal returns (bool) {
+
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = _tokens;
+        instaLoanVariables_._amounts = _amounts;
+        instaLoanVariables_._instaFees = calculateFees(
+            _amounts,
+            calculateFeeBPS(9, msg.sender)
+        );
+        instaLoanVariables_._iniBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        safeTransfer(instaLoanVariables_, msg.sender);
+
+        if (checkIfDsa(msg.sender)) {
+            Address.functionCall(
+                msg.sender,
+                _data,
+                "DSA-flashloan-fallback-failed"
+            );
+        } else {
+            require(InstaFlashReceiverInterface(msg.sender).executeOperation(
+                _tokens,
+                _amounts,
+                instaLoanVariables_._instaFees,
+                msg.sender,
+                _data
+            ), "invalid flashloan execution");
+        }
+
+        instaLoanVariables_._finBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        validateFlashloan(instaLoanVariables_);
+
+        return true;
+    }
+
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -186,6 +230,10 @@ contract FlashAggregator is Setups {
             spell(BALANCER_IMPL, msg.data);
         } else if (_route == 8) {
             spell(UNISWAP_IMPL, msg.data);
+        } else if (_route == 9) {
+            (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+            validateTokens(_tokens);
+            routeFLA(_tokens, _amounts, _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -198,7 +246,7 @@ contract FlashAggregator is Setups {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](8);
+        routes_ = new uint16[](9);
         routes_[0] = 1;
         routes_[1] = 2;
         routes_[2] = 3;
@@ -207,6 +255,7 @@ contract FlashAggregator is Setups {
         routes_[5] = 6;
         routes_[6] = 7;
         routes_[7] = 8;
+        routes_[8] = 9;
     }
 
     /**
@@ -238,7 +287,7 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    function initialize(address[] memory _ctokens, address owner_) public {
+    function initialize(address[] memory _ctokens, address owner_, address aave, address balancer, address maker,address uniswap) public {
         require(status == 0, "cannot-call-again");
         require(stETHStatus == 0, "only-once");
         require(ownerStatus == 0, "only-once");
@@ -256,14 +305,6 @@ contract InstaFlashAggregator is FlashAggregator {
         ownerStatus = 1;
         stETHStatus = 1;
         status = 1;
-    }
-
-    /**
-     * @dev Function to set implementations
-     * @notice Function to set implementations
-     * @param uniswap uniswap implementation address
-     */
-    function setImplementations(address aave, address balancer, address maker, address uniswap) public onlyOwner {
         AAVE_IMPL = aave;
         BALANCER_IMPL = balancer;
         MAKER_IMPL = maker;
