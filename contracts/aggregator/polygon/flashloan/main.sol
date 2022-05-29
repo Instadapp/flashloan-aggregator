@@ -8,6 +8,7 @@ pragma solidity ^0.8.0;
 
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "hardhat/console.sol";
 
 contract FlashAggregatorPolygon is Helper {
     using SafeERC20 for IERC20;
@@ -70,6 +71,54 @@ contract FlashAggregatorPolygon is Helper {
         spell(UNISWAP_IMPL, msg.data);
     }
 
+    function routeFLA(
+        address _receiverAddress,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal reentrancy returns (bool) {//TODO: doubt
+
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = _tokens;
+        instaLoanVariables_._amounts = _amounts;
+        instaLoanVariables_._instaFees = calculateFees(
+            _amounts,
+            calculateFeeBPS(9)
+        );
+        instaLoanVariables_._iniBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        console.log("token: ", instaLoanVariables_._tokens[0]);
+        console.log("balance this: ", IERC20(instaLoanVariables_._tokens[0]).balanceOf(address(this)));
+        safeTransfer(instaLoanVariables_, _receiverAddress);
+
+        if (checkIfDsa(_receiverAddress)) {
+            Address.functionCall(
+                _receiverAddress,
+                _data,
+                "DSA-flashloan-fallback-failed"
+            );
+        } else {
+            require(InstaFlashReceiverInterface(_receiverAddress).executeOperation(
+                _tokens,
+                _amounts,
+                instaLoanVariables_._instaFees,
+                _receiverAddress,
+                _data
+            ), "invalid flashloan execution");
+        }
+
+        instaLoanVariables_._finBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        validateFlashloan(instaLoanVariables_);
+
+        status = 1;
+        return true;
+    }
+
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -95,6 +144,10 @@ contract FlashAggregatorPolygon is Helper {
             spell(UNISWAP_IMPL, msg.data);
         } else if (_route == 2 || _route == 3 || _route == 4 || _route == 6) {
             revert("this route is only for mainnet");
+        } else if (_route == 9) {
+            (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+            validateTokens(_tokens);
+            routeFLA(msg.sender, _tokens, _amounts, _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -107,11 +160,12 @@ contract FlashAggregatorPolygon is Helper {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](4);
+        routes_ = new uint16[](5);
         routes_[0] = 1;
         routes_[1] = 5;
         routes_[2] = 7;
         routes_[3] = 8;
+        routes_[4] = 9;
     }
 
     /**
@@ -149,11 +203,11 @@ contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     /**
      * @dev Function created for testing upgradable implementations
      */
-    // function initialize(address aave, address balancer, address uniswap) public {
-    //     AAVE_IMPL = aave;
-    //     BALANCER_IMPL = balancer;
-    //     UNISWAP_IMPL = uniswap;
-    // }
+    function initialize(address aave, address balancer, address uniswap) public {
+        AAVE_IMPL = aave;
+        BALANCER_IMPL = balancer;
+        UNISWAP_IMPL = uniswap;
+    }
 
     receive() external payable {}
 }

@@ -210,6 +210,8 @@ contract Helper is HelpersCommon, Variables {
                         .getFlashLoanFeePercentage()
                 ) *
                 100;
+        } else if (_route == 9) {
+            BPS_ = InstaFeeBPS;
         } else {
             revert("Invalid source");
         }
