@@ -48,6 +48,52 @@ contract FlashAggregatorArbitrum is Helper {
         spell(UNISWAP_IMPL, msg.data);
     }
 
+    function routeFLA(
+        address _receiverAddress,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal reentrancy returns (bool) {//TODO: doubt
+
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = _tokens;
+        instaLoanVariables_._amounts = _amounts;
+        instaLoanVariables_._instaFees = calculateFees(
+            _amounts,
+            calculateFeeBPS(9)
+        );
+        instaLoanVariables_._iniBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        safeTransfer(instaLoanVariables_, _receiverAddress);
+
+        if (checkIfDsa(_receiverAddress)) {
+            Address.functionCall(
+                _receiverAddress,
+                _data,
+                "DSA-flashloan-fallback-failed"
+            );
+        } else {
+            require(InstaFlashReceiverInterface(_receiverAddress).executeOperation(
+                _tokens,
+                _amounts,
+                instaLoanVariables_._instaFees,
+                _receiverAddress,
+                _data
+            ), "invalid flashloan execution");
+        }
+
+        instaLoanVariables_._finBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        validateFlashloan(instaLoanVariables_);
+
+        status = 1;
+        return true;
+    }
+
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -69,6 +115,10 @@ contract FlashAggregatorArbitrum is Helper {
             spell(BALANCER_IMPL, msg.data);
         } else if (_route == 8) {
             spell(UNISWAP_IMPL, msg.data);
+        } else if (_route == 9) {
+            (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+            validateTokens(_tokens);
+            routeFLA(msg.sender, _tokens, _amounts, _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -81,9 +131,10 @@ contract FlashAggregatorArbitrum is Helper {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](2);
+        routes_ = new uint16[](3);
         routes_[0] = 5;
         routes_[1] = 8;
+        routes_[2] = 9;
     }
 
     /**
