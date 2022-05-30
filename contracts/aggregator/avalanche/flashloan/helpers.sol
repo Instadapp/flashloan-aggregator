@@ -83,6 +83,8 @@ contract Helper is HelpersCommon, Variables {
     function calculateFeeBPS(uint256 _route) public view returns(uint256 BPS_){
         if (_route == 1) {
             BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
+        } else if (_route == 9) {
+            BPS_ = InstaFeeBPS;
         } else {
             revert("Invalid source");
         }
