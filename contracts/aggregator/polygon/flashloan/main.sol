@@ -8,7 +8,6 @@ pragma solidity ^0.8.0;
 
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "hardhat/console.sol";
 
 contract FlashAggregatorPolygon is Helper {
     using SafeERC20 for IERC20;
@@ -89,8 +88,6 @@ contract FlashAggregatorPolygon is Helper {
             _tokens,
             address(this)
         );
-        console.log("token: ", instaLoanVariables_._tokens[0]);
-        console.log("balance this: ", IERC20(instaLoanVariables_._tokens[0]).balanceOf(address(this)));
         safeTransfer(instaLoanVariables_, _receiverAddress);
 
         if (checkIfDsa(_receiverAddress)) {
@@ -203,11 +200,11 @@ contract InstaFlashAggregatorPolygon is FlashAggregatorPolygon {
     /**
      * @dev Function created for testing upgradable implementations
      */
-    function initialize(address aave, address balancer, address uniswap) public {
-        AAVE_IMPL = aave;
-        BALANCER_IMPL = balancer;
-        UNISWAP_IMPL = uniswap;
-    }
+    // function initialize(address aave, address balancer, address uniswap) public {
+    //     AAVE_IMPL = aave;
+    //     BALANCER_IMPL = balancer;
+    //     UNISWAP_IMPL = uniswap;
+    // }
 
     receive() external payable {}
 }
