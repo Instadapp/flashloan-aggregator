@@ -55,22 +55,18 @@ describe('FlashLoan', function () {
     Aggregator = new InstaFlashAggregatorPolygon__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
-    console.log("aggregator deployed at: ", aggregator.address);
 
     ImplAave = new AaveImplementationPolygon__factory(signer)
     implAave = await ImplAave.deploy()
     await implAave.deployed()
-    console.log("implAave deployed at: ", implAave.address);
 
     ImplBalancer = new BalancerImplementationPolygon__factory(signer)
     implBalancer = await ImplBalancer.deploy()
     await implBalancer.deployed()
-    console.log("implBalancer deployed at: ", implBalancer.address);
 
     ImplUniswap = new UniswapImplementationPolygon__factory(signer)
     implUniswap = await ImplUniswap.deploy()
     await implUniswap.deployed()
-    console.log("implUniswap deployed at: ", implUniswap.address);
 
     const proxy = new ethers.Contract(
         proxyAddr,
@@ -96,7 +92,6 @@ describe('FlashLoan', function () {
     Receiver = new InstaFlashReceiver__factory(signer)
     receiver = await Receiver.deploy(proxy.address)
     await receiver.deployed()
-    console.log("receiver deployed at: ", receiver.address);
 
     const token_dai = new ethers.Contract(
       DAI,
@@ -116,6 +111,7 @@ describe('FlashLoan', function () {
 
     const signer_dai = await ethers.getSigner(ACC_DAI)
     await token_dai.connect(signer_dai).transfer(receiver.address, dai)
+    await token_dai.connect(signer_dai).transfer(proxyAddr, Dai)
 
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
@@ -133,6 +129,9 @@ describe('FlashLoan', function () {
     })
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
       await receiver.flashBorrow([DAI], [Dai], 7, _data, _instaData)
+    })
+    it("Should be able to take flashLoan of a single token from FLA", async function () {
+      await receiver.flashBorrow([DAI], [Dai], 9, _data, _instaData)
     })
 
     describe('Uniswap Route', async function () {
@@ -168,6 +167,7 @@ describe('FlashLoan', function () {
 
       const signer_usdt = await ethers.getSigner(ACC_USDT)
       await token.connect(signer_usdt).transfer(receiver.address, usdt)
+      await token.connect(signer_usdt).transfer(proxyAddr, Usdt)
 
       await hre.network.provider.request({
         method: 'hardhat_stopImpersonatingAccount',
@@ -186,6 +186,9 @@ describe('FlashLoan', function () {
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE(Balancer)', async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 7, _data, _instaData)
+    })
+    it("Should be able to take flashLoan of multiple tokens together from FLA", async function () {
+      await receiver.flashBorrow([USDT, DAI], [Usdt, Dai], 9, _data, _instaData);
     })
 
     describe('Uniswap Route', async function () {

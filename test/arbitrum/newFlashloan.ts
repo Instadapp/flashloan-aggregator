@@ -53,17 +53,14 @@ import {
       Aggregator = new InstaFlashAggregatorArbitrum__factory(signer)
       aggregator = await Aggregator.deploy()
       await aggregator.deployed()
-      console.log("aggregator: ", aggregator.address)
 
       BalancerImp = new BalancerImplementationArbitrum__factory(signer)
       balancerImpl = await BalancerImp.deploy()
       await balancerImpl.deployed()
-      console.log("balancerImpl: ", balancerImpl.address)
 
       UniswapImp = new UniswapImplementationArbitrum__factory(signer)
       uniswapImpl = await UniswapImp.deploy()
       await uniswapImpl.deployed()
-      console.log("uniswapImpl: ", uniswapImpl.address)
 
       const proxy = new ethers.Contract(
         proxyAddr,
@@ -84,13 +81,11 @@ import {
       ])
 
       const dataNew = await iface.encodeFunctionData('initialize', [balancerImpl.address,uniswapImpl.address])
-      console.log("dataNew: ", dataNew)
       await proxy.connect(adminSigner).upgradeToAndCall(aggregator.address, dataNew);
 
       Receiver = new InstaFlashReceiver__factory(signer);
       receiver = await Receiver.deploy(proxyAddr);
       await receiver.deployed();
-      console.log("receiver: ", receiver.address)
   
       const token_usdc = new ethers.Contract(
         USDC,
@@ -110,6 +105,7 @@ import {
   
       const signer_usdc = await ethers.getSigner(ACC_USDC);
       await token_usdc.connect(signer_usdc).transfer(receiver.address, usdc);
+      await token_usdc.connect(signer_usdc).transfer(proxyAddr, Usdc);
   
       await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
@@ -122,6 +118,9 @@ import {
       it("Should be able to take flashLoan of a single token from Balancer", async function () {
         await receiver.flashBorrow([USDC], [Usdc], 5, _data, _instaData);
       });
+      it("Should be able to take flashLoan of a single token from FLA", async function () {
+        await receiver.flashBorrow([USDC], [Usdc], 9, _data, _instaData)
+      })
     });
 
     describe("Uniswap Route", async function () {
@@ -156,6 +155,7 @@ import {
   
         const signer_usdt = await ethers.getSigner(ACC_USDT);
         await token.connect(signer_usdt).transfer(receiver.address, usdt);
+        await token.connect(signer_usdt).transfer(proxyAddr, Usdt);
   
         await hre.network.provider.request({
           method: "hardhat_stopImpersonatingAccount",
@@ -181,6 +181,15 @@ import {
           _instaData
         );
       });
+      it("Should be able to take flashLoan of multiple tokens together from FLA", async function () {
+        await receiver.flashBorrow(
+          [USDT, USDC],
+          [Usdt, Usdc],
+          9,
+          _data,
+          _instaData
+        );
+      })
   
       describe("Uniswap Route", async function () {
         beforeEach(async function () {

@@ -73,7 +73,6 @@ describe('FlashLoan', function () {
     ])
 
     const data = iface.encodeFunctionData('initialize',[implUniswap.address])
-    console.log("data: ", data)
     await proxy.connect(adminSigner).upgradeToAndCall(aggregator.address, data);
 
     Receiver = new InstaFlashReceiver__factory(signer)
@@ -98,6 +97,7 @@ describe('FlashLoan', function () {
 
     const signer_dai = await ethers.getSigner(ACC_DAI)
     await token_dai.connect(signer_dai).transfer(receiver.address, dai)
+    await token_dai.connect(signer_dai).transfer(proxyAddr, Dai)
 
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
@@ -113,6 +113,9 @@ describe('FlashLoan', function () {
   describe('Single token', async function () {
     it('Should be able to take flashLoan of a single token from Uniswap', async function () {
       await receiver.flashBorrow([DAI], [Dai], 8, _data, _instaData)
+    })
+    it("Should be able to take flashLoan of a single token from FLA", async function () {
+      await receiver.flashBorrow([DAI], [Dai], 9, _data, _instaData)
     })
   })
 
@@ -136,6 +139,7 @@ describe('FlashLoan', function () {
 
       const signer_usdt = await ethers.getSigner(ACC_USDT)
       await token.connect(signer_usdt).transfer(receiver.address, usdt)
+      await token.connect(signer_usdt).transfer(proxyAddr, Usdt)
 
       await hre.network.provider.request({
         method: 'hardhat_stopImpersonatingAccount',
@@ -148,6 +152,15 @@ describe('FlashLoan', function () {
     })
     it('Should be able to take flashLoan of multiple tokens together from Uniswap', async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 8, _data, _instaData)
+    })
+    it("Should be able to take flashLoan of multiple tokens together from FLA", async function () {
+      await receiver.flashBorrow(
+        [USDT, DAI],
+        [Usdt, Dai],
+        9,
+        _data,
+        _instaData
+      );
     })
   })
 })

@@ -8,6 +8,7 @@ import {
   InstaFlashReceiver__factory,
   InstaFlashReceiver,
   InstaFlashAggregatorProxy__factory,
+  InstaFlashAggregatorProxy,
   AaveImplementationAvalanche,
   AaveImplementationAvalanche__factory
 } from '../../typechain'
@@ -18,7 +19,7 @@ describe('FlashLoan', function () {
     Receiver,
     receiver: InstaFlashReceiver,
     Proxy,
-    proxy,
+    proxy: InstaFlashAggregatorProxy,
     ImplAave,
     implAave,
     proxyAddr = "0x2b65731A085B55DBe6c7DcC8D717Ac36c00F6d19",
@@ -44,6 +45,7 @@ describe('FlashLoan', function () {
 
   const zeroAddr =
     '0x0000000000000000000000000000000000000000000000000000000000000000'
+  const _data = '0x'
   let _instaData = ''
 
 
@@ -52,24 +54,20 @@ describe('FlashLoan', function () {
     Aggregator = new InstaFlashAggregatorAvalanche__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
-    console.log("aggregator: ", aggregator.address)
 
     ImplAave = new AaveImplementationAvalanche__factory(signer)
     implAave = await ImplAave.deploy()
     await implAave.deployed()
-    console.log("implAave: ", implAave.address)
 
     const data = iface.encodeFunctionData('initialize',[implAave.address])
 
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
     proxy = await Proxy.deploy(aggregator.address, master, data)
     await proxy.deployed()
-    console.log("proxy: ", proxy.address)
     
     Receiver = new InstaFlashReceiver__factory(signer)
     receiver = await Receiver.deploy(proxy.address)
     await receiver.deployed()
-    console.log("receiver: ", receiver.address)
 
     const token_dai = new ethers.Contract(
       DAI,
@@ -89,6 +87,7 @@ describe('FlashLoan', function () {
 
     const signer_dai = await ethers.getSigner(ACC_DAI)
     await token_dai.connect(signer_dai).transfer(receiver.address, dai)
+    await token_dai.connect(signer_dai).transfer(proxy.address, Dai)
 
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
@@ -100,6 +99,9 @@ describe('FlashLoan', function () {
   describe('Single token', async function () {
     it('Should be able to take flashLoan of a single token from AAVE', async function () {
       await receiver.flashBorrow([DAI], [Dai], 1, zeroAddr,_instaData)
+    })
+    it('Should be able to take flashLoan of a single token from FLA', async function () {
+      await receiver.flashBorrow([DAI], [Dai], 9, zeroAddr, _instaData)
     })
   })
 
@@ -123,6 +125,7 @@ describe('FlashLoan', function () {
 
       const signer_usdt = await ethers.getSigner(ACC_USDT)
       await token.connect(signer_usdt).transfer(receiver.address, usdt)
+      await token.connect(signer_usdt).transfer(proxy.address, Usdt)
 
       await hre.network.provider.request({
         method: 'hardhat_stopImpersonatingAccount',
@@ -132,6 +135,9 @@ describe('FlashLoan', function () {
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE', async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 1, zeroAddr,_instaData )
+    })
+    it('Should be able to take flashLoan of multiple tokens together from FLA', async function () {
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 9, _data, _instaData )
     })
   })
 })
