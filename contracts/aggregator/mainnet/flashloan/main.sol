@@ -8,6 +8,7 @@ pragma solidity ^0.8.0;
 
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "hardhat/console.sol";
 
 
 contract AdminModule is Helper {
@@ -154,36 +155,37 @@ contract FlashAggregator is Setups {
     }
 
     function routeFLA(
+        address _receiverAddress,
         address[] memory _tokens,
         uint256[] memory _amounts,
         bytes memory _data
-    ) internal returns (bool) {
+    ) internal reentrancy returns (bool) {//TODO: doubt
 
         FlashloanVariables memory instaLoanVariables_;
         instaLoanVariables_._tokens = _tokens;
         instaLoanVariables_._amounts = _amounts;
         instaLoanVariables_._instaFees = calculateFees(
             _amounts,
-            calculateFeeBPS(9, msg.sender)
+            calculateFeeBPS(9, _receiverAddress)
         );
         instaLoanVariables_._iniBals = calculateBalances(
             _tokens,
             address(this)
         );
-        safeTransfer(instaLoanVariables_, msg.sender);
+        safeTransfer(instaLoanVariables_, _receiverAddress);
 
-        if (checkIfDsa(msg.sender)) {
+        if (checkIfDsa(_receiverAddress)) {
             Address.functionCall(
-                msg.sender,
+                _receiverAddress,
                 _data,
                 "DSA-flashloan-fallback-failed"
             );
         } else {
-            require(InstaFlashReceiverInterface(msg.sender).executeOperation(
+            require(InstaFlashReceiverInterface(_receiverAddress).executeOperation(
                 _tokens,
                 _amounts,
                 instaLoanVariables_._instaFees,
-                msg.sender,
+                _receiverAddress,
                 _data
             ), "invalid flashloan execution");
         }
@@ -194,6 +196,7 @@ contract FlashAggregator is Setups {
         );
         validateFlashloan(instaLoanVariables_);
 
+        status = 1;
         return true;
     }
 
@@ -233,7 +236,7 @@ contract FlashAggregator is Setups {
         } else if (_route == 9) {
             (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
             validateTokens(_tokens);
-            routeFLA(_tokens, _amounts, _data);
+            routeFLA(msg.sender, _tokens, _amounts, _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -287,29 +290,25 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    function initialize(address[] memory _ctokens, address owner_, address aave, address balancer, address maker,address uniswap) public {
-        require(status == 0, "cannot-call-again");
-        require(stETHStatus == 0, "only-once");
-        require(ownerStatus == 0, "only-once");
-        IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
-        addTokenToCToken(_ctokens);
-        address[] memory cTokens_ = new address[](2);
-        cTokens_[0] = cethTokenAddr;
-        cTokens_[1] = cdaiTokenAddr;
-        uint256[] memory errors_ = troller.enterMarkets(cTokens_);
-        for(uint256 j = 0; j < errors_.length; j++){
-            require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
-        }
-        IERC20(stEthTokenAddr).approve(address(wstEthToken), type(uint256).max);
-        owner = owner_;
-        ownerStatus = 1;
-        stETHStatus = 1;
-        status = 1;
-        AAVE_IMPL = aave;
-        BALANCER_IMPL = balancer;
-        MAKER_IMPL = maker;
-        UNISWAP_IMPL = uniswap;
-    }
+    // function initialize(address[] memory _ctokens, address owner_) public {
+    //     require(status == 0, "cannot-call-again");
+    //     require(stETHStatus == 0, "only-once");
+    //     require(ownerStatus == 0, "only-once");
+    //     IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
+    //     addTokenToCToken(_ctokens);
+    //     address[] memory cTokens_ = new address[](2);
+    //     cTokens_[0] = cethTokenAddr;
+    //     cTokens_[1] = cdaiTokenAddr;
+    //     uint256[] memory errors_ = troller.enterMarkets(cTokens_);
+    //     for(uint256 j = 0; j < errors_.length; j++){
+    //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
+    //     }
+    //     IERC20(stEthTokenAddr).approve(address(wstEthToken), type(uint256).max);
+    //     owner = owner_;
+    //     ownerStatus = 1;
+    //     stETHStatus = 1;
+    //     status = 1;
+    // }
 
     receive() external payable {}
 }
