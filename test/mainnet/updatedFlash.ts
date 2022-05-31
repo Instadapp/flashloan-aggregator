@@ -435,6 +435,22 @@ describe('FlashLoan', function () {
           method: 'hardhat_stopImpersonatingAccount',
           params: [ACC_WETH],
         })
+        await hre.network.provider.send('hardhat_setBalance', [
+          ACC_DAI,
+          ethers.utils.parseEther('10.0').toHexString(),
+        ])
+        await hre.network.provider.request({
+          method: 'hardhat_impersonateAccount',
+          params: [ACC_DAI],
+        })
+    
+        const signer_dai = await ethers.getSigner(ACC_DAI)
+        await token_dai.connect(signer_dai).transfer(proxy.address, Dai)
+
+        await hre.network.provider.request({
+          method: 'hardhat_stopImpersonatingAccount',
+          params: [ACC_DAI],
+        })
       })
 
       it('Should be able to take flashLoan of multiple tokens together from FLA', async function () {
