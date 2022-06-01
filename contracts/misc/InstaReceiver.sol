@@ -45,6 +45,7 @@ contract InstaFlashReceiver {
                 amounts[i] + premiums[i]
             );
         }
+        return true;
     }
 
     constructor(address flashloan_) {

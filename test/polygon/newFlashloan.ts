@@ -3,14 +3,14 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 const { ethers } = hre
 
 import {
-  InstaFlashAggregatorPolygon,
   InstaFlashAggregatorPolygon__factory,
   IERC20__factory,
-  IERC20,
   InstaFlashReceiver__factory,
   InstaFlashReceiver,
-  InstaFlashAggregatorProxy,
   InstaFlashAggregatorProxy__factory,
+  UniswapImplementationPolygon__factory,
+  BalancerImplementationPolygon__factory,
+  AaveImplementationPolygon__factory
 } from '../../typechain'
 
 describe('FlashLoan', function () {
@@ -18,21 +18,28 @@ describe('FlashLoan', function () {
     aggregator,
     Receiver,
     receiver: InstaFlashReceiver,
-    Proxy,
-    proxy
+    implUniswap,
+    ImplUniswap,
+    implBalancer,
+    ImplBalancer,
+    implAave,
+    ImplAave,
+    proxyAddr = "0xB2A7F20D10A006B0bEA86Ce42F2524Fde5D6a0F4",
+    admin = "0x90cf378a297c7ef6dabed36ea5e112c6646bb3a4",
+    adminSigner
 
   let signer: SignerWithAddress
 
   const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137'
 
-  let ABI = ['function initialize()']
+  let ABI = ['function initialize(address aave, address balancer, address uniswap)']
   let iface = new ethers.utils.Interface(ABI)
-  const data = iface.encodeFunctionData('initialize')
 
   const DAI = '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063'
   const USDT = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
   const ACC_DAI = '0x4a35582a710e1f4b2030a3f826da20bfb6703c09'
   const ACC_USDT = '0x0d0707963952f2fba59dd06f2b425ace40b492fe'
+  //dai < usdt
 
   const dai = ethers.utils.parseUnits('1000', 18)
   const usdt = ethers.utils.parseUnits('1000', 6)
@@ -48,19 +55,43 @@ describe('FlashLoan', function () {
     Aggregator = new InstaFlashAggregatorPolygon__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
-    console.log("aggregator deployed at: ", aggregator.address);
 
+    ImplAave = new AaveImplementationPolygon__factory(signer)
+    implAave = await ImplAave.deploy()
+    await implAave.deployed()
 
-    Proxy = new InstaFlashAggregatorProxy__factory(signer)
-    proxy = await Proxy.deploy(aggregator.address, master, data)
-    await proxy.deployed()
-    console.log("proxy deployed at: ", proxy.address);
+    ImplBalancer = new BalancerImplementationPolygon__factory(signer)
+    implBalancer = await ImplBalancer.deploy()
+    await implBalancer.deployed()
 
+    ImplUniswap = new UniswapImplementationPolygon__factory(signer)
+    implUniswap = await ImplUniswap.deploy()
+    await implUniswap.deployed()
+
+    const proxy = new ethers.Contract(
+        proxyAddr,
+        InstaFlashAggregatorProxy__factory.abi,
+        ethers.provider,
+    )
+
+    await hre.network.provider.request({
+        method: 'hardhat_impersonateAccount',
+        params: [admin],
+    })
+
+    adminSigner = await ethers.getSigner(admin);
+
+    await hre.network.provider.send('hardhat_setBalance', [
+        admin,
+        ethers.utils.parseEther('10.0').toHexString(),
+    ])
+
+    const data = iface.encodeFunctionData('initialize', [implAave.address, implBalancer.address,implUniswap.address])
+    await proxy.connect(adminSigner).upgradeToAndCall(aggregator.address, data);
 
     Receiver = new InstaFlashReceiver__factory(signer)
     receiver = await Receiver.deploy(proxy.address)
     await receiver.deployed()
-    console.log("receiver deployed at: ", receiver.address);
 
     const token_dai = new ethers.Contract(
       DAI,
@@ -80,6 +111,7 @@ describe('FlashLoan', function () {
 
     const signer_dai = await ethers.getSigner(ACC_DAI)
     await token_dai.connect(signer_dai).transfer(receiver.address, dai)
+    await token_dai.connect(signer_dai).transfer(proxyAddr, Dai)
 
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
@@ -97,6 +129,9 @@ describe('FlashLoan', function () {
     })
     it('Should be able to take flashLoan of a single token from AAVE(Balancer)', async function () {
       await receiver.flashBorrow([DAI], [Dai], 7, _data, _instaData)
+    })
+    it("Should be able to take flashLoan of a single token from FLA", async function () {
+      await receiver.flashBorrow([DAI], [Dai], 9, _data, _instaData)
     })
 
     describe('Uniswap Route', async function () {
@@ -132,6 +167,7 @@ describe('FlashLoan', function () {
 
       const signer_usdt = await ethers.getSigner(ACC_USDT)
       await token.connect(signer_usdt).transfer(receiver.address, usdt)
+      await token.connect(signer_usdt).transfer(proxyAddr, Usdt)
 
       await hre.network.provider.request({
         method: 'hardhat_stopImpersonatingAccount',
@@ -151,15 +187,27 @@ describe('FlashLoan', function () {
     it('Should be able to take flashLoan of multiple tokens together from AAVE(Balancer)', async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 7, _data, _instaData)
     })
+    it("Should be able to take flashLoan of multiple tokens together from FLA", async function () {
+      await receiver.flashBorrow([USDT, DAI], [Usdt, Dai], 9, _data, _instaData);
+    })
 
     describe('Uniswap Route', async function () {
       beforeEach(async function () {
         _instaData = await ethers.utils.defaultAbiCoder.encode(
           ['tuple(address, address, uint24)'],
-          [[DAI, USDT, '500']],
+          [[USDT, DAI, '500']],
         )
       })
-      it('Should be able to take flashLoan of multiple tokens together from Uniswap', async function () {
+      it('Should be able to take flashLoan of multiple unsorted tokens together from Uniswap', async function () {
+        await receiver.flashBorrow(
+          [USDT, DAI],
+          [Usdt, Dai],
+          8,
+          _data,
+          _instaData,
+        )
+      })
+      it('Should be able to take flashLoan of multiple tokens sorted together from Uniswap', async function () {
         await receiver.flashBorrow(
           [DAI, USDT],
           [Dai, Usdt],

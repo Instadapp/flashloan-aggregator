@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces.sol";
+import "../../common/interface.sol";
 
 contract ConstantVariables {
     address public constant aaveLendingAddr =
@@ -50,4 +51,8 @@ contract Variables is ConstantVariables {
         address token1;
         uint24 fee;
     }
+
+    address internal AAVE_IMPL;
+    address internal BALANCER_IMPL;
+    address internal UNISWAP_IMPL;
 }
