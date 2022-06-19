@@ -9,7 +9,6 @@ pragma solidity ^0.8.0;
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-
 contract AdminModule is Helper {
     event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
 
@@ -104,7 +103,7 @@ contract FlashAggregator is Setups {
     }
 
     /**
-     * @dev Fallback function for makerdao flashloan.
+     * @dev Fallback function for makerdao and euler flashloan.
      * @notice Fallback function for makerdao flashloan.
      * @param _initiator initiator address for flashloan.
      * @param _amount DAI amount for flashloan.
@@ -118,7 +117,17 @@ contract FlashAggregator is Setups {
         uint256 _fee,
         bytes calldata _data
     ) external returns (bytes32) {
-        bytes memory response_ = spell(MAKER_IMPL, msg.data);
+        (uint256 route_, , , , ) = abi.decode(
+            _data,
+            (uint256, address[], uint256[], address, bytes)
+        );
+        bytes memory response_;
+
+        if (route_ == 2 || route_ == 3 || route_ == 4) {
+            response_ = spell(MAKER_IMPL, msg.data);
+        } else if (route_ == 10) {
+            response_ = spell(EULER_IMPL, msg.data);
+        }
         return (abi.decode(response_, (bytes32)));
     }
 
@@ -153,12 +162,17 @@ contract FlashAggregator is Setups {
         spell(UNISWAP_IMPL, msg.data);
     }
 
+    function onDeferredLiquidityCheck(bytes memory _data) external {
+        spell(EULER_IMPL, msg.data);
+    }
+
     function routeFLA(
         address _receiverAddress,
         address[] memory _tokens,
         uint256[] memory _amounts,
         bytes memory _data
-    ) internal reentrancy returns (bool) {//TODO: doubt
+    ) internal reentrancy returns (bool) {
+        //TODO: doubt
 
         FlashloanVariables memory instaLoanVariables_;
         instaLoanVariables_._tokens = _tokens;
@@ -180,13 +194,16 @@ contract FlashAggregator is Setups {
                 "DSA-flashloan-fallback-failed"
             );
         } else {
-            require(InstaFlashReceiverInterface(_receiverAddress).executeOperation(
-                _tokens,
-                _amounts,
-                instaLoanVariables_._instaFees,
-                _receiverAddress,
-                _data
-            ), "invalid flashloan execution");
+            require(
+                InstaFlashReceiverInterface(_receiverAddress).executeOperation(
+                    _tokens,
+                    _amounts,
+                    instaLoanVariables_._instaFees,
+                    _receiverAddress,
+                    _data
+                ),
+                "invalid flashloan execution"
+            );
         }
 
         instaLoanVariables_._finBals = calculateBalances(
@@ -236,6 +253,8 @@ contract FlashAggregator is Setups {
             (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
             validateTokens(_tokens);
             routeFLA(msg.sender, _tokens, _amounts, _data);
+        } else if (_route == 10) {
+            spell(EULER_IMPL, msg.data);
         } else {
             revert("route-does-not-exist");
         }
@@ -258,6 +277,7 @@ contract FlashAggregator is Setups {
         routes_[6] = 7;
         routes_[7] = 8;
         routes_[8] = 9;
+        routes_[9] = 10;
     }
 
     /**
@@ -289,25 +309,41 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    // function initialize(address[] memory _ctokens, address owner_) public {
-    //     require(status == 0, "cannot-call-again");
-    //     require(stETHStatus == 0, "only-once");
-    //     require(ownerStatus == 0, "only-once");
-    //     IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
-    //     addTokenToCToken(_ctokens);
-    //     address[] memory cTokens_ = new address[](2);
-    //     cTokens_[0] = cethTokenAddr;
-    //     cTokens_[1] = cdaiTokenAddr;
-    //     uint256[] memory errors_ = troller.enterMarkets(cTokens_);
-    //     for(uint256 j = 0; j < errors_.length; j++){
-    //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
-    //     }
-    //     IERC20(stEthTokenAddr).approve(address(wstEthToken), type(uint256).max);
-    //     owner = owner_;
-    //     ownerStatus = 1;
-    //     stETHStatus = 1;
-    //     status = 1;
-    // }
+    function initialize(
+        address[] memory _ctokens,
+        address owner_,
+        address aave,
+        address balancer,
+        address euler,
+        address maker,
+        address uniswap
+    ) public {
+        require(status == 0, "cannot-call-again");
+        require(stETHStatus == 0, "only-once");
+        require(ownerStatus == 0, "only-once");
+        IERC20(daiTokenAddr).safeApprove(
+            address(makerLending),
+            type(uint256).max
+        );
+        addTokenToCToken(_ctokens);
+        address[] memory cTokens_ = new address[](2);
+        cTokens_[0] = cethTokenAddr;
+        cTokens_[1] = cdaiTokenAddr;
+        uint256[] memory errors_ = troller.enterMarkets(cTokens_);
+        for (uint256 j = 0; j < errors_.length; j++) {
+            require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
+        }
+        IERC20(stEthTokenAddr).approve(address(wstEthToken), type(uint256).max);
+        owner = owner_;
+        ownerStatus = 1;
+        stETHStatus = 1;
+        status = 1;
+        AAVE_IMPL = aave;
+        BALANCER_IMPL = balancer;
+        EULER_IMPL = euler;
+        MAKER_IMPL = maker;
+        UNISWAP_IMPL = uniswap;
+    }
 
     receive() external payable {}
 }

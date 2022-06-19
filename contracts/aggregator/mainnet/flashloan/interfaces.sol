@@ -167,3 +167,12 @@ interface IUniswapV3Pool {
         bytes calldata data
     ) external;
 }
+
+interface IEulerLending {
+    function flashLoan(
+        InstaFlashReceiverInterface receiver,
+        address token,
+        uint256 amount,
+        bytes calldata data
+    ) external returns (bool);
+}

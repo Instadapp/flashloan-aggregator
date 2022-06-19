@@ -17,6 +17,9 @@ contract ConstantVariables {
     IBalancerLending internal constant balancerLending =
         IBalancerLending(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
+    IEulerLending internal constant eulerLending =
+        IEulerLending(0x07df2ad9878F8797B4055230bbAE5C808b8259b3);
+
     IWstETH internal constant wstEthToken =
         IWstETH(0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0);
 
@@ -31,7 +34,7 @@ contract ConstantVariables {
 
     address internal constant cdaiTokenAddr =
         0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643;
-    
+
     address internal constant cethTokenAddr =
         0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5;
 
@@ -87,7 +90,7 @@ contract Variables is ConstantVariables {
 
     address internal AAVE_IMPL;
     address internal BALANCER_IMPL;
+    address internal EULER_IMPL;
     address internal MAKER_IMPL;
     address internal UNISWAP_IMPL;
-    address internal FLA_IMPL;
 }
