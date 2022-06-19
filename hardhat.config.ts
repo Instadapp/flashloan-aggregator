@@ -26,6 +26,7 @@ const chainIds = {
   avalanche: 43114,
   polygon: 137,
   optimism: 10,
+  fantom: 250,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -59,6 +60,7 @@ function getNetworkUrl(networkType: string) {
   else if (networkType === "polygon") return `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "arbitrum") return `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "optimism") return `https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
+  else if (networkType === "fantom") return `https://rpc.ankr.com/fantom`;
   else return `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`;
 }
 
@@ -67,6 +69,7 @@ function getBlockNumber(networkType: string) {
   else if (networkType === "polygon") return 25941254;
   else if (networkType === "arbitrum") return 7719792;
   else if (networkType === "optimism") return 4346343;
+  else if (networkType === "fantom") return 40887910;
   else return 14456907;
 }
 
@@ -128,7 +131,13 @@ const config: HardhatUserConfig = {
       chainId: 10,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
       gasPrice: 1000000,
-    }
+    },
+    fantom_mainnet: {
+      url: `https://rpc.ankr.com/fantom`,
+      chainId: 250,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 210011000000,
+    },
   },
   paths: {
     artifacts: "./artifacts",
@@ -166,7 +175,7 @@ const config: HardhatUserConfig = {
     target: "ethers-v5",
   },
   mocha: {
-    timeout: 10000 * 10000,
+    timeout: 100000 * 100000,
   },
   etherscan: {
     apiKey: `${process.env.SCAN_API_KEY}`
