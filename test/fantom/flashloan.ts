@@ -21,7 +21,7 @@ describe('FlashLoan', function () {
     Receiver,
     receiver: InstaFlashReceiver,
     Proxy,
-    proxy,
+    proxy: InstaFlashAggregatorProxy,
     ImplAave,
     implAave;
 
@@ -95,6 +95,10 @@ describe('FlashLoan', function () {
       ACC_DAI,
       ethers.utils.parseEther('10.0').toHexString(),
     ])
+    await hre.network.provider.send('hardhat_setBalance', [
+      proxy.address,
+      ethers.utils.parseEther('10.0').toHexString(),
+    ])
 
     await hre.network.provider.request({
       method: 'hardhat_impersonateAccount',
@@ -104,6 +108,7 @@ describe('FlashLoan', function () {
     const signer_dai = await ethers.getSigner(ACC_DAI)
     console.log(await token_dai.connect(signer_dai).balanceOf(ACC_DAI));
     await token_dai.connect(signer_dai).transfer(receiver.address, dai)
+    await token_dai.connect(signer_dai).transfer(proxy.address, Dai)
 
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
@@ -116,6 +121,9 @@ describe('FlashLoan', function () {
   describe('Single token', async function () {
     it('Should be able to take flashLoan of a single token from AAVE V3', async function () {
       await receiver.flashBorrow([DAI], [Dai], 9, zeroAddr,_instaData)
+    })
+    it('Should be able to take flashLoan of a single token from FLA', async function () {
+      await receiver.flashBorrow([DAI], [Dai], 10, zeroAddr, _instaData)
     })
   })
 
@@ -139,6 +147,7 @@ describe('FlashLoan', function () {
 
       const signer_usdc = await ethers.getSigner(ACC_USDC)
       await token.connect(signer_usdc).transfer(receiver.address, usdc)
+      await token.connect(signer_usdc).transfer(proxy.address, Usdc)
 
       await hre.network.provider.request({
         method: 'hardhat_stopImpersonatingAccount',
@@ -147,7 +156,10 @@ describe('FlashLoan', function () {
       _instaData = '0x'
     })
     it('Should be able to take flashLoan of multiple tokens together from AAVE', async function () {
-      await receiver.flashBorrow([DAI, USDC], [Dai, Usdc], 9, zeroAddr,_instaData )
+      await receiver.flashBorrow([DAI, USDC], [Dai, Usdc], 9, zeroAddr, _instaData )
+    })
+    it('Should be able to take flashLoan of multiple tokens together from FLA', async function () {
+      await receiver.flashBorrow([DAI, USDC], [Dai, Usdc], 10, zeroAddr, _instaData )
     })
   })
 })
