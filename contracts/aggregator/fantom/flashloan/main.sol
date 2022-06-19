@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
  * @dev Flashloan aggregator for Fantom.
  */
 import "./helpers.sol";
+import "hardhat/console.sol";
 
 contract FlashAggregatorFantom is Helper {
     using SafeERC20 for IERC20;
@@ -35,6 +36,57 @@ contract FlashAggregatorFantom is Helper {
     ) external returns (bool) {
         bytes memory response_ = spell(AAVE_IMPL, msg.data);
         return (abi.decode(response_, (bool)));
+    }
+
+    function routeFLA(
+        address _receiverAddress,
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal reentrancy returns (bool) {//TODO: doubt
+
+        console.log("Inside routefla");
+
+        FlashloanVariables memory instaLoanVariables_;
+        instaLoanVariables_._tokens = _tokens;
+        instaLoanVariables_._amounts = _amounts;
+        instaLoanVariables_._instaFees = calculateFees(
+            _amounts,
+            calculateFeeBPS(10)
+        );
+        console.log("AAVE_IMPL: ", AAVE_IMPL);
+        instaLoanVariables_._iniBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        console.log("_iniBals: ", instaLoanVariables_._iniBals[0]);
+        safeTransfer(instaLoanVariables_, _receiverAddress);
+
+        if (checkIfDsa(_receiverAddress)) {
+            Address.functionCall(
+                _receiverAddress,
+                _data,
+                "DSA-flashloan-fallback-failed"
+            );
+        } else {
+            require(InstaFlashReceiverInterface(_receiverAddress).executeOperation(
+                _tokens,
+                _amounts,
+                instaLoanVariables_._instaFees,
+                _receiverAddress,
+                _data
+            ), "invalid flashloan execution");
+        }
+
+        instaLoanVariables_._finBals = calculateBalances(
+            _tokens,
+            address(this)
+        );
+        console.log("_finBals: ", instaLoanVariables_._finBals[0]);
+        validateFlashloan(instaLoanVariables_);
+
+        status = 1;
+        return true;
     }
 
     /**
@@ -75,6 +127,10 @@ contract FlashAggregatorFantom is Helper {
             revert("this route is only for arbitrum, polygon and optimism");
         } else if (_route == 9) {
             spell(AAVE_IMPL, msg.data);
+        } else if (_route == 10){
+            (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
+            validateTokens(_tokens);
+            routeFLA(msg.sender, _tokens, _amounts, _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -91,9 +147,11 @@ contract FlashAggregatorFantom is Helper {
      * @dev Function to get the list of available routes.
      * @notice Function to get the list of available routes.
     */
-    function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](1);
+    function getRoutes() public view returns (uint16[] memory routes_) {
+        console.log("Inside getRoutes main");
+        routes_ = new uint16[](2);
         routes_[0] = 9;
+        routes_[1] = 10;
     }
 
     /**
@@ -118,6 +176,7 @@ contract InstaFlashAggregatorFantom is FlashAggregatorFantom {
         require(status == 0, "cannot-call-again");
         status = 1;
         AAVE_IMPL = aave;
+        console.log("AAVE_IMPL: ", AAVE_IMPL);
     }
 
     receive() external payable {}
