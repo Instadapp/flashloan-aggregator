@@ -11,10 +11,12 @@ import {
   InstaFlashAggregatorProxy,
   AaveImplementation__factory,
   BalancerImplementation__factory,
+  EulerImplementation__factory,
   MakerImplementation__factory,
   UniswapImplementation__factory,
   AaveImplementation,
   BalancerImplementation,
+  EulerImplementation,
   MakerImplementation,
   UniswapImplementation
 } from '../../typechain'
@@ -28,10 +30,12 @@ describe('FlashLoan', function () {
     proxy: InstaFlashAggregatorProxy,
     proxyA : AaveImplementation,
     proxyB : BalancerImplementation,
+    proxyE: EulerImplementation,
     proxyM : MakerImplementation,
     proxyU : UniswapImplementation,
     ProxyA,
     ProxyB,
+    ProxyE,
     ProxyM,
     ProxyU,
     admin = "0xb208CDF8e1c319d0019397dceC8E0bA3Fb9A149F",
@@ -43,7 +47,7 @@ describe('FlashLoan', function () {
   const master = '0xa8c31E39e40E6765BEdBd83D92D6AA0B33f1CCC5'
   const aaveLendingAddr = '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9'
 
-  let ABI = ['function initialize(address[],address,address,address,address,address)']
+  let ABI = ['function initialize(address[],address,address,address,address,address,address)']
   let iface = new ethers.utils.Interface(ABI)
 
   const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f'
@@ -104,6 +108,10 @@ describe('FlashLoan', function () {
     proxyB = await ProxyB.deploy()
     await proxyB.deployed()
 
+    ProxyE = new EulerImplementation__factory(signer)
+    proxyE = await ProxyE.deploy()
+    await proxyE.deployed()
+
     ProxyM = new MakerImplementation__factory(signer)
     proxyM = await ProxyM.deploy()
     await proxyM.deployed()
@@ -133,7 +141,8 @@ describe('FlashLoan', function () {
       '0xccf4429db6322d5c611ee964527d42e5d685dd6a', // WBTC2
       '0x80a2ae356fc9ef4305676f7a3e2ed04e12c33946', // YFI
       '0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407', // ZRX
-      ],master,proxyA.address,proxyB.address,proxyM.address,proxyU.address
+      ], 
+      master, proxyA.address, proxyB.address, proxyE.address, proxyM.address, proxyU.address
     ])
 
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
@@ -204,6 +213,9 @@ describe('FlashLoan', function () {
   describe('Single token', async function () {
     it('Should be able to take flashLoan of a single token from AAVE', async function () {
       await receiver.flashBorrow([DAI], [Dai], 1, _data, _instaData)
+    })
+    it('Should be able to take flashLoan of a single token from EULER', async function () {
+      await receiver.flashBorrow([DAI], [Dai], 10, _data, _instaData)
     })
     it('Should be able to take flashLoan of a single token from MakerDAO', async function () {
       await receiver.flashBorrow([DAI], [Dai], 2, _data, _instaData)
@@ -386,6 +398,15 @@ describe('FlashLoan', function () {
         [DAI, USDT, WETH],
         [Dai, Usdt, Weth],
         7,
+        _data,
+        _instaData,
+      )
+    })
+    it('Should be able to take flashLoan of a single token from EULER', async function () {
+      await receiver.flashBorrow(
+        [DAI, USDT, WETH],
+        [DAI, USDT, WETH],
+        10,
         _data,
         _instaData,
       )
