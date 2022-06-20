@@ -22,6 +22,18 @@ contract Helper is Variables {
         return true;
     }
 
+    function getFlaAvailability(
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) internal view returns (bool) {
+        uint length = _tokens.length;
+        for (uint256 i = 0; i < length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            if (token_.balanceOf(flashloanAggregatorAddr) < _amounts[i]) return false;
+        }
+        return true;
+    }
+
     function getRoutesWithAvailability(
         uint16[] memory _routes,
         address[] memory _tokens,
@@ -32,6 +44,11 @@ contract Helper is Variables {
         for (uint256 i = 0; i < _routes.length; i++) {
             if (_routes[i] == 9) {
                 if (getAaveV3Availability(_tokens, _amounts)) {
+                    routesWithAvailability_[j] = _routes[i];
+                    j++;
+                }
+            } else if (_routes[i] == 10) {
+                if (getFlaAvailability(_tokens, _amounts)) {
                     routesWithAvailability_[j] = _routes[i];
                     j++;
                 }
