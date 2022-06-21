@@ -84,7 +84,7 @@ contract AaveImplementationFantom is Helper {
         bytes memory _data
     ) internal {
 
-        bytes memory data_ = abi.encode(9, msg.sender, _data);
+        bytes memory data_ = abi.encode(msg.sender, _data);
         uint256 length_ = _tokens.length;
         uint256[] memory _modes = new uint256[](length_);
         for (uint256 i = 0; i < length_; i++) {
