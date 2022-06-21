@@ -46,9 +46,9 @@ contract AaveImplementationFantom is Helper {
         require(msg.sender == aaveV3LendingAddr, "not-aave-sender");
         FlashloanVariables memory instaLoanVariables_;
 
-        (uint256 route_, address sender_, bytes memory data_) = abi.decode(
+        (address sender_, bytes memory data_) = abi.decode(
             _data,
-            (uint256, address, bytes)
+            (address, bytes)
         );
 
         instaLoanVariables_._tokens = _assets;
