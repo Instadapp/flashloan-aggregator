@@ -109,23 +109,7 @@ contract FlashAggregatorFantom is Helper {
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
 
-        if (_route == 1) {
-            revert("this route is only for mainnet, polygon, and avalanche");
-        } else if (_route == 2) {
-            revert("this route is only for mainnet");
-        } else if (_route == 3) {
-            revert("this route is only for mainnet");
-        } else if (_route == 4) {
-            revert("this route is only for mainnet");
-        } else if (_route == 5) {
-            revert("this route is only for mainnet, polygon and arbitrum");
-        } else if (_route == 6) {
-            revert("this route is only for mainnet");
-        } else if (_route == 7) {
-            revert("this route is only for mainnet and polygon");
-        } else if (_route == 8) {
-            revert("this route is only for arbitrum, polygon and optimism");
-        } else if (_route == 9) {
+       if (_route == 9) {
             spell(AAVE_IMPL, msg.data);
         } else if (_route == 10){
             (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
