@@ -60,7 +60,7 @@ function getNetworkUrl(networkType: string) {
   else if (networkType === "polygon") return `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "arbitrum") return `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "optimism") return `https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
-  else if (networkType === "fantom") return `https://rpc.ankr.com/fantom`;
+  else if (networkType === "fantom") return `https://rpc.ftm.tools/`;
   else return `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`;
 }
 
@@ -69,7 +69,7 @@ function getBlockNumber(networkType: string) {
   else if (networkType === "polygon") return 25941254;
   else if (networkType === "arbitrum") return 7719792;
   else if (networkType === "optimism") return 4346343;
-  else if (networkType === "fantom") return 40887910;
+  else if (networkType === "fantom") return 40997910;
   else return 14456907;
 }
 

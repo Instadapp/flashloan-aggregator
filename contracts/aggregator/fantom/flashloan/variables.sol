@@ -36,4 +36,5 @@ contract Variables is ConstantVariables {
     }
 
     address internal AAVE_IMPL;
+    address internal FLA_IMPL;
 }

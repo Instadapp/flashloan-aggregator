@@ -72,54 +72,6 @@ contract FlashAggregatorFantom is AdminModule {
         return (abi.decode(response_, (bool)));
     }
 
-    function routeFLA(
-        address _receiverAddress,
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal reentrancy returns (bool) {//TODO: doubt
-
-        FlashloanVariables memory instaLoanVariables_;
-        instaLoanVariables_._tokens = _tokens;
-        instaLoanVariables_._amounts = _amounts;
-        instaLoanVariables_._instaFees = calculateFees(
-            _amounts,
-            calculateFeeBPS(10)
-        );
-        instaLoanVariables_._iniBals = calculateBalances(
-            _tokens,
-            address(this)
-        );
-
-        safeTransfer(instaLoanVariables_, _receiverAddress);
-
-        if (checkIfDsa(_receiverAddress)) {
-            Address.functionCall(
-                _receiverAddress,
-                _data,
-                "DSA-flashloan-fallback-failed"
-            );
-        } else {
-            require(InstaFlashReceiverInterface(_receiverAddress).executeOperation(
-                _tokens,
-                _amounts,
-                instaLoanVariables_._instaFees,
-                _receiverAddress,
-                _data
-            ), "invalid flashloan execution");
-        }
-
-        instaLoanVariables_._finBals = calculateBalances(
-            _tokens,
-            address(this)
-        );
-
-        validateFlashloan(instaLoanVariables_);
-
-        status = 1;
-        return true;
-    }
-
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -128,7 +80,7 @@ contract FlashAggregatorFantom is AdminModule {
      * @param _route route for flashloan.
      * @param _data extra data passed.
     */
-    function flashLoan(	
+    function flashLoan(
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
@@ -140,12 +92,11 @@ contract FlashAggregatorFantom is AdminModule {
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
 
+
        if (_route == 9) {
             spell(AAVE_IMPL, msg.data);
         } else if (_route == 10){
-            (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
-            validateTokens(_tokens);
-            routeFLA(msg.sender, _tokens, _amounts, _data);
+            spell(FLA_IMPL, msg.data);
         } else {
             revert("route-does-not-exist");
         }
@@ -196,13 +147,14 @@ contract FlashAggregatorFantom is AdminModule {
 
 contract InstaFlashAggregatorFantom is FlashAggregatorFantom {
 
-    function initialize(address owner_, address aave_) public {
+    function initialize(address owner_, address aave_, address fla_) public {
         require(status == 0, "cannot-call-again");
         require(ownerStatus == 0, "only-once");
         owner = owner_;
         ownerStatus = 1;
         status = 1;
         AAVE_IMPL = aave_;
+        FLA_IMPL = fla_;
     }
 
     receive() external payable {}
