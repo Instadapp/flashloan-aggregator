@@ -6,7 +6,6 @@ pragma solidity ^0.8.0;
  * @dev Flashloan aggregator for Fantom.
  */
 import "./helpers.sol";
-import "hardhat/console.sol";
 
 contract AdminModule is Helper {
     event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
@@ -80,8 +79,6 @@ contract FlashAggregatorFantom is AdminModule {
         bytes memory _data
     ) internal reentrancy returns (bool) {//TODO: doubt
 
-        console.log("Inside routefla");
-
         FlashloanVariables memory instaLoanVariables_;
         instaLoanVariables_._tokens = _tokens;
         instaLoanVariables_._amounts = _amounts;
@@ -89,12 +86,11 @@ contract FlashAggregatorFantom is AdminModule {
             _amounts,
             calculateFeeBPS(10)
         );
-        console.log("AAVE_IMPL: ", AAVE_IMPL);
         instaLoanVariables_._iniBals = calculateBalances(
             _tokens,
             address(this)
         );
-        console.log("_iniBals: ", instaLoanVariables_._iniBals[0]);
+
         safeTransfer(instaLoanVariables_, _receiverAddress);
 
         if (checkIfDsa(_receiverAddress)) {
@@ -117,7 +113,7 @@ contract FlashAggregatorFantom is AdminModule {
             _tokens,
             address(this)
         );
-        console.log("_finBals: ", instaLoanVariables_._finBals[0]);
+
         validateFlashloan(instaLoanVariables_);
 
         status = 1;
@@ -166,8 +162,7 @@ contract FlashAggregatorFantom is AdminModule {
      * @dev Function to get the list of available routes.
      * @notice Function to get the list of available routes.
     */
-    function getRoutes() public view returns (uint16[] memory routes_) {
-        console.log("Inside getRoutes main");
+    function getRoutes() public pure returns (uint16[] memory routes_) {
         routes_ = new uint16[](2);
         routes_[0] = 9;
         routes_[1] = 10;
@@ -208,7 +203,6 @@ contract InstaFlashAggregatorFantom is FlashAggregatorFantom {
         ownerStatus = 1;
         status = 1;
         AAVE_IMPL = aave_;
-        console.log("AAVE_IMPL: ", AAVE_IMPL);
     }
 
     receive() external payable {}
