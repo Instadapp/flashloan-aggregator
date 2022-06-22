@@ -5,6 +5,7 @@ const { ethers } = hre
 import {
   InstaFlashAggregatorFantom,
   InstaFlashAggregatorFantom__factory,
+  FlashAggregatorFantom__factory,
   IERC20__factory,
   IERC20,
   InstaFlashReceiver__factory,
@@ -12,7 +13,9 @@ import {
   InstaFlashAggregatorProxy,
   InstaFlashAggregatorProxy__factory,
   AaveImplementationFantom,
-  AaveImplementationFantom__factory
+  AaveImplementationFantom__factory,
+  FLAImplementationFantom__factory,
+  FLAImplementationFantom
 } from '../../typechain'
 
 describe('FlashLoan', function () {
@@ -23,13 +26,17 @@ describe('FlashLoan', function () {
     Proxy,
     proxy: InstaFlashAggregatorProxy,
     ImplAave,
-    implAave;
+    implAave,
+    ImplFLA,
+    implFLA: FLAImplementationFantom,
+    proxyNew: any;
 
   let signer: SignerWithAddress
 
   const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137'
+  let masterSigner: any
 
-  let ABI = ['function initialize(address)']
+  let ABI = ['function initialize(address,address)']
   let iface = new ethers.utils.Interface(ABI)
 
   const DAI = '0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E'
@@ -66,24 +73,30 @@ describe('FlashLoan', function () {
     Aggregator = new InstaFlashAggregatorFantom__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
-    console.log("aggregator deployed at: ", aggregator.address)
 
     ImplAave = new AaveImplementationFantom__factory(signer)
     implAave = await ImplAave.deploy()
     await implAave.deployed()
-    console.log("implAave deployed at: ", implAave.address)
 
-    const data = iface.encodeFunctionData('initialize', [implAave.address])
+    ImplFLA = new FLAImplementationFantom__factory(signer)
+    implFLA = await ImplFLA.deploy()
+    await implFLA.deployed()
+
+    const data = iface.encodeFunctionData('initialize', [signer.address, implAave.address])
 
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
     proxy = await Proxy.deploy(aggregator.address, master, data)
     await proxy.deployed()
-    console.log("proxy deployed at: ", proxy.address)
 
     Receiver = new InstaFlashReceiver__factory(signer)
     receiver = await Receiver.deploy(proxy.address)
     await receiver.deployed()
-    console.log("receiver deployed at: ", receiver.address)
+
+    proxyNew = new ethers.Contract(
+      proxy.address,
+      FlashAggregatorFantom__factory.abi,
+      ethers.provider,
+    )
 
     const token_dai = new ethers.Contract(
       DAI,
@@ -106,7 +119,6 @@ describe('FlashLoan', function () {
     })
 
     const signer_dai = await ethers.getSigner(ACC_DAI)
-    console.log(await token_dai.connect(signer_dai).balanceOf(ACC_DAI));
     await token_dai.connect(signer_dai).transfer(receiver.address, dai)
     await token_dai.connect(signer_dai).transfer(proxy.address, Dai)
 
@@ -122,8 +134,9 @@ describe('FlashLoan', function () {
     it('Should be able to take flashLoan of a single token from AAVE V3', async function () {
       await receiver.flashBorrow([DAI], [Dai], 9, zeroAddr,_instaData)
     })
-    it('Should be able to take flashLoan of a single token from FLA', async function () {
-      await receiver.flashBorrow([DAI], [Dai], 10, zeroAddr, _instaData)
+    it('Should add new route and take flashloan', async function () {
+      await proxyNew.connect(signer).addNewRoutes(['10'],[implFLA.address]);
+      await receiver.flashBorrow([DAI], [Dai], 10, zeroAddr, _instaData);
     })
   })
 
@@ -155,10 +168,11 @@ describe('FlashLoan', function () {
       })
       _instaData = '0x'
     })
-    it('Should be able to take flashLoan of multiple tokens together from AAVE', async function () {
+    it('Should be able to take flashLoan of multiple tokens together from AAVE V3', async function () {
       await receiver.flashBorrow([DAI, USDC], [Dai, Usdc], 9, zeroAddr, _instaData )
     })
-    it('Should be able to take flashLoan of multiple tokens together from FLA', async function () {
+    it('Should add new route and take flashloan and take flashLoan of multiple tokens from FLA', async function () {
+      await proxyNew.connect(signer).addNewRoutes(['10'],[implFLA.address]);
       await receiver.flashBorrow([DAI, USDC], [Dai, Usdc], 10, zeroAddr, _instaData )
     })
   })
