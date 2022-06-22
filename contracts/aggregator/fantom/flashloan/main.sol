@@ -1,11 +1,12 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
+import "./helpers.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * @title Flashloan.
  * @dev Flashloan aggregator for Fantom.
  */
-import "./helpers.sol";
 
 contract AdminModule is Helper {
     event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
@@ -51,26 +52,6 @@ contract FlashAggregatorFantom is AdminModule {
         address[] tokens,
         uint256[] amounts
     );
-    
-    /**
-     * @dev Callback function for aave flashloan.
-     * @notice Callback function for aave flashloan.
-     * @param _assets list of asset addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets for flashloan.
-     * @param _premiums list of premiums/fees for the corresponding addresses for flashloan.
-     * @param _initiator initiator address for flashloan.
-     * @param _data extra data passed.
-    */
-    function executeOperation(
-        address[] memory _assets,
-        uint256[] memory _amounts,
-        uint256[] memory _premiums,
-        address _initiator,
-        bytes memory _data
-    ) external returns (bool) {
-        bytes memory response_ = spell(AAVE_IMPL, msg.data);
-        return (abi.decode(response_, (bool)));
-    }
 
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -91,15 +72,10 @@ contract FlashAggregatorFantom is AdminModule {
 
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
+        
+        implToCall = routeToImpl[_route];
 
-
-       if (_route == 9) {
-            spell(AAVE_IMPL, msg.data);
-        } else if (_route == 10){
-            spell(FLA_IMPL, msg.data);
-        } else {
-            revert("route-does-not-exist");
-        }
+        Address.functionDelegateCall(implToCall, msg.data, "call-to-impl-failed");
 
         emit LogFlashloan(
             msg.sender,
@@ -143,18 +119,37 @@ contract FlashAggregatorFantom is AdminModule {
         }
         emit LogCollectRevenue(_to, _tokens, _amts);
     }
+
+    /**
+     * @dev Function to add new routes.
+     * @notice Function to add new routes and implementations.
+     * @param _routes routes to add.
+     * @param _impls implementations for their respective routes.
+     */
+    function addNewRoutes(uint256[] memory _routes, address[] memory _impls) public onlyOwner {
+        require(_routes.length == _impls.length, "lengths-dont-match");
+        uint length = _routes.length;
+        for (uint256 i = 0; i < length; i++) {
+            routeToImpl[_routes[i]] = _impls[i];
+        }
+    }
 }
 
 contract InstaFlashAggregatorFantom is FlashAggregatorFantom {
 
-    function initialize(address owner_, address aave_, address fla_) public {
+    function initialize(address owner_, address aave_) public {
         require(status == 0, "cannot-call-again");
         require(ownerStatus == 0, "only-once");
         owner = owner_;
         ownerStatus = 1;
         status = 1;
-        AAVE_IMPL = aave_;
-        FLA_IMPL = fla_;
+        routeToImpl[9] = aave_;
+        // routeToImpl[10] = fla_;
+    }
+
+    // Fallback function
+    fallback(bytes calldata input) external payable returns (bytes memory output) { 
+        output = Address.functionDelegateCall(implToCall, input, "fallback-impl-call-failed");
     }
 
     receive() external payable {}
