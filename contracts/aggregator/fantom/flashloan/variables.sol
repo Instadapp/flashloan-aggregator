@@ -35,6 +35,6 @@ contract Variables is ConstantVariables {
         uint256[] _instaFees;
     }
 
-    address internal AAVE_IMPL;
-    address internal FLA_IMPL;
+    mapping (uint256 => address) public routeToImpl;
+    address internal implToCall;
 }

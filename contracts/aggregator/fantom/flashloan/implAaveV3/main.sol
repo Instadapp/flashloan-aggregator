@@ -68,6 +68,7 @@ contract AaveImplementationFantom is Helper {
         instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
         validateFlashloan(instaLoanVariables_);
 
+        delete(implToCall);
         return true;
     }
 

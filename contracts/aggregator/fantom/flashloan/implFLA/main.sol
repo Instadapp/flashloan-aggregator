@@ -71,6 +71,7 @@ contract FLAImplementationFantom is Helper {
         validateFlashloan(instaLoanVariables_);
 
         status = 1;
+        delete(implToCall);
         return true;
     }
 }
