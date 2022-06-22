@@ -7,31 +7,6 @@ contract HelpersCommon {
     using SafeERC20 for IERC20;
 
     /**
-     * @dev Delegate the calls to Connector.
-     * @param _target Connector address
-     * @param _data CallData of function.
-    */
-    function spell(address _target, bytes memory _data) internal returns (bytes memory response) {
-        require(_target != address(0), "target-invalid");
-        assembly {
-            let succeeded := delegatecall(gas(), _target, add(_data, 0x20), mload(_data), 0, 0)
-            let size := returndatasize()
-            
-            response := mload(0x40)
-            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
-            mstore(response, size)
-            returndatacopy(add(response, 0x20), 0, size)
-
-            switch iszero(succeeded)
-                case 1 {
-                    // throw if delegatecall failed
-                    returndatacopy(0x00, 0x00, size)
-                    revert(0x00, size)
-                }
-        }
-    }
-
-    /**
      * @dev Calculates the balances..
      * @notice Calculates the balances of the account passed for the tokens.
      * @param _tokens list of token addresses to calculate balance for.
