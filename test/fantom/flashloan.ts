@@ -135,7 +135,7 @@ describe('FlashLoan', function () {
       await receiver.flashBorrow([DAI], [Dai], 9, zeroAddr,_instaData)
     })
     it('Should add new route and take flashloan', async function () {
-      await proxyNew.connect(signer).addNewRoutes(['10'],[implFLA.address]);
+      await proxyNew.connect(signer).addNewRoutesAndEnable(['10'],[implFLA.address]);
       await receiver.flashBorrow([DAI], [Dai], 10, zeroAddr, _instaData);
     })
   })
@@ -172,7 +172,7 @@ describe('FlashLoan', function () {
       await receiver.flashBorrow([DAI, USDC], [Dai, Usdc], 9, zeroAddr, _instaData )
     })
     it('Should add new route and take flashloan and take flashLoan of multiple tokens from FLA', async function () {
-      await proxyNew.connect(signer).addNewRoutes(['10'],[implFLA.address]);
+      await proxyNew.connect(signer).addNewRoutesAndEnable(['10'],[implFLA.address]);
       await receiver.flashBorrow([DAI, USDC], [Dai, Usdc], 10, zeroAddr, _instaData )
     })
   })
