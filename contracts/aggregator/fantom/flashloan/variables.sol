@@ -36,5 +36,7 @@ contract Variables is ConstantVariables {
     }
 
     mapping (uint256 => address) public routeToImpl;
+    mapping (uint256 => bool) public routeStatus;
     address internal implToCall;
+    uint256[] public routes;
 }
