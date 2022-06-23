@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import "../helpers.sol";
+import "../helper.sol";
 
 contract FLAImplementationFantom is Helper {
 
@@ -24,6 +24,19 @@ contract FLAImplementationFantom is Helper {
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
         routeFLA(msg.sender, _tokens, _amounts, _data);
+    }
+
+    /**
+     * @dev Returns fee for the passed route in BPS.
+     * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
+     * @param _route route number for flashloan.
+    */
+    function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
+        if (_route == 10) {
+            BPS_ = InstaFeeBPS;
+        } else {
+            revert('Invalid source');
+        }
     }
 
     function routeFLA(

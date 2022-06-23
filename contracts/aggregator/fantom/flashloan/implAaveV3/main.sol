@@ -1,8 +1,27 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import "../helpers.sol";
+import "../helper.sol";
 
-contract AaveImplementationFantom is Helper {
+interface IAaveV3Lending {
+    function flashLoan(
+        address receiverAddress,
+        address[] calldata assets,
+        uint256[] calldata amounts,
+        uint256[] calldata modes,
+        address onBehalfOf,
+        bytes calldata params,
+        uint16 referralCode
+    ) external;
+
+    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128);
+}
+
+contract Variables {
+    address public constant aaveV3LendingAddr = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
+    IAaveV3Lending public constant aaveV3Lending = IAaveV3Lending(aaveV3LendingAddr);
+}
+
+contract AaveImplementationFantom is Helper, Variables {
 
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -12,7 +31,7 @@ contract AaveImplementationFantom is Helper {
      * @param _route route for flashloan.
      * @param _data extra data passed.
     */
-    function flashLoan(	
+    function flashLoan(
         address[] memory _tokens,	
         uint256[] memory _amounts,
         uint256 _route,
@@ -23,6 +42,19 @@ contract AaveImplementationFantom is Helper {
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
         routeAaveV3(_tokens, _amounts, _data);
+    }
+
+    /**
+     * @dev Returns fee for the passed route in BPS.
+     * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
+     * @param _route route number for flashloan.
+    */
+    function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
+        if (_route == 9) {
+            BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
+        } else {
+            revert('Invalid source');
+        }
     }
 
     /**
