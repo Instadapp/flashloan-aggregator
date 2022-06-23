@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import "../helper.sol";
+import '../helper.sol';
 
 interface IAaveV3Lending {
     function flashLoan(
@@ -22,7 +22,6 @@ contract Variables {
 }
 
 contract AaveImplementationFantom is Helper, Variables {
-
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
@@ -30,15 +29,15 @@ contract AaveImplementationFantom is Helper, Variables {
      * @param _amounts list of amounts for the corresponding assets.
      * @param _route route for flashloan.
      * @param _data extra data passed.
-    */
+     */
     function flashLoan(
-        address[] memory _tokens,	
+        address[] memory _tokens,
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
-        require(_route == 9, "invalid-AAVE-route");
+        require(_route == 9, 'invalid-AAVE-route');
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
         routeAaveV3(_tokens, _amounts, _data);
@@ -48,7 +47,7 @@ contract AaveImplementationFantom is Helper, Variables {
      * @dev Returns fee for the passed route in BPS.
      * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
      * @param _route route number for flashloan.
-    */
+     */
     function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
         if (_route == 9) {
             BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
@@ -65,7 +64,7 @@ contract AaveImplementationFantom is Helper, Variables {
      * @param _premiums list of premiums/fees for the corresponding addresses for flashloan.
      * @param _initiator initiator address for flashloan.
      * @param _data extra data passed.
-    */
+     */
     function executeOperation(
         address[] memory _assets,
         uint256[] memory _amounts,
@@ -73,15 +72,11 @@ contract AaveImplementationFantom is Helper, Variables {
         address _initiator,
         bytes memory _data
     ) external verifyDataHash(_data) returns (bool) {
-
-        require(_initiator == address(this), "not-same-sender");
-        require(msg.sender == aaveV3LendingAddr, "not-aave-sender");
+        require(_initiator == address(this), 'not-same-sender');
+        require(msg.sender == aaveV3LendingAddr, 'not-aave-sender');
         FlashloanVariables memory instaLoanVariables_;
 
-        (address sender_, bytes memory data_) = abi.decode(
-            _data,
-            (address, bytes)
-        );
+        (address sender_, bytes memory data_) = abi.decode(_data, (address, bytes));
 
         instaLoanVariables_._tokens = _assets;
         instaLoanVariables_._amounts = _amounts;
@@ -92,15 +87,21 @@ contract AaveImplementationFantom is Helper, Variables {
         safeTransfer(instaLoanVariables_, sender_);
 
         if (checkIfDsa(sender_)) {
-            Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
+            Address.functionCall(sender_, data_, 'DSA-flashloan-fallback-failed');
         } else {
-            InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+            InstaFlashReceiverInterface(sender_).executeOperation(
+                _assets,
+                _amounts,
+                instaLoanVariables_._instaFees,
+                sender_,
+                data_
+            );
         }
 
         instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
         validateFlashloan(instaLoanVariables_);
 
-        delete(implToCall);
+        delete (implToCall);
         return true;
     }
 
@@ -116,7 +117,6 @@ contract AaveImplementationFantom is Helper, Variables {
         uint256[] memory _amounts,
         bytes memory _data
     ) internal {
-
         bytes memory data_ = abi.encode(msg.sender, _data);
         uint256 length_ = _tokens.length;
         uint256[] memory _modes = new uint256[](length_);
@@ -124,14 +124,6 @@ contract AaveImplementationFantom is Helper, Variables {
             _modes[i] = 0;
         }
         dataHash = bytes32(keccak256(data_));
-        aaveV3Lending.flashLoan(
-            address(this),
-            _tokens,
-            _amounts,
-            _modes,
-            address(0),
-            data_,
-            3228
-        );
+        aaveV3Lending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
     }
 }

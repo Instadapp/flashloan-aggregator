@@ -2,6 +2,16 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
+interface InstaFlashReceiverInterface {
+    function executeOperation(
+        address[] calldata assets,
+        uint256[] calldata amounts,
+        uint256[] calldata premiums,
+        address initiator,
+        bytes calldata _data
+    ) external returns (bool);
+}
+
 interface IndexInterface {
     function master() external view returns (address);
 
