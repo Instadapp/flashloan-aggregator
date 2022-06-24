@@ -9,9 +9,13 @@ import '@openzeppelin/contracts/utils/Address.sol';
  */
 
 contract AdminModule is HelpersCommon {
+    using SafeERC20 for IERC20;
+
     event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
 
     event updateWhitelistLog(address indexed account, bool indexed isWhitelisted_);
+
+    event LogCollectRevenue(address to, address[] tokens, uint256[] amounts);
 
     /**
      * @dev owner gaurd.
@@ -31,56 +35,6 @@ contract AdminModule is HelpersCommon {
         address oldOwner_ = owner;
         owner = newOwner_;
         emit updateOwnerLog(oldOwner_, newOwner_);
-    }
-}
-
-contract FlashAggregator is AdminModule {
-    using SafeERC20 for IERC20;
-
-    event LogFlashloan(address indexed account, uint256 indexed route, address[] tokens, uint256[] amounts);
-
-    event LogCollectRevenue(address to, address[] tokens, uint256[] amounts);
-
-    /**
-     * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
-     * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _route route for flashloan.
-     * @param _data extra data passed.
-     */
-    function flashLoan(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        uint256 _route,
-        bytes calldata _data,
-        bytes calldata // kept for future use by instadapp. Currently not used anywhere.
-    ) external {
-        require(_tokens.length == _amounts.length, 'array-lengths-not-same');
-        require(routeStatus[_route] == true, 'route-disabled');
-
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
-        validateTokens(_tokens);
-
-        implToCall = routeToImpl[_route];
-
-        Address.functionDelegateCall(implToCall, msg.data, 'call-to-impl-failed');
-
-        emit LogFlashloan(msg.sender, _route, _tokens, _amounts);
-    }
-
-    /**
-     * @dev Returns fee for the passed route in BPS.
-     * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
-     * @param _route route number for flashloan.
-     */
-    function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
-        bytes memory _output = Address.functionStaticCall(implToCall, msg.data, 'calculateFeeBPS-call-failed');
-        BPS_ = abi.decode(_output, (uint256));
-
-        if (BPS_ < InstaFeeBPS) {
-            BPS_ = InstaFeeBPS;
-        }
     }
 
     /**
@@ -129,32 +83,6 @@ contract FlashAggregator is AdminModule {
     }
 
     /**
-     * @dev Function to get the list of all routes.
-     * @notice Function to get the list of all routes.
-     */
-    function getRoutes() public view returns (uint256[] memory routes_) {
-        uint256 length = routes.length;
-        routes_ = new uint256[](length);
-        for (uint256 i = 0; i < length; i++) {
-            routes_[i] = routes[i];
-        }
-    }
-
-    /**
-     * @dev Function to get the list of enabled routes.
-     * @notice Function to get the list of enabled routes.
-     */
-    function getEnabledRoutes() public view returns (uint256[] memory routes_, bool[] memory routesBool_) {
-        routes_ = getRoutes();
-        uint256 length = routes_.length;
-        routesBool_ = new bool[](length);
-
-        for (uint256 i = 0; i < length; i++) {
-            routesBool_[i] = routeStatus[routes_[i]] == true ? true : false;
-        }
-    }
-
-    /**
      * @dev Function to transfer fee to the treasury.
      * @notice Function to transfer fee to the treasury. Will be called manually.
      * @param _tokens token addresses for transferring fee to treasury.
@@ -170,5 +98,44 @@ contract FlashAggregator is AdminModule {
             if (_amts[i] > 0) token_.safeTransfer(_to, _amts[i]);
         }
         emit LogCollectRevenue(_to, _tokens, _amts);
+    }
+}
+
+contract FlashAggregator is AdminModule {
+
+    /**
+     * @dev Returns fee for the passed route in BPS.
+     * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
+     * @param _route route number for flashloan.
+     */
+    function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
+        bytes memory _output = Address.functionStaticCall(routeToImpl[_route], msg.data, 'calculateFeeBPS-call-failed');
+        BPS_ = abi.decode(_output, (uint256));
+
+        if (BPS_ < InstaFeeBPS) {
+            BPS_ = InstaFeeBPS;
+        }
+    }
+
+    /**
+     * @dev Function to get the list of all routes.
+     * @notice Function to get the list of all routes.
+     */
+    function getRoutes() public view returns (uint256[] memory) {
+        return routes;
+    }
+
+    /**
+     * @dev Function to get the list of enabled routes.
+     * @notice Function to get the list of enabled routes.
+     */
+    function getEnabledRoutes() public view returns (uint256[] memory routesAll_, bool[] memory routesBool_) {
+        routesAll_ = getRoutes();
+        uint256 length = routesAll_.length;
+        routesBool_ = new bool[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            routesBool_[i] = routeStatus[routesAll_[i]] == true ? true : false;
+        }
     }
 }

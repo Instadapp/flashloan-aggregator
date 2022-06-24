@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import '../helper.sol';
+import '../../helper.sol';
 
 interface IAaveV3Lending {
     function flashLoan(
@@ -101,7 +101,6 @@ contract AaveImplementationFantom is Helper, Variables {
         instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
         validateFlashloan(instaLoanVariables_);
 
-        delete (implToCall);
         return true;
     }
 

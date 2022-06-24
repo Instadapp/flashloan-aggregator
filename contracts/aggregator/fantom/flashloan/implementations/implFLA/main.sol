@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import '../helper.sol';
+import '../../helper.sol';
 
 contract FLAImplementationFantom is Helper {
     /**
@@ -71,7 +71,6 @@ contract FLAImplementationFantom is Helper {
         validateFlashloan(instaLoanVariables_);
 
         status = 1;
-        delete(implToCall);
         return true;
     }
 }
