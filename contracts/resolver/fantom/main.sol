@@ -2,9 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Helper} from "./helpers.sol";
-
-import {InstaFlashloanAggregatorInterface} from "./interfaces.sol";
+import { Helper } from "./helpers.sol";
+import { InstaFlashloanAggregatorInterface } from "./interfaces.sol";
 
 contract FlashResolverFantom is Helper {
     function getRoutesInfo()
@@ -33,7 +32,6 @@ contract FlashResolverFantom is Helper {
         uint256 feeBPS_;
         uint16[] memory routes_ = flashloanAggregator.getRoutes();
         uint16[] memory routesWithAvailability_ = getRoutesWithAvailability(
-            routes_,
             _tokens,
             _amounts
         );
@@ -79,5 +77,13 @@ contract FlashResolverFantom is Helper {
 }
 
 contract InstaFlashloanResolverFantom is FlashResolverFantom {
+
+    // function initialize(address aggregator, uint256[] memory _routes, address[] memory impls) public {
+    //     flashloanAggregatorAddr = aggregator;
+    //     uint256 length = _routes.length;
+    //     for(uint i = 0; i < length; i++) {
+    //         routeToResolver[_routes[i]] =  impls[i];
+    //     }
+    // }
     receive() external payable {}
 }

@@ -1,62 +1,35 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-
-import {Variables} from "./variables.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Variables } from "./variables.sol";
+import '@openzeppelin/contracts/utils/Address.sol';
+import { InstaFlashloanAggregatorInterface } from "./interfaces.sol";
 
 contract Helper is Variables {
-    function getAaveV3Availability(
-        address[] memory _tokens,
-        uint256[] memory _amounts
-    ) internal view returns (bool) {
-        uint length = _tokens.length;
-        for (uint256 i = 0; i < length; i++) {
-            IERC20 token_ = IERC20(_tokens[i]);
-            (, , , , , , , , bool isActive, ) = aaveV3DataProvider
-                .getReserveConfigurationData(_tokens[i]);
-            (address aTokenAddr, , ) = aaveV3DataProvider
-                .getReserveTokensAddresses(_tokens[i]);
-            if (isActive == false) return false;
-            if (token_.balanceOf(aTokenAddr) < _amounts[i]) return false;
-        }
-        return true;
-    }
-
-    function getFlaAvailability(
-        address[] memory _tokens,
-        uint256[] memory _amounts
-    ) internal view returns (bool) {
-        uint length = _tokens.length;
-        for (uint256 i = 0; i < length; i++) {
-            IERC20 token_ = IERC20(_tokens[i]);
-            if (token_.balanceOf(flashloanAggregatorAddr) < _amounts[i]) return false;
-        }
-        return true;
-    }
 
     function getRoutesWithAvailability(
-        uint16[] memory _routes,
         address[] memory _tokens,
         uint256[] memory _amounts
-    ) internal view returns (uint16[] memory) {
-        uint16[] memory routesWithAvailability_ = new uint16[](7);
+    ) internal view returns (uint16[] memory) {        
+        (uint256[] memory _routesAll, bool[] memory routesBool) = flashloanAggregator.getEnabledRoutes();
+        uint256 length = _routesAll.length;
         uint256 j = 0;
-        for (uint256 i = 0; i < _routes.length; i++) {
-            if (_routes[i] == 9) {
-                if (getAaveV3Availability(_tokens, _amounts)) {
-                    routesWithAvailability_[j] = _routes[i];
+        uint16[] memory routesWithAvailability_ = new uint16[](length);
+        for(uint256 i = 0; i < length; i++) {
+            if(routesBool[i] == true) {
+                if(getAvailability(_routesAll[i], _tokens, _amounts)) {
+                    routesWithAvailability_[j] = uint16(_routesAll[i]);
                     j++;
+                } else {
+                require(false, "invalid-route-2");
                 }
-            } else if (_routes[i] == 10) {
-                if (getFlaAvailability(_tokens, _amounts)) {
-                    routesWithAvailability_[j] = _routes[i];
-                    j++;
-                }
-            } else {
-                require(false, "invalid-route");
             }
         }
         return routesWithAvailability_;
+    }
+
+    function getAvailability( uint256 _route, address[] memory _tokens, uint256[] memory _amounts) public view returns (bool) {
+        bytes memory _output = Address.functionStaticCall(routeToResolver[_route], abi.encodeWithSelector(this.getAvailability.selector, _route,_tokens,_amounts), 'getAvailability-call-failed');
+        return abi.decode(_output, (bool));
     }
 
     function bubbleSort(address[] memory _tokens, uint256[] memory _amounts)
