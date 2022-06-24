@@ -15,7 +15,7 @@ import {
   AaveImplementationFantom,
   AaveImplementationFantom__factory,
   FLAImplementationFantom__factory,
-  FLAImplementationFantom
+  FLAImplementationFantom,
 } from '../../typechain'
 
 describe('FlashLoan', function () {
@@ -36,7 +36,7 @@ describe('FlashLoan', function () {
   const master = '0xa9061100d29C3C562a2e2421eb035741C1b42137'
   let masterSigner: any
 
-  let ABI = ['function initialize(address,address)']
+  let ABI = ['function initialize(address,address,address)']
   let iface = new ethers.utils.Interface(ABI)
 
   const DAI = '0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E'
@@ -82,7 +82,7 @@ describe('FlashLoan', function () {
     implFLA = await ImplFLA.deploy()
     await implFLA.deployed()
 
-    const data = iface.encodeFunctionData('initialize', [signer.address, implAave.address])
+    const data = iface.encodeFunctionData('initialize', [signer.address, implAave.address, implFLA.address])
 
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
     proxy = await Proxy.deploy(aggregator.address, master, data)
@@ -135,7 +135,7 @@ describe('FlashLoan', function () {
       await receiver.flashBorrow([DAI], [Dai], 9, zeroAddr,_instaData)
     })
     it('Should add new route and take flashloan', async function () {
-      await proxyNew.connect(signer).addNewRoutesAndEnable(['10'],[implFLA.address]);
+      // await proxyNew.connect(signer).addNewRoutesAndEnable(['10'],[implFLA.address]);
       await receiver.flashBorrow([DAI], [Dai], 10, zeroAddr, _instaData);
     })
   })
@@ -172,7 +172,7 @@ describe('FlashLoan', function () {
       await receiver.flashBorrow([DAI, USDC], [Dai, Usdc], 9, zeroAddr, _instaData )
     })
     it('Should add new route and take flashloan and take flashLoan of multiple tokens from FLA', async function () {
-      await proxyNew.connect(signer).addNewRoutesAndEnable(['10'],[implFLA.address]);
+      // await proxyNew.connect(signer).addNewRoutesAndEnable(['10'],[implFLA.address]);
       await receiver.flashBorrow([DAI, USDC], [Dai, Usdc], 10, zeroAddr, _instaData )
     })
   })

@@ -5,6 +5,60 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Helper } from "./helpers.sol";
 import { InstaFlashloanAggregatorInterface } from "./interfaces.sol";
 
+contract AdminModule is Helper {
+
+    event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
+
+    /**
+     * @dev owner gaurd.
+     * @notice owner gaurd.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner, 'not-owner');
+        _;
+    }
+
+    /**
+     * @dev Update owner.
+     * @notice Update owner.
+     * @param newOwner_ address of new owner.
+     */
+    function updateOwner(address newOwner_) external onlyOwner {
+        address oldOwner_ = owner;
+        owner = newOwner_;
+        emit updateOwnerLog(oldOwner_, newOwner_);
+    }
+
+    /**
+     * @dev Function to add new routes.
+     * @notice Function to add new routes and implementations.
+     * @param _routes routes to add.
+     * @param _resolverImpls implementations of their respective routes.
+     */
+    function addNewRoutes(uint256[] memory _routes, address[] memory _resolverImpls) public onlyOwner {
+        require(_routes.length == _resolverImpls.length, 'lengths-dont-match');
+        uint256 length = _routes.length;
+        for (uint256 i = 0; i < length; i++) {
+            require(routeToResolver[_routes[i]] == address(0), 'route-already-added');
+            routeToResolver[_routes[i]] =  _resolverImpls[i];
+        }
+    }
+
+    /**
+     * @dev Function to update existing routes.
+     * @notice Function to update existing routes and implementations.
+     * @param _routes routes to update.
+     * @param _resolverImpls implementations of their respective routes.
+     */
+    function updateResolverImplementations(uint256[] memory _routes, address[] memory _resolverImpls) public onlyOwner {
+        require(_routes.length == _resolverImpls.length, 'lengths-dont-match');
+        uint256 length = _routes.length;
+        for (uint256 i = 0; i < length; i++) {
+            routeToResolver[_routes[i]] =  _resolverImpls[i];
+        }
+    }
+}
+
 contract FlashResolverFantom is Helper {
     function getRoutesInfo()
         public
