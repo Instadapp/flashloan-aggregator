@@ -5,8 +5,6 @@ import './interfaces.sol';
 contract VariablesCommon {
     address public owner;
 
-    uint256 internal ownerStatus;
-
     bytes32 internal dataHash;
     // if 1 then can enter flashlaon, if 2 then callback
     uint256 internal status;

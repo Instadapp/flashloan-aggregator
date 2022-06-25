@@ -41,9 +41,7 @@ contract FlashAggregatorFantom is FlashAggregator {
 contract InstaFlashAggregatorFantom is FlashAggregatorFantom {
     function initialize(address owner_, address aave_, address fla_) public {
         require(status == 0, 'cannot-call-again');
-        require(ownerStatus == 0, 'only-once');
         owner = owner_;
-        ownerStatus = 1;
         status = 1;
         routeToImpl[9] = aave_;
         routeStatus[9] = true;
