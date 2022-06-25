@@ -65,10 +65,10 @@ contract FlashResolverFantom is Helper {
         view
         returns (uint16[] memory routes_, uint256[] memory fees_)
     {
-        routes_ = flashloanAggregator.getRoutes();
+        routes_ = flashloanAggregator.getEnabledRoutes();
         fees_ = new uint256[](routes_.length);
         for (uint256 i = 0; i < routes_.length; i++) {
-            fees_[i] = flashloanAggregator.calculateFeeBPS(routes_[i]);
+            fees_[i] = flashloanAggregator.calculateFeeBPS(uint256(routes_[i]));
         }
     }
 
@@ -84,7 +84,7 @@ contract FlashResolverFantom is Helper {
 
         uint16[] memory bRoutes_;
         uint256 feeBPS_;
-        uint16[] memory routes_ = flashloanAggregator.getRoutes();
+        uint16[] memory routes_ = flashloanAggregator.getEnabledRoutes();
         uint16[] memory routesWithAvailability_ = getRoutesWithAvailability(
             _tokens,
             _amounts
@@ -95,7 +95,7 @@ contract FlashResolverFantom is Helper {
         for (uint256 i = 0; i < routesWithAvailability_.length; i++) {
             if (routesWithAvailability_[i] != 0) {
                 uint256 routeFeeBPS_ = flashloanAggregator.calculateFeeBPS(
-                    routesWithAvailability_[i]
+                    uint256(routesWithAvailability_[i])
                 );
                 if (feeBPS_ > routeFeeBPS_) {
                     feeBPS_ = routeFeeBPS_;

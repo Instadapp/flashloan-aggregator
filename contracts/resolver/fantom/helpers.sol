@@ -10,21 +10,19 @@ contract Helper is Variables {
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal view returns (uint16[] memory) {        
-        (uint256[] memory _routesAll, bool[] memory routesBool) = flashloanAggregator.getEnabledRoutes();
+        (uint16[] memory _routesAll) = flashloanAggregator.getEnabledRoutes();
         uint256 length = _routesAll.length;
         uint256 j = 0;
-        uint16[] memory routesWithAvailability_ = new uint16[](length);
+        uint16[] memory _routesWithAvailability = new uint16[](length);
         for(uint256 i = 0; i < length; i++) {
-            if(routesBool[i] == true) {
-                if(getAvailability(_routesAll[i], _tokens, _amounts)) {
-                    routesWithAvailability_[j] = uint16(_routesAll[i]);
-                    j++;
-                } else {
-                require(false, "invalid-route-2");
-                }
+            if(getAvailability(_routesAll[i], _tokens, _amounts)) {
+                _routesWithAvailability[j] = _routesAll[i];
+                j++;
+            } else {
+            require(false, "invalid-route-2");
             }
         }
-        return routesWithAvailability_;
+        return _routesWithAvailability;
     }
 
     function getAvailability( uint256 _route, address[] memory _tokens, uint256[] memory _amounts) public view returns (bool) {

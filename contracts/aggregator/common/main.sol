@@ -129,13 +129,21 @@ contract FlashAggregator is AdminModule {
      * @dev Function to get the list of enabled routes.
      * @notice Function to get the list of enabled routes.
      */
-    function getEnabledRoutes() public view returns (uint256[] memory routesAll_, bool[] memory routesBool_) {
-        routesAll_ = getRoutes();
+    function getEnabledRoutes() public view returns (uint16[] memory routesEnabled_) {
+        uint256[] memory routesAll_ = getRoutes();
         uint256 length = routesAll_.length;
-        routesBool_ = new bool[](length);
+        uint256 _count = 0;
 
         for (uint256 i = 0; i < length; i++) {
-            routesBool_[i] = routeStatus[routesAll_[i]];
+            if(routeStatus[routesAll_[i]] == true) {
+                _count++;
+            }
+        }
+
+        for (uint256 j = 0; j < _count; j++) {
+            if(routeStatus[routesAll_[j]]) {
+                routesEnabled_[j] = uint16(routesAll_[j]);
+            }
         }
     }
 }
