@@ -21,7 +21,6 @@ contract VariablesCommon {
 
     mapping(uint256 => address) public routeToImpl;
     mapping(uint256 => bool) public routeStatus;
-    mapping(uint256 => uint256) public routeToFee;
     address internal implToCall;
     uint256[] public routes;
 
