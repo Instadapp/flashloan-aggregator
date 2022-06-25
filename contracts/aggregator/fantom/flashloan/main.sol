@@ -29,9 +29,6 @@ contract FlashAggregatorFantom is FlashAggregator {
         require(_tokens.length == _amounts.length, 'array-lengths-not-same');
         require(routeStatus[_route] == true, 'route-disabled');
 
-        (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
-        validateTokens(_tokens);
-
         implToCall = routeToImpl[_route];
 
         Address.functionDelegateCall(implToCall, msg.data, 'call-to-impl-failed');
