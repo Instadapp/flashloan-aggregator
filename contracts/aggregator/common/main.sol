@@ -135,7 +135,7 @@ contract FlashAggregator is AdminModule {
         routesBool_ = new bool[](length);
 
         for (uint256 i = 0; i < length; i++) {
-            routesBool_[i] = routeStatus[routesAll_[i]] == true ? true : false;
+            routesBool_[i] = routeStatus[routesAll_[i]];
         }
     }
 }
