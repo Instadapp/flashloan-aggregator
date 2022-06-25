@@ -64,6 +64,7 @@ contract AdminModule is HelpersCommon {
         require(_routes.length == _impls.length, 'lengths-dont-match');
         uint256 length = _routes.length;
         for (uint256 i = 0; i < length; i++) {
+            require(routeToImpl[_routes[i]] != address(0), 'route-doesnt-exist');
             routeToImpl[_routes[i]] = _impls[i];
         }
     }
@@ -79,6 +80,22 @@ contract AdminModule is HelpersCommon {
         uint256 length = _routes.length;
         for (uint256 i = 0; i < length; i++) {
             routeStatus[_routes[i]] = _statuses[i];
+        }
+    }
+
+    /**
+     * @dev Function to delete route.
+     * @notice Function to delete route.
+     * @param _route routes to delete.
+     */
+    function deleteRoute(uint256 _route) public onlyOwner {
+        uint256 length = routes.length;
+        for (uint256 i = 0; i < length; i++) {
+            if(routes[i] == _route) {
+                delete routes[i];
+                delete routeToImpl[_route];
+                delete routeStatus[_route];
+            }
         }
     }
 
