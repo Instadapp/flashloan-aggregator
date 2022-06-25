@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import './interfaces.sol';
+import "./interfaces.sol";
 
 contract VariablesCommon {
     address public owner;

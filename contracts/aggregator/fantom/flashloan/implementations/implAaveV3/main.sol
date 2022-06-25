@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import '../../helper.sol';
+import "../../helper.sol";
 
 interface IAaveV3Lending {
     function flashLoan(
@@ -17,8 +17,10 @@ interface IAaveV3Lending {
 }
 
 contract Variables {
-    address public constant aaveV3LendingAddr = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
-    IAaveV3Lending public constant aaveV3Lending = IAaveV3Lending(aaveV3LendingAddr);
+    address public constant aaveV3LendingAddr =
+        0x794a61358D6845594F94dc1DB02A252b5b4814aD;
+    IAaveV3Lending public constant aaveV3Lending =
+        IAaveV3Lending(aaveV3LendingAddr);
 }
 
 contract AaveImplementationFantom is Helper, Variables {
@@ -37,7 +39,7 @@ contract AaveImplementationFantom is Helper, Variables {
         bytes calldata _data,
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external reentrancy {
-        require(_route == 9, 'invalid-AAVE-route');
+        require(_route == 9, "invalid-AAVE-route");
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
         routeAaveV3(_tokens, _amounts, _data);
@@ -48,11 +50,15 @@ contract AaveImplementationFantom is Helper, Variables {
      * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
      * @param _route route number for flashloan.
      */
-    function calculateFeeBPS(uint256 _route) public view returns (uint256 BPS_) {
+    function calculateFeeBPS(uint256 _route)
+        public
+        view
+        returns (uint256 BPS_)
+    {
         if (_route == 9) {
             BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
         } else {
-            revert('Invalid source');
+            revert("Invalid source");
         }
     }
 
@@ -72,22 +78,35 @@ contract AaveImplementationFantom is Helper, Variables {
         address _initiator,
         bytes memory _data
     ) external verifyDataHash(_data) returns (bool) {
-        require(_initiator == address(this), 'not-same-sender');
-        require(msg.sender == aaveV3LendingAddr, 'not-aave-sender');
+        require(_initiator == address(this), "not-same-sender");
+        require(msg.sender == aaveV3LendingAddr, "not-aave-sender");
         FlashloanVariables memory instaLoanVariables_;
 
-        (address sender_, bytes memory data_) = abi.decode(_data, (address, bytes));
+        (address sender_, bytes memory data_) = abi.decode(
+            _data,
+            (address, bytes)
+        );
 
         instaLoanVariables_._tokens = _assets;
         instaLoanVariables_._amounts = _amounts;
-        instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(9));
-        instaLoanVariables_._iniBals = calculateBalances(_assets, address(this));
+        instaLoanVariables_._instaFees = calculateFees(
+            _amounts,
+            calculateFeeBPS(9)
+        );
+        instaLoanVariables_._iniBals = calculateBalances(
+            _assets,
+            address(this)
+        );
 
         safeApprove(instaLoanVariables_, _premiums, aaveV3LendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
 
         if (checkIfDsa(sender_)) {
-            Address.functionCall(sender_, data_, 'DSA-flashloan-fallback-failed');
+            Address.functionCall(
+                sender_,
+                data_,
+                "DSA-flashloan-fallback-failed"
+            );
         } else {
             InstaFlashReceiverInterface(sender_).executeOperation(
                 _assets,
@@ -98,7 +117,10 @@ contract AaveImplementationFantom is Helper, Variables {
             );
         }
 
-        instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
+        instaLoanVariables_._finBals = calculateBalances(
+            _assets,
+            address(this)
+        );
         validateFlashloan(instaLoanVariables_);
 
         return true;
@@ -123,6 +145,14 @@ contract AaveImplementationFantom is Helper, Variables {
             _modes[i] = 0;
         }
         dataHash = bytes32(keccak256(data_));
-        aaveV3Lending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
+        aaveV3Lending.flashLoan(
+            address(this),
+            _tokens,
+            _amounts,
+            _modes,
+            address(0),
+            data_,
+            3228
+        );
     }
 }

@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import '../../common/helpers.sol';
-import './variable.sol';
+import "../../common/helpers.sol";
+import "./variable.sol";
 
 contract Helper is ConstantVariables, HelpersCommon {
     /**

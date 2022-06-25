@@ -1,32 +1,44 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import { Variables } from "./variables.sol";
-import '@openzeppelin/contracts/utils/Address.sol';
-import { InstaFlashloanAggregatorInterface } from "./interfaces.sol";
+import {Variables} from "./variables.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
+import {InstaFlashloanAggregatorInterface} from "./interfaces.sol";
 
 contract Helper is Variables {
-
     function getRoutesWithAvailability(
         address[] memory _tokens,
         uint256[] memory _amounts
-    ) internal view returns (uint16[] memory) {        
-        (uint16[] memory _routesAll) = flashloanAggregator.getEnabledRoutes();
+    ) internal view returns (uint16[] memory) {
+        uint16[] memory _routesAll = flashloanAggregator.getEnabledRoutes();
         uint256 length = _routesAll.length;
         uint256 j = 0;
         uint16[] memory _routesWithAvailability = new uint16[](length);
-        for(uint256 i = 0; i < length; i++) {
-            if(getAvailability(_routesAll[i], _tokens, _amounts)) {
+        for (uint256 i = 0; i < length; i++) {
+            if (getAvailability(_routesAll[i], _tokens, _amounts)) {
                 _routesWithAvailability[j] = _routesAll[i];
                 j++;
             } else {
-            require(false, "invalid-route-2");
+                require(false, "invalid-route-2");
             }
         }
         return _routesWithAvailability;
     }
 
-    function getAvailability( uint256 _route, address[] memory _tokens, uint256[] memory _amounts) public view returns (bool) {
-        bytes memory _output = Address.functionStaticCall(routeToResolver[_route], abi.encodeWithSelector(this.getAvailability.selector, _route,_tokens,_amounts), 'getAvailability-call-failed');
+    function getAvailability(
+        uint256 _route,
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) public view returns (bool) {
+        bytes memory _output = Address.functionStaticCall(
+            routeToResolver[_route],
+            abi.encodeWithSelector(
+                this.getAvailability.selector,
+                _route,
+                _tokens,
+                _amounts
+            ),
+            "getAvailability-call-failed"
+        );
         return abi.decode(_output, (bool));
     }
 

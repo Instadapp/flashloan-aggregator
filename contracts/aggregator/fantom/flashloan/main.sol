@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import './helper.sol';
-import '../../common/main.sol';
+import "./helper.sol";
+import "../../common/main.sol";
 
 /**
  * @title Flashloan.
@@ -26,12 +26,16 @@ contract FlashAggregatorFantom is FlashAggregator {
         bytes calldata _data,
         bytes calldata // kept for future use by instadapp. Currently not used anywhere.
     ) external {
-        require(_tokens.length == _amounts.length, 'array-lengths-not-same');
-        require(routeStatus[_route] == true, 'route-disabled');
+        require(_tokens.length == _amounts.length, "array-lengths-not-same");
+        require(routeStatus[_route] == true, "route-disabled");
 
         implToCall = routeToImpl[_route];
 
-        Address.functionDelegateCall(implToCall, msg.data, 'call-to-impl-failed');
+        Address.functionDelegateCall(
+            implToCall,
+            msg.data,
+            "call-to-impl-failed"
+        );
 
         delete implToCall;
         emit LogFlashloan(msg.sender, _route, _tokens, _amounts);
@@ -39,8 +43,12 @@ contract FlashAggregatorFantom is FlashAggregator {
 }
 
 contract InstaFlashAggregatorFantom is FlashAggregatorFantom {
-    function initialize(address owner_, address aave_, address fla_) public {
-        require(status == 0, 'cannot-call-again');
+    function initialize(
+        address owner_,
+        address aave_,
+        address fla_
+    ) public {
+        require(status == 0, "cannot-call-again");
         owner = owner_;
         status = 1;
         routeToImpl[9] = aave_;
@@ -53,7 +61,11 @@ contract InstaFlashAggregatorFantom is FlashAggregatorFantom {
 
     // Fallback function
     fallback(bytes calldata input) external payable returns (bytes memory output) {
-        output = Address.functionDelegateCall(implToCall, input, 'fallback-impl-call-failed');
+        output = Address.functionDelegateCall(
+            implToCall,
+            input,
+            "fallback-impl-call-failed"
+        );
     }
 
     receive() external payable {}
