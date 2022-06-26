@@ -110,7 +110,8 @@ contract AdminModule is HelpersCommon {
         uint256 length = routes.length;
         for (uint256 i = 0; i < length; i++) {
             if (routes[i] == _route) {
-                delete routes[i];
+                routes[i] = routes[length - 1];
+                routes.pop();
                 delete routeToImpl[_route];
                 delete routeStatus[_route];
             }
