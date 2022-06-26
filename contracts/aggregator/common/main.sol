@@ -162,10 +162,6 @@ contract FlashAggregator is AdminModule {
             "calculateFeeBPS-call-failed"
         );
         BPS_ = abi.decode(_output, (uint256));
-
-        if (BPS_ < InstaFeeBPS) {
-            BPS_ = InstaFeeBPS;
-        }
     }
 
     /**

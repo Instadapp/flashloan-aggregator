@@ -60,6 +60,9 @@ contract AaveImplementationFantom is Helper, Variables {
         } else {
             revert("Invalid source");
         }
+        if (BPS_ < InstaFeeBPS) {
+            BPS_ = InstaFeeBPS;
+        }
     }
 
     /**
