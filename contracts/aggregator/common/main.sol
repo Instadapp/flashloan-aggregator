@@ -191,9 +191,13 @@ contract FlashAggregator is AdminModule {
             }
         }
 
-        for (uint256 j = 0; j < _count; j++) {
+        routesEnabled_ = new uint16[](_count);
+        uint256 k = 0;
+
+        for (uint256 j = 0; j < length; j++) {
             if (routeStatus[routesAll_[j]]) {
-                routesEnabled_[j] = uint16(routesAll_[j]);
+                routesEnabled_[k] = uint16(routesAll_[j]);
+                k++;
             }
         }
     }
