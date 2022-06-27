@@ -175,7 +175,7 @@ const config: HardhatUserConfig = {
     target: "ethers-v5",
   },
   mocha: {
-    timeout: 100000 * 100000,
+    timeout: 10000000 * 1000, // 10M sec
   },
   etherscan: {
     apiKey: `${process.env.SCAN_API_KEY}`
