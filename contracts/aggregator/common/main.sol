@@ -4,7 +4,7 @@ import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
- * @title Flashloan.
+ * @title Flashloan Aggregator
  * @dev Common aggregator implementation for all chains.
  */
 
