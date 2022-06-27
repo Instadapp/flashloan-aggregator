@@ -16,14 +16,14 @@ interface IAaveV3Lending {
     function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128);
 }
 
-contract Variables {
+contract AaveV3Variables {
     address public constant aaveV3LendingAddr =
         0x794a61358D6845594F94dc1DB02A252b5b4814aD;
     IAaveV3Lending public constant aaveV3Lending =
         IAaveV3Lending(aaveV3LendingAddr);
 }
 
-contract AaveImplementationFantom is Helper, Variables {
+contract AaveImplementationFantom is Helper, AaveV3Variables {
     /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
