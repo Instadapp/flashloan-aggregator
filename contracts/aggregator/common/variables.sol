@@ -17,7 +17,7 @@ contract VariablesCommon {
         uint256[] _instaFees;
     }
 
-    mapping(uint256 => address) public routeToImpl;
+    mapping(uint256 => address) public routeToImplementation;
     mapping(uint256 => bool) public routeStatus;
     address internal fallbackImplementation;
     uint256[] public routes;
