@@ -146,7 +146,7 @@ contract AdminModule is HelpersCommon {
     }
 }
 
-contract FlashAggregator is AdminModule {
+contract FlashloanAggregator is AdminModule {
     /**
      * @dev Returns fee for the passed route in BPS.
      * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
