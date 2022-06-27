@@ -19,7 +19,7 @@ contract VariablesCommon {
 
     mapping(uint256 => address) public routeToImpl;
     mapping(uint256 => bool) public routeStatus;
-    address internal implToCall;
+    address internal fallbackImplementation;
     uint256[] public routes;
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
