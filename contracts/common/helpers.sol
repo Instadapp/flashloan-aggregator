@@ -103,23 +103,9 @@ contract TokenHelpers is Structs {
             token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
         }
     }
-
-    /**
-     * @dev Validates if the receiver sent the correct amounts of funds.
-     * @notice Validates if the receiver sent the correct amounts of funds.
-     * @param _instaLoanVariables struct which includes list of initial balances, final balances and fees for the respective tokens.
-     */
-    function validateFlashloan(FlashloanVariables memory _instaLoanVariables) internal pure {
-        for (uint256 i = 0; i < _instaLoanVariables._iniBals.length; i++) {
-            require(
-                _instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i] <= _instaLoanVariables._finBals[i],
-                'amount-paid-less'
-            );
-        }
-    }
 }
 
-contract FlashloanHelpers { 
+contract FlashloanHelpers is Structs { 
     /**
      * @dev Calculate fees for the respective amounts and fee in BPS passed.
      * @notice Calculate fees for the respective amounts and fee in BPS passed. 1 BPS == 0.01%.
@@ -159,5 +145,20 @@ contract FlashloanHelpers {
             }
         }
         return (_tokens, _amounts);
+    }
+
+
+    /**
+     * @dev Validates if the receiver sent the correct amounts of funds.
+     * @notice Validates if the receiver sent the correct amounts of funds.
+     * @param _instaLoanVariables struct which includes list of initial balances, final balances and fees for the respective tokens.
+     */
+    function validateFlashloan(FlashloanVariables memory _instaLoanVariables) internal pure {
+        for (uint256 i = 0; i < _instaLoanVariables._iniBals.length; i++) {
+            require(
+                _instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i] <= _instaLoanVariables._finBals[i],
+                'amount-paid-less'
+            );
+        }
     }
 }
