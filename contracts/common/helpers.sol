@@ -2,9 +2,11 @@
 pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import './variables.sol';
+import "./interfaces.sol";
+import "./variablesV2.sol";
+import "./structs.sol";
 
-contract HelpersCommon is VariablesCommon {
+contract TokenHelpers is Structs {
     using SafeERC20 for IERC20;
 
     /**
@@ -55,6 +57,70 @@ contract HelpersCommon is VariablesCommon {
     }
 
     /**
+     * @dev Sort the tokens and amounts arrays according to token addresses.
+     * @notice Sort the tokens and amounts arrays according to token addresses.
+     * @param _token0 address of token0.
+     * @param _token1 address of token1.
+     */
+    function sortTokens(address _token0, address _token1) internal pure returns (address, address) {
+        if (_token1 < _token0) {
+            (_token0, _token1) = (_token1, _token0);
+        }
+        return (_token0, _token1);
+    }
+
+    /**
+     * @dev Approves the tokens to the receiver address with allowance (amount + fee).
+     * @notice Approves the tokens to the receiver address with allowance (amount + fee).
+     * @param _instaLoanVariables struct which includes list of token addresses and amounts.
+     * @param _fees list of premiums/fees for the corresponding addresses for flashloan.
+     * @param _receiver address to which tokens have to be approved.
+     */
+    function safeApprove(
+        FlashloanVariables memory _instaLoanVariables,
+        uint256[] memory _fees,
+        address _receiver
+    ) internal {
+        uint256 length_ = _instaLoanVariables._tokens.length;
+        require(length_ == _instaLoanVariables._amounts.length, 'Lengths of parameters not same');
+        require(length_ == _fees.length, 'Lengths of parameters not same');
+        for (uint256 i = 0; i < length_; i++) {
+            approve(_instaLoanVariables._tokens[i], _receiver, _instaLoanVariables._amounts[i] + _fees[i]);
+        }
+    }
+
+    /**
+     * @dev Transfers the tokens to the receiver address.
+     * @notice Transfers the tokens to the receiver address.
+     * @param _instaLoanVariables struct which includes list of token addresses and amounts.
+     * @param _receiver address to which tokens have to be transferred.
+     */
+    function safeTransfer(FlashloanVariables memory _instaLoanVariables, address _receiver) internal {
+        uint256 length_ = _instaLoanVariables._tokens.length;
+        require(length_ == _instaLoanVariables._amounts.length, 'Lengths of parameters not same');
+        for (uint256 i = 0; i < length_; i++) {
+            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
+            token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
+        }
+    }
+
+    /**
+     * @dev Validates if the receiver sent the correct amounts of funds.
+     * @notice Validates if the receiver sent the correct amounts of funds.
+     * @param _instaLoanVariables struct which includes list of initial balances, final balances and fees for the respective tokens.
+     */
+    function validateFlashloan(FlashloanVariables memory _instaLoanVariables) internal pure {
+        for (uint256 i = 0; i < _instaLoanVariables._iniBals.length; i++) {
+            require(
+                _instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i] <= _instaLoanVariables._finBals[i],
+                'amount-paid-less'
+            );
+        }
+    }
+}
+
+contract FlashloanHelpers { 
+    /**
      * @dev Calculate fees for the respective amounts and fee in BPS passed.
      * @notice Calculate fees for the respective amounts and fee in BPS passed. 1 BPS == 0.01%.
      * @param _amounts list of amounts.
@@ -93,18 +159,5 @@ contract HelpersCommon is VariablesCommon {
             }
         }
         return (_tokens, _amounts);
-    }
-
-    /**
-     * @dev Sort the tokens and amounts arrays according to token addresses.
-     * @notice Sort the tokens and amounts arrays according to token addresses.
-     * @param _token0 address of token0.
-     * @param _token1 address of token1.
-     */
-    function sortTokens(address _token0, address _token1) internal pure returns (address, address) {
-        if (_token1 < _token0) {
-            (_token0, _token1) = (_token1, _token0);
-        }
-        return (_token0, _token1);
     }
 }

@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 import "./helper.sol";
-import "../../../common/main.sol";
 
 /**
  * @title Flashloan.
@@ -146,7 +145,7 @@ contract AdminModule is Helper {
     }
 }
 
-contract FlashAggregatorFantom is FlashloanAggregator, AdminModule {
+contract FlashAggregatorFantom is AdminModule {
     event LogFlashloan(address indexed account, uint256 indexed route, address[] tokens, uint256[] amounts);
 
     /**
