@@ -13,7 +13,7 @@ contract ConstantVariables {
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 }
 
-contract FantonVariablesV1 {
+contract FantomVariablesV1 {
     address public owner;
 
     /**
@@ -26,7 +26,7 @@ contract FantonVariablesV1 {
     }
 }
 
-contract Variables is ConstantVariables, Structs, CommonVariablesV1, FantonVariablesV1, CommonVariablesV2 {
+contract Variables is ConstantVariables, CommonVariablesV1, Structs, FantomVariablesV1, CommonVariablesV2 {
     // ******** Stroage Variable layout ******* //
 
     /* CommonVariablesV1
@@ -34,7 +34,11 @@ contract Variables is ConstantVariables, Structs, CommonVariablesV1, FantonVaria
         // uint256 internal status;
     */
 
-    /* FantonVariablesV1
+    /* Structs
+        FlashloanVariables;
+    */
+
+    /* FantomVariablesV1
         // address public owner;
     */
 
