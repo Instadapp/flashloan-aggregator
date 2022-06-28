@@ -20,15 +20,6 @@ contract AdminModule is Helper {
     event LogCollectRevenue(address to, address[] tokens, uint256[] amounts);
 
     /**
-     * @dev owner gaurd.
-     * @notice owner gaurd.
-     */
-    modifier onlyOwner() {
-        require(msg.sender == owner, "not-owner");
-        _;
-    }
-
-    /**
      * @dev Update owner.
      * @notice Update owner.
      * @param newOwner_ address of new owner.

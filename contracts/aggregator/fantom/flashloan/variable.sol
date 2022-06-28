@@ -15,6 +15,15 @@ contract ConstantVariables {
 
 contract FantonVariablesV1 {
     address public owner;
+
+    /**
+     * @dev owner gaurd.
+     * @notice owner gaurd.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner, "not-owner");
+        _;
+    }
 }
 
 contract Variables is ConstantVariables, Structs, CommonVariablesV1, FantonVariablesV1, CommonVariablesV2 {
