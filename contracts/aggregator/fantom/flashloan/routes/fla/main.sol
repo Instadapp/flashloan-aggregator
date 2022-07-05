@@ -32,6 +32,7 @@ contract FLAImplementationFantom is Helper {
     function calculateFeeBPS(uint256 _route)
         public
         view
+        override
         returns (uint256 BPS_)
     {
         if (_route == 10) {
