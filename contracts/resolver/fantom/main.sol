@@ -139,5 +139,23 @@ contract FlashResolverFantom is AdminModule {
 }
 
 contract InstaFlashloanResolverFantom is FlashResolverFantom {
+    function initialize(
+        address owner_,
+        uint256[] memory _routes,
+        address[] memory _resolverImpls
+    ) public {
+        require(status == 0, "cannot-call-again");
+        require(_routes.length == _resolverImpls.length, "lengths-dont-match");
+        owner = owner_;
+        uint256 length = _routes.length;
+        for (uint256 i = 0; i < length; i++) {
+            require(
+                routeToResolver[_routes[i]] == address(0),
+                "route-already-added"
+            );
+            routeToResolver[_routes[i]] = _resolverImpls[i];
+        }
+        status = 1;
+    }
     receive() external payable {}
 }
