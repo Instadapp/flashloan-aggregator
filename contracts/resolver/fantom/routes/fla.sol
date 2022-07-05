@@ -1,11 +1,10 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract FLAResolver {
     address public flashloanAggregatorAddr =
-        0x2b65731A085B55DBe6c7DcC8D717Ac36c00F6d19; //todo: update
+        0x22ed23Cc6EFf065AfDb7D5fF0CBf6886fd19aee1;
 
     function initialize(address fla) public {
         flashloanAggregatorAddr = fla;

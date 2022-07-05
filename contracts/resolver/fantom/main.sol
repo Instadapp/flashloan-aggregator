@@ -1,9 +1,9 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Helper} from "./helpers.sol";
 import {InstaFlashloanAggregatorInterface} from "./interfaces.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract AdminModule is Helper {
     event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
@@ -92,11 +92,11 @@ contract FlashResolverFantom is Helper {
 
         uint16[] memory bRoutes_;
         uint256 feeBPS_;
-        uint16[] memory routes_ = flashloanAggregator.getEnabledRoutes();
-        uint16[] memory routesWithAvailability_ = getRoutesWithAvailability(
-            _tokens,
-            _amounts
-        );
+        (
+            uint16[] memory routes_,
+            uint16[] memory routesWithAvailability_
+        ) = getRoutesAndAvailability(_tokens, _amounts);
+
         uint16 j = 0;
         bRoutes_ = new uint16[](routes_.length);
         feeBPS_ = type(uint256).max;
@@ -139,12 +139,5 @@ contract FlashResolverFantom is Helper {
 }
 
 contract InstaFlashloanResolverFantom is FlashResolverFantom {
-    // function initialize(address aggregator, uint256[] memory _routes, address[] memory impls) public {
-    //     flashloanAggregatorAddr = aggregator;
-    //     uint256 length = _routes.length;
-    //     for(uint i = 0; i < length; i++) {
-    //         routeToResolver[_routes[i]] =  impls[i];
-    //     }
-    // }
     receive() external payable {}
 }

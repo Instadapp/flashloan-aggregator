@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-
 import "./interfaces.sol";
 
 contract Variables {
-    address public owner;
+    address public owner = 
+        0x34Eb8e4B8789807540eB188459ccE082D642e846;
     address public flashloanAggregatorAddr =
-        0x2b65731A085B55DBe6c7DcC8D717Ac36c00F6d19; //TODO: update
+        0x22ed23Cc6EFf065AfDb7D5fF0CBf6886fd19aee1;
     InstaFlashloanAggregatorInterface public flashloanAggregator =
         InstaFlashloanAggregatorInterface(flashloanAggregatorAddr);
     mapping(uint256 => address) routeToResolver;

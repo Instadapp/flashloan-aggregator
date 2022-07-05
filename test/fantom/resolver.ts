@@ -5,7 +5,6 @@ const { ethers } = hre
 import {
   InstaFlashAggregatorFantom__factory,
   InstaFlashAggregatorProxy__factory,
-  AaveImplementationFantom__factory,
   InstaFlashloanResolverFantom,
   InstaFlashloanResolverFantom__factory,
   AaveV3Resolver__factory,
@@ -17,8 +16,11 @@ import {
 } from '../../typechain'
 
 describe('Resolver', function () {
+  let AaveV3, aaveV3, FLA, fla;
   let Resolver, resolver: InstaFlashloanResolverFantom
   let signer: SignerWithAddress
+
+  const proxy = "0x22ed23Cc6EFf065AfDb7D5fF0CBf6886fd19aee1";
 
   const DAI = '0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E'
   const USDC = '0x04068DA6C83AFCFA0e13ba15A6696662335D5B75'
@@ -36,40 +38,6 @@ describe('Resolver', function () {
 
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
-    let Aggregator,
-    aggregator,
-    Proxy,
-    proxy,
-    AaveV3,
-    aaveV3,
-    ImplAave,
-    implAave,
-    ImplFLA,
-    implFLA,
-    FLA,
-    fla;
-
-    Aggregator = new InstaFlashAggregatorFantom__factory(signer)
-    aggregator = await Aggregator.deploy()
-    await aggregator.deployed()
-    // console.log("aggregator deployed at: ", aggregator.address)
-
-    ImplAave = new AaveImplementationFantom__factory(signer)
-    implAave = await ImplAave.deploy()
-    await implAave.deployed()
-    // console.log("implAave deployed at: ", implAave.address)
-
-    ImplFLA = new FLAImplementationFantom__factory(signer)
-    implFLA = await ImplFLA.deploy()
-    await implFLA.deployed()
-    // console.log("implFLA deployed at: ", implFLA.address)
-
-    const data = iface.encodeFunctionData('initialize', [signer.address, implAave.address, implFLA.address])
-
-    Proxy = new InstaFlashAggregatorProxy__factory(signer)
-    proxy = await Proxy.deploy(aggregator.address, master, data)
-    await proxy.deployed()
-    // console.log('Proxy at: ',proxy.address)
 
     AaveV3 = new AaveV3Resolver__factory(signer)
     aaveV3 = await AaveV3.deploy()
@@ -81,14 +49,12 @@ describe('Resolver', function () {
     await fla.deployed()
     // console.log('fla at: ', fla.address)
 
-    await fla.connect(signer).initialize(proxy.address)
-
     Resolver = new InstaFlashloanResolverFantom__factory(signer)
     resolver = await Resolver.deploy()
     await resolver.deployed()
-    // console.log("resolver deployed at: ", resolver.address)
+    console.log("resolver deployed at: ", resolver.address)
 
-    await resolver.connect(signer).initialize(proxy.address, ["9", "10"],[aaveV3.address, fla.address])
+    // await resolver.connect(signer).initialize(["9", "10"],[aaveV3.address, fla.address])
 
     const token_dai = new ethers.Contract(
       DAI,
@@ -101,7 +67,7 @@ describe('Resolver', function () {
       ethers.utils.parseEther('10.0').toHexString(),
     ])
     await hre.network.provider.send('hardhat_setBalance', [
-      proxy.address,
+      proxy,
       ethers.utils.parseEther('10.0').toHexString(),
     ])
 
@@ -111,7 +77,7 @@ describe('Resolver', function () {
     })
 
     const signer_dai = await ethers.getSigner(ACC_DAI)
-    await token_dai.connect(signer_dai).transfer(proxy.address, Dai)
+    await token_dai.connect(signer_dai).transfer(proxy, Dai)
 
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
@@ -135,7 +101,7 @@ describe('Resolver', function () {
     })
 
     const signer_usdc = await ethers.getSigner(ACC_USDC)
-    await token.connect(signer_usdc).transfer(proxy.address, Usdc)
+    await token.connect(signer_usdc).transfer(proxy, Usdc)
 
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
