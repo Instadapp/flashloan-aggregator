@@ -67,7 +67,7 @@ contract AdminModule is Helper {
     }
 }
 
-contract FlashResolverFantom is Helper {
+contract FlashResolverFantom is AdminModule {
     function getRoutesInfo()
         public
         view
