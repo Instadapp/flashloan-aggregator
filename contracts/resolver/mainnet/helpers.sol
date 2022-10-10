@@ -19,7 +19,7 @@ contract Helper is Variables {
                 .getReserveTokensAddresses(_tokens[i]);
             if (isActive == false) return false;
             if (token_.balanceOf(aTokenAddr) < _amounts[i]) return false;
-            if ((_route == 4 || _route == 7) && isBorrowingEnabled == false) return false;
+            if ((_route == 4 || _route == 7) && !isBorrowingEnabled) return false;
         }
         return true;
     }
