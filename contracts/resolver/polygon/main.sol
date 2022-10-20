@@ -55,7 +55,8 @@ contract FlashResolverPolygon is Helper {
                 }
             } else if (routesWithAvailability_[i] != 0) {
                 uint256 routeFeeBPS_ = flashloanAggregator.calculateFeeBPS(
-                    routesWithAvailability_[i]
+                    routesWithAvailability_[i],
+                    randomAddr_
                 );
                 if (feeBPS_ > routeFeeBPS_) {
                     feeBPS_ = routeFeeBPS_;
