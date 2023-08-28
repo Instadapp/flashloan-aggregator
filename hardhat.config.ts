@@ -27,6 +27,7 @@ const chainIds = {
   polygon: 137,
   optimism: 10,
   arbitrum: 42161,
+  base: 8453,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -60,6 +61,7 @@ function getNetworkUrl(networkType: string) {
   else if (networkType === "polygon") return `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "arbitrum") return `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "optimism") return `https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
+  else if (networkType === "base") return `https://1rpc.io/base`;
   else return `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`;
 }
 
@@ -68,6 +70,7 @@ function getBlockNumber(networkType: string) {
   else if (networkType === "polygon") return 27300159;
   else if (networkType === "arbitrum") return 10350332;
   else if (networkType === "optimism") return 6261116;
+  else if (networkType === "base") return 3173891;
   else return 14637205;
 }
 
@@ -129,6 +132,12 @@ const config: HardhatUserConfig = {
       chainId: 10,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
       gasPrice: 1000000,
+    },
+    base: {
+      url: `https://1rpc.io/base`,
+      chainId: 8453,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 1000000000,
     }
   },
   paths: {
