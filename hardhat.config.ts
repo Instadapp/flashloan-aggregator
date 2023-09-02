@@ -26,6 +26,8 @@ const chainIds = {
   avalanche: 43114,
   polygon: 137,
   optimism: 10,
+  arbitrum: 42161,
+  base: 8453,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -59,15 +61,17 @@ function getNetworkUrl(networkType: string) {
   else if (networkType === "polygon") return `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "arbitrum") return `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "optimism") return `https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
+  else if (networkType === "base") return `https://1rpc.io/base`;
   else return `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`;
 }
 
 function getBlockNumber(networkType: string) {
-  if (networkType === "avalanche") return 7675580;
-  else if (networkType === "polygon") return 25941254;
-  else if (networkType === "arbitrum") return 7719792;
-  else if (networkType === "optimism") return 4346343;
-  else return 14456907;
+  if (networkType === "avalanche") return 13683815;
+  else if (networkType === "polygon") return 27300159;
+  else if (networkType === "arbitrum") return 10350332;
+  else if (networkType === "optimism") return 6261116;
+  else if (networkType === "base") return 3173891;
+  else return 14637205;
 }
 
 const config: HardhatUserConfig = {
@@ -103,7 +107,7 @@ const config: HardhatUserConfig = {
       url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
       chainId: 1,
       gasPrice: 52101000000,
-      accounts: [`0x${process.env.PRIVATE_KEY}`]
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
     },
     avalanche_mainnet: {
       url: 'https://api.avax.network/ext/bc/C/rpc',
@@ -115,7 +119,7 @@ const config: HardhatUserConfig = {
       url: `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
       chainId: 42161,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
-      gasPrice: 1500000000
+      gasPrice: 1110000000,
     },
     polygon_mainnet: {
       url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
@@ -128,6 +132,12 @@ const config: HardhatUserConfig = {
       chainId: 10,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
       gasPrice: 1000000,
+    },
+    base: {
+      url: `https://1rpc.io/base`,
+      chainId: 8453,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 1000000000,
     }
   },
   paths: {
@@ -169,8 +179,18 @@ const config: HardhatUserConfig = {
     timeout: 10000 * 10000,
   },
   etherscan: {
-    apiKey: `${process.env.SCAN_API_KEY}`
-  }
+    apiKey: `${process.env.SCAN_API_KEY}`,
+    customChains: [
+      {
+        network: "base",
+        chainId: 8453,
+        urls: {
+         apiURL: "https://api.basescan.org/api",
+         browserURL: "https://basescan.org"
+        }
+      }
+    ]
+  },
 };
 
 export default config;

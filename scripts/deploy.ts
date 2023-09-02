@@ -3,31 +3,37 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 const { ethers } = hre
 
 import {
-  InstaFlashAggregatorOptimism,
-  InstaFlashAggregatorOptimism__factory,
+  InstaFlashAggregatorBase,
+  InstaFlashAggregatorBase__factory,
   InstaFlashAggregatorProxy__factory,
+  InstaFlashAggregatorProxyAdmin__factory
 } from '../typechain'
 
-let Aggregator, aggregator: InstaFlashAggregatorOptimism
+let Aggregator, aggregator: InstaFlashAggregatorBase
 let proxyAddr = ''
 
 async function scriptRunner() {
   let signer: SignerWithAddress
-  let Proxy, proxy
+  let Proxy, proxy, Admin, admin
 
-  const master = '0xD4E5e20eF32b4750d4cD185a8E970b89851E7775'
-  let ABI = ['function initialize()']
-  let iface = new ethers.utils.Interface(ABI)
+  const master = '0x911454433E1FACbFfB54E92634440E33e569D389'
+  const ABI = ['function initialize()']
+  const iface = new ethers.utils.Interface(ABI)
   const data = iface.encodeFunctionData('initialize')
 
   ;[signer] = await ethers.getSigners()
-  Aggregator = new InstaFlashAggregatorOptimism__factory(signer)
+  Aggregator = new InstaFlashAggregatorBase__factory(signer)
   aggregator = await Aggregator.deploy()
   await aggregator.deployed()
   console.log('Aggregator deployed to: ', aggregator.address)
 
+  Admin = new InstaFlashAggregatorProxyAdmin__factory(signer)
+  admin = await Admin.deploy(master)
+  await admin.deployed()
+  console.log('Admin deployed to: ', admin.address)
+
   Proxy = new InstaFlashAggregatorProxy__factory(signer)
-  proxy = await Proxy.deploy(aggregator.address, master, data)
+  proxy = await Proxy.deploy(aggregator.address, admin.address, data)
   await proxy.deployed()
   console.log('Proxy deployed to: ', proxy.address)
 
@@ -39,13 +45,27 @@ async function scriptRunner() {
   })
 
   await hre.run('verify:verify', {
-    address: '0x84E6b05A089d5677A702cF61dc14335b4bE5b282',
+    address: proxyAddr,
     constructorArguments: [
-      '0xDAa3F68f0033d8ad252e0a53b402943221705714',
-      master,
+      aggregator.address,
+      admin.address,
       data,
     ],
-    contracts: 'contracts/proxy/proxy.sol:InstaFlashAggregatorProxy',
+    contract: 'contracts/proxy/proxy.sol:InstaFlashAggregatorProxy',
+  })
+
+  await hre.run('verify:verify', {
+    address: admin.address,
+    constructorArguments: [
+      master
+    ],
+    contract: 'contracts/proxy/proxyAdmin.sol:InstaFlashAggregatorProxyAdmin',
+  })
+
+  await hre.run('verify:verify', {
+    address: aggregator.address,
+    constructorArguments: [],
+    contract: 'contracts/aggregator/base/flashloan/main.sol:InstaFlashAggregatorBase',
   })
 
   console.log((await ethers.provider.getBalance(signer.address)).toString())
