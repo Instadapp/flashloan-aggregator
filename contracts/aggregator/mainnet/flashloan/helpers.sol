@@ -277,9 +277,9 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for (uint256 i = 0; i < length_; i++) {
-            approve(_tokens[i], address(aaveLending), _amounts[i]);
-            aaveLending.deposit(_tokens[i], _amounts[i], address(this), 3228);
-            aaveLending.setUserUseReserveAsCollateral(_tokens[i], true);
+            approve(_tokens[i], aaveV2LendingAddr, _amounts[i]);
+            aaveV2Lending.deposit(_tokens[i], _amounts[i], address(this), 3228);
+            aaveV2Lending.setUserUseReserveAsCollateral(_tokens[i], true);
         }
     }
 
@@ -295,7 +295,7 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for (uint256 i = 0; i < length_; i++) {
-            aaveLending.borrow(_tokens[i], _amounts[i], 2, 3228, address(this));
+            aaveV2Lending.borrow(_tokens[i], _amounts[i], 2, 3228, address(this));
         }
     }
 
@@ -311,8 +311,8 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for (uint256 i = 0; i < length_; i++) {
-            approve(_tokens[i], address(aaveLending), _amounts[i]);
-            aaveLending.repay(_tokens[i], _amounts[i], 2, address(this));
+            approve(_tokens[i], aaveV2LendingAddr, _amounts[i]);
+            aaveV2Lending.repay(_tokens[i], _amounts[i], 2, address(this));
         }
     }
 
@@ -328,7 +328,7 @@ contract Helper is Variables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for (uint256 i = 0; i < length_; i++) {
-            aaveLending.withdraw(_tokens[i], _amounts[i], address(this));
+            aaveV2Lending.withdraw(_tokens[i], _amounts[i], address(this));
         }
     }
 
@@ -343,7 +343,7 @@ contract Helper is Variables {
         returns (uint256 BPS_)
     {
         if (_route == 1) {
-            BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
+            BPS_ = aaveV2Lending.FLASHLOAN_PREMIUM_TOTAL();
         } else if (_route == 2 || _route == 3 || _route == 4) {
             BPS_ = (makerLending.toll()) / (10**14);
         } else if (_route == 5 || _route == 6 || _route == 7) {
@@ -354,6 +354,10 @@ contract Helper is Variables {
                         .getFlashLoanFeePercentage()
                 ) *
                 100;
+        } else if (_route == 9) {
+            BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
+        } else if (_route == 10) {
+            BPS_ = sparkLending.FLASHLOAN_PREMIUM_TOTAL();
         } else {
             revert("Invalid source");
         }

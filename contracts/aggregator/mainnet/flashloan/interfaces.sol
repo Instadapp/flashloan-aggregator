@@ -190,3 +190,31 @@ interface IWstETH {
 
     function unwrap(uint256 _wstETHAmount) external returns (uint256);
 }
+
+interface IAaveV3Lending {
+    function flashLoan(
+        address receiverAddress,
+        address[] calldata assets,
+        uint256[] calldata amounts,
+        uint256[] calldata modes,
+        address onBehalfOf,
+        bytes calldata params,
+        uint16 referralCode
+    ) external;
+
+    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128);
+}
+
+interface ISparkLending {
+    function flashLoan(
+        address receiverAddress,
+        address[] calldata assets,
+        uint256[] calldata amounts,
+        uint256[] calldata modes,
+        address onBehalfOf,
+        bytes calldata params,
+        uint16 referralCode
+    ) external;
+
+    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128);
+}

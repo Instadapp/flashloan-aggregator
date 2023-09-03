@@ -99,27 +99,38 @@ contract FlashAggregator is Setups {
         bytes memory _data
     ) external verifyDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
-        require(msg.sender == address(aaveLending), "not-aave-sender");
+        require(
+            msg.sender == aaveV2LendingAddr || msg.sender == aaveV3LendingAddr || msg.sender == sparkLendingAddr,
+            "not-aave-sender"
+        );
 
         FlashloanVariables memory instaLoanVariables_;
 
-        (address sender_, bytes memory data_) = abi.decode(
+        (uint256 route_, address sender_, bytes memory data_) = abi.decode(
             _data,
-            (address, bytes)
+            (uint256, address, bytes)
         );
 
         instaLoanVariables_._tokens = _assets;
         instaLoanVariables_._amounts = _amounts;
         instaLoanVariables_._instaFees = calculateFees(
             _amounts,
-            calculateFeeBPS(1, sender_)
+            calculateFeeBPS(route_, sender_)
         );
         instaLoanVariables_._iniBals = calculateBalances(
             _assets,
             address(this)
         );
 
-        safeApprove(instaLoanVariables_, _premiums, address(aaveLending));
+        if (route_ == 1) {
+            safeApprove(instaLoanVariables_, _premiums, aaveV2LendingAddr);
+        } else if (route_ == 9) {
+            safeApprove(instaLoanVariables_, _premiums, aaveV3LendingAddr);
+        } else if (route_ == 10) {
+            safeApprove(instaLoanVariables_, _premiums, sparkLendingAddr);
+        } else {
+            revert("wrong-route");
+        }
         safeTransfer(instaLoanVariables_, sender_);
 
         if (checkIfDsa(sender_)) {
@@ -399,19 +410,79 @@ contract FlashAggregator is Setups {
      * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
      * @param _data extra data passed.
      */
-    function routeAave(
+    function routeAaveV2(
         address[] memory _tokens,
         uint256[] memory _amounts,
         bytes memory _data
     ) internal {
-        bytes memory data_ = abi.encode(msg.sender, _data);
+        bytes memory data_ = abi.encode(1, msg.sender, _data);
         uint256 length_ = _tokens.length;
         uint256[] memory _modes = new uint256[](length_);
         for (uint256 i = 0; i < length_; i++) {
             _modes[i] = 0;
         }
         dataHash = bytes32(keccak256(data_));
-        aaveLending.flashLoan(
+        aaveV2Lending.flashLoan(
+            address(this),
+            _tokens,
+            _amounts,
+            _modes,
+            address(0),
+            data_,
+            3228
+        );
+    }
+
+    /**
+     * @dev Middle function for route 9.
+     * @notice Middle function for route 9.
+     * @param _tokens list of token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+     * @param _data extra data passed.
+     */
+    function routeAaveV3(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal {
+        bytes memory data_ = abi.encode(9, msg.sender, _data);
+        uint256 length_ = _tokens.length;
+        uint256[] memory _modes = new uint256[](length_);
+        for (uint256 i = 0; i < length_; i++) {
+            _modes[i] = 0;
+        }
+        dataHash = bytes32(keccak256(data_));
+        aaveV3Lending.flashLoan(
+            address(this),
+            _tokens,
+            _amounts,
+            _modes,
+            address(0),
+            data_,
+            3228
+        );
+    }
+
+    /**
+     * @dev Middle function for route 10.
+     * @notice Middle function for route 10.
+     * @param _tokens list of token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+     * @param _data extra data passed.
+     */
+    function routeSpark(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal {
+        bytes memory data_ = abi.encode(10, msg.sender, _data);
+        uint256 length_ = _tokens.length;
+        uint256[] memory _modes = new uint256[](length_);
+        for (uint256 i = 0; i < length_; i++) {
+            _modes[i] = 0;
+        }
+        dataHash = bytes32(keccak256(data_));
+        sparkLending.flashLoan(
             address(this),
             _tokens,
             _amounts,
@@ -549,70 +620,6 @@ contract FlashAggregator is Setups {
     }
 
     /**
-     * @dev Middle function for route 6.
-     * @notice Middle function for route 6.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeBalancerCompound(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        bytes memory data_ = abi.encode(
-            6,
-            _tokens,
-            _amounts,
-            msg.sender,
-            _data
-        );
-        IERC20[] memory wethTokenList_ = new IERC20[](1);
-        uint256[] memory wethAmountList_ = new uint256[](1);
-        wethTokenList_[0] = IERC20(wethToken);
-        wethAmountList_[0] = getWEthBorrowAmount();
-        dataHash = bytes32(keccak256(data_));
-        balancerLending.flashLoan(
-            InstaFlashReceiverInterface(address(this)),
-            wethTokenList_,
-            wethAmountList_,
-            data_
-        );
-    }
-
-    /**
-     * @dev Middle function for route 7.
-     * @notice Middle function for route 7.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeBalancerAave(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        bytes memory data_ = abi.encode(
-            7,
-            _tokens,
-            _amounts,
-            msg.sender,
-            _data
-        );
-        IERC20[] memory wethTokenList_ = new IERC20[](1);
-        uint256[] memory wethAmountList_ = new uint256[](1);
-        wethTokenList_[0] = wethToken;
-        wethAmountList_[0] = getWEthBorrowAmount();
-        dataHash = bytes32(keccak256(data_));
-        balancerLending.flashLoan(
-            InstaFlashReceiverInterface(address(this)),
-            wethTokenList_,
-            wethAmountList_,
-            data_
-        );
-    }
-
-    /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @param _tokens token addresses for flashloan.
@@ -633,7 +640,7 @@ contract FlashAggregator is Setups {
         validateTokens(_tokens);
 
         if (_route == 1) {
-            routeAave(_tokens, _amounts, _data);
+            routeAaveV2(_tokens, _amounts, _data);
         } else if (_route == 2) {
             routeMaker(_tokens[0], _amounts[0], _data);
         } else if (_route == 3) {
@@ -642,11 +649,12 @@ contract FlashAggregator is Setups {
             routeMakerAave(_tokens, _amounts, _data);
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
-        } else if (_route == 6) {
-            routeBalancerCompound(_tokens, _amounts, _data);
-        } else if (_route == 7) {
-            routeBalancerAave(_tokens, _amounts, _data);
-        } else {
+        } else if (_route == 9) {
+            routeAaveV3(_tokens, _amounts, _data);
+        } else if (_route == 10) {
+            routeSpark(_tokens, _amounts, _data);
+        } 
+        else {
             revert("route-does-not-exist");
         }
 
@@ -664,8 +672,8 @@ contract FlashAggregator is Setups {
         routes_[2] = 3;
         routes_[3] = 4;
         routes_[4] = 5;
-        routes_[5] = 6;
-        routes_[6] = 7;
+        routes_[5] = 9; // routeAaveV3
+        routes_[6] = 10; // routeSpark
     }
 
     /**
