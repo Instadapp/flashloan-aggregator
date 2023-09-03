@@ -346,7 +346,7 @@ contract Helper is Variables {
             BPS_ = aaveV2Lending.FLASHLOAN_PREMIUM_TOTAL();
         } else if (_route == 2 || _route == 3 || _route == 4) {
             BPS_ = (makerLending.toll()) / (10**14);
-        } else if (_route == 5 || _route == 6 || _route == 7) {
+        } else if (_route == 5) {
             BPS_ =
                 (
                     balancerLending

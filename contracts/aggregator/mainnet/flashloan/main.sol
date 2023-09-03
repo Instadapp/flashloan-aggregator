@@ -410,88 +410,112 @@ contract FlashAggregator is Setups {
      * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
      * @param _data extra data passed.
      */
-    function routeAaveV2(
+    function routeAaveAndSpark(
+        uint256 route,
         address[] memory _tokens,
         uint256[] memory _amounts,
         bytes memory _data
     ) internal {
-        bytes memory data_ = abi.encode(1, msg.sender, _data);
+        bytes memory data_ = abi.encode(route, msg.sender, _data);
         uint256 length_ = _tokens.length;
         uint256[] memory _modes = new uint256[](length_);
         for (uint256 i = 0; i < length_; i++) {
             _modes[i] = 0;
         }
         dataHash = bytes32(keccak256(data_));
-        aaveV2Lending.flashLoan(
-            address(this),
-            _tokens,
-            _amounts,
-            _modes,
-            address(0),
-            data_,
-            3228
-        );
+
+        if (route == 1) {
+            aaveV2Lending.flashLoan(
+                address(this),
+                _tokens,
+                _amounts,
+                _modes,
+                address(0),
+                data_,
+                3228
+            );
+        } else if (route == 9) {
+            aaveV3Lending.flashLoan(
+                address(this),
+                _tokens,
+                _amounts,
+                _modes,
+                address(0),
+                data_,
+                3228
+            );
+        } else if (route == 10) {
+            sparkLending.flashLoan(
+                address(this),
+                _tokens,
+                _amounts,
+                _modes,
+                address(0),
+                data_,
+                3228
+            );
+        }
     }
 
-    /**
-     * @dev Middle function for route 9.
-     * @notice Middle function for route 9.
-     * @param _tokens list of token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
-     * @param _data extra data passed.
-     */
-    function routeAaveV3(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        bytes memory data_ = abi.encode(9, msg.sender, _data);
-        uint256 length_ = _tokens.length;
-        uint256[] memory _modes = new uint256[](length_);
-        for (uint256 i = 0; i < length_; i++) {
-            _modes[i] = 0;
-        }
-        dataHash = bytes32(keccak256(data_));
-        aaveV3Lending.flashLoan(
-            address(this),
-            _tokens,
-            _amounts,
-            _modes,
-            address(0),
-            data_,
-            3228
-        );
-    }
+    // /**
+    //  * @dev Middle function for route 9.
+    //  * @notice Middle function for route 9.
+    //  * @param _tokens list of token addresses for flashloan.
+    //  * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+    //  * @param _data extra data passed.
+    //  */
+    // function routeAaveV3(
+    //     address[] memory _tokens,
+    //     uint256[] memory _amounts,
+    //     bytes memory _data
+    // ) internal {
+    //     bytes memory data_ = abi.encode(9, msg.sender, _data);
+    //     uint256 length_ = _tokens.length;
+    //     uint256[] memory _modes = new uint256[](length_);
+    //     for (uint256 i = 0; i < length_; i++) {
+    //         _modes[i] = 0;
+    //     }
+    //     dataHash = bytes32(keccak256(data_));
+    //     aaveV3Lending.flashLoan(
+    //         address(this),
+    //         _tokens,
+    //         _amounts,
+    //         _modes,
+    //         address(0),
+    //         data_,
+    //         3228
+    //     );
+    // }
 
-    /**
-     * @dev Middle function for route 10.
-     * @notice Middle function for route 10.
-     * @param _tokens list of token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
-     * @param _data extra data passed.
-     */
-    function routeSpark(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        bytes memory data_ = abi.encode(10, msg.sender, _data);
-        uint256 length_ = _tokens.length;
-        uint256[] memory _modes = new uint256[](length_);
-        for (uint256 i = 0; i < length_; i++) {
-            _modes[i] = 0;
-        }
-        dataHash = bytes32(keccak256(data_));
-        sparkLending.flashLoan(
-            address(this),
-            _tokens,
-            _amounts,
-            _modes,
-            address(0),
-            data_,
-            3228
-        );
-    }
+    // /**
+    //  * @dev Middle function for route 10.
+    //  * @notice Middle function for route 10.
+    //  * @param _tokens list of token addresses for flashloan.
+    //  * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+    //  * @param _data extra data passed.
+    //  */
+    // function routeSpark(
+    //     address[] memory _tokens,
+    //     uint256[] memory _amounts,
+    //     bytes memory _data
+    // ) internal {
+    //     bytes memory data_ = abi.encode(10, msg.sender, _data);
+    //     uint256 length_ = _tokens.length;
+    //     uint256[] memory _modes = new uint256[](length_);
+    //     for (uint256 i = 0; i < length_; i++) {
+    //         _modes[i] = 0;
+    //     }
+    //     dataHash = bytes32(keccak256(data_));
+    //     sparkLending.flashLoan(
+    //         address(this),
+    //         _tokens,
+    //         _amounts,
+    //         _modes,
+    //         address(0),
+    //         data_,
+    //         3228
+    //     );
+    // }
 
     /**
      * @dev Middle function for route 2.
@@ -640,7 +664,8 @@ contract FlashAggregator is Setups {
         validateTokens(_tokens);
 
         if (_route == 1) {
-            routeAaveV2(_tokens, _amounts, _data);
+            // routeAaveV2(_tokens, _amounts, _data);
+            routeAaveAndSpark(1, _tokens, _amounts, _data);
         } else if (_route == 2) {
             routeMaker(_tokens[0], _amounts[0], _data);
         } else if (_route == 3) {
@@ -650,9 +675,11 @@ contract FlashAggregator is Setups {
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
         } else if (_route == 9) {
-            routeAaveV3(_tokens, _amounts, _data);
+            // routeAaveV3(_tokens, _amounts, _data);
+            routeAaveAndSpark(9, _tokens, _amounts, _data);
         } else if (_route == 10) {
-            routeSpark(_tokens, _amounts, _data);
+            // routeSpark(_tokens, _amounts, _data);
+            routeAaveAndSpark(10, _tokens, _amounts, _data);
         } 
         else {
             revert("route-does-not-exist");
@@ -705,25 +732,25 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    // function initialize(address[] memory _ctokens, address owner_) public {
-    //     require(status == 0, "cannot-call-again");
-    //     require(stETHStatus == 0, "only-once");
-    //     require(ownerStatus == 0, "only-once");
-    //     IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
-    //     addTokenToCToken(_ctokens);
-    //     address[] memory cTokens_ = new address[](2);
-    //     cTokens_[0] = cethTokenAddr;
-    //     cTokens_[1] = cdaiTokenAddr;
-    //     uint256[] memory errors_ = troller.enterMarkets(cTokens_);
-    //     for(uint256 j = 0; j < errors_.length; j++){
-    //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
-    //     }
-    //     IERC20(stEthTokenAddr).approve(address(wstEthToken), type(uint256).max);
-    //     owner = owner_;
-    //     ownerStatus = 1;
-    //     stETHStatus = 1;
-    //     status = 1;
-    // }
+    function initialize(address[] memory _ctokens, address owner_) public {
+        require(status == 0, "cannot-call-again");
+        require(stETHStatus == 0, "only-once");
+        require(ownerStatus == 0, "only-once");
+        IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
+        addTokenToCToken(_ctokens);
+        address[] memory cTokens_ = new address[](2);
+        cTokens_[0] = cethTokenAddr;
+        cTokens_[1] = cdaiTokenAddr;
+        uint256[] memory errors_ = troller.enterMarkets(cTokens_);
+        for(uint256 j = 0; j < errors_.length; j++){
+            require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
+        }
+        IERC20(stEthTokenAddr).safeApprove(address(wstEthToken), type(uint256).max);
+        owner = owner_;
+        ownerStatus = 1;
+        stETHStatus = 1;
+        status = 1;
+    }
 
     receive() external payable {}
 }
