@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces.sol";
+import "../../common/interface.sol";
 
 contract ConstantVariables {
     IWeth internal constant wethToken =
@@ -56,4 +57,8 @@ contract Variables is ConstantVariables {
     uint256 internal ownerStatus;
 
     mapping(address => bool) public isWhitelisted;
+
+    address internal AAVE_IMPL;
+    address internal MAKER_IMPL;
+    address internal BALANCER_IMPL;
 }

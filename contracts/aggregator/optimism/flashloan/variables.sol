@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces.sol";
+import "../../common/interface.sol";
 
 contract ConstantVariables {
     address public constant treasuryAddr =
@@ -37,4 +38,6 @@ contract Variables is ConstantVariables {
         address token1;
         uint24 fee;
     }
+
+    address internal UNISWAP_IMPL;
 }
