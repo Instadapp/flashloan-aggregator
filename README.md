@@ -47,18 +47,3 @@ Deploy the contracts to Hardhat Network:
 ```sh
 $ npm run deploy
 ```
-
-## Syntax Highlighting
-
-If you use VSCode, you can enjoy syntax highlighting for your Solidity code via the
-[vscode-solidity](https://github.com/juanfranblanco/vscode-solidity) extension. The recommended approach to set the
-compiler version is to add the following fields to your VSCode user settings:
-
-```json
-{
-  "solidity.compileUsingRemoteVersion": "v0.8.4+commit.c7e474f2",
-  "solidity.defaultCompiler": "remote"
-}
-```
-
-Where of course `v0.8.4+commit.c7e474f2` can be replaced with any other version.
