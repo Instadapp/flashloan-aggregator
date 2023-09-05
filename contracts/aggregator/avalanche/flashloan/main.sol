@@ -6,15 +6,8 @@ pragma solidity ^0.8.0;
  * @dev Flashloan aggregator.
  */
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import { Helper } from "./helpers.sol";
-
-import { 
-    TokenInterface,
-    InstaFlashReceiverInterface
-} from "./interfaces.sol";
 
 contract FlashAggregatorAvalanche is Helper {
     using SafeERC20 for IERC20;
@@ -43,21 +36,27 @@ contract FlashAggregatorAvalanche is Helper {
         bytes memory _data
     ) external verifyDataHash(_data) returns (bool) {
         require(_initiator == address(this), "not-same-sender");
-        require(msg.sender == aaveLendingAddr, "not-aave-sender");
+        require(
+            msg.sender == aaveV2LendingAddr || msg.sender == aaveV3LendingAddr,
+            "not-aave-sender"
+        );
 
         FlashloanVariables memory instaLoanVariables_;
 
-        (address sender_, bytes memory data_) = abi.decode(
+        (uint256 route_, address sender_, bytes memory data_) = abi.decode(
             _data,
-            (address, bytes)
+            (uint256, address, bytes)
         );
 
         instaLoanVariables_._tokens = _assets;
         instaLoanVariables_._amounts = _amounts;
-        instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(1));
+        instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(route_));
         instaLoanVariables_._iniBals = calculateBalances(_assets, address(this));
-
-        safeApprove(instaLoanVariables_, _premiums, aaveLendingAddr);
+        if (route_ == 1) {
+            safeApprove(instaLoanVariables_, _premiums, aaveV2LendingAddr);
+        } else {
+            safeApprove(instaLoanVariables_, _premiums, aaveV3LendingAddr);
+        }
         safeTransfer(instaLoanVariables_, sender_);
 
         if (checkIfDsa(sender_)) {
@@ -79,15 +78,33 @@ contract FlashAggregatorAvalanche is Helper {
      * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
      * @param _data extra data passed.
     */
-    function routeAave(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
-        bytes memory data_ = abi.encode(msg.sender, _data);
+    function routeAaveV2(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
+        bytes memory data_ = abi.encode(1, msg.sender, _data);
         uint length_ = _tokens.length;
         uint[] memory _modes = new uint[](length_);
         for (uint i = 0; i < length_; i++) {
             _modes[i]=0;
         }
         dataHash = bytes32(keccak256(data_));
-        aaveLending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
+        aaveV2Lending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
+    }
+
+    /**
+     * @dev Middle function for route 9.
+     * @notice Middle function for route 9.
+     * @param _tokens list of token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
+     * @param _data extra data passed.
+    */
+    function routeAaveV3(address[] memory _tokens, uint256[] memory _amounts, bytes memory _data) internal {
+        bytes memory data_ = abi.encode(9, msg.sender, _data);
+        uint length_ = _tokens.length;
+        uint[] memory _modes = new uint[](length_);
+        for (uint i = 0; i < length_; i++) {
+            _modes[i]=0;
+        }
+        dataHash = bytes32(keccak256(data_));
+        aaveV3Lending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
     }
 
     /**
@@ -112,19 +129,9 @@ contract FlashAggregatorAvalanche is Helper {
         validateTokens(_tokens);
 
         if (_route == 1) {
-            routeAave(_tokens, _amounts, _data);
-        } else if (_route == 2) {
-            revert("this route is only for mainnet");
-        } else if (_route == 3) {
-            revert("this route is only for mainnet");
-        } else if (_route == 4) {
-            revert("this route is only for mainnet");
-        } else if (_route == 5) {
-            revert("this route is only for mainnet, polygon and arbitrum");
-        } else if (_route == 6) {
-            revert("this route is only for mainnet");
-        } else if (_route == 7) {
-            revert("this route is only for mainnet and polygon");
+            routeAaveV2(_tokens, _amounts, _data);
+        } else if (_route == 9) {
+            routeAaveV3(_tokens, _amounts, _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -142,8 +149,9 @@ contract FlashAggregatorAvalanche is Helper {
      * @notice Function to get the list of available routes.
     */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](1);
+        routes_ = new uint16[](2);
         routes_[0] = 1;
+        routes_[1] = 9;
     }
 
     /**

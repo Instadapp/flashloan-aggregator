@@ -1,15 +1,10 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import {Variables} from "./variables.sol";
+import "./variables.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
-import { 
-    TokenInterface,
-    InstaFlashReceiverInterface
-} from "./interfaces.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
@@ -120,7 +115,9 @@ contract Helper is Variables {
     */
     function calculateFeeBPS(uint256 _route) public view returns(uint256 BPS_){
         if (_route == 1) {
-            BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
+            BPS_ = aaveV2Lending.FLASHLOAN_PREMIUM_TOTAL();
+        } else if (_route == 9) {
+            BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
         } else {
             revert("Invalid source");
         }

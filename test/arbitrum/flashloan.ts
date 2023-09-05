@@ -86,6 +86,9 @@ describe("FlashLoan", function () {
     it("Should be able to take flashLoan of a single token from Balancer", async function () {
       await receiver.flashBorrow([USDC], [Usdc], 5, _data, _instaData);
     });
+    it("Should be able to take flashLoan of a single token from AAVE V3", async function () {
+      await receiver.flashBorrow([USDC], [Usdc], 9, _data, _instaData);
+    });
   });
 
   describe("Uniswap Route", async function () {
@@ -141,6 +144,15 @@ describe("FlashLoan", function () {
         [USDT, USDC],
         [Usdc, Usdt],
         5,
+        _data,
+        _instaData
+      );
+    });
+    it("Should be able to take flashLoan of multiple unsorted tokens together from AAVE V3", async function () {
+      await receiver.flashBorrow(
+        [USDT, USDC],
+        [Usdc, Usdt],
+        9,
         _data,
         _instaData
       );

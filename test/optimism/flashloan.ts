@@ -91,6 +91,9 @@ describe('FlashLoan', function () {
     it('Should be able to take flashLoan of a single token from Uniswap', async function () {
       await receiver.flashBorrow([DAI], [Dai], 8, _data, _instaData)
     })
+    it('Should be able to take flashLoan of a single token from AAVE V3', async function () {
+      await receiver.flashBorrow([DAI], [Dai], 9, _data, _instaData)
+    })
   })
 
   describe('Multi token', async function () {
@@ -125,6 +128,9 @@ describe('FlashLoan', function () {
     })
     it('Should be able to take flashLoan of multiple tokens together from Uniswap', async function () {
       await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 8, _data, _instaData)
+    })
+    it('Should be able to take flashLoan of multiple tokens together from AAVE V3', async function () {
+      await receiver.flashBorrow([DAI, USDT], [Dai, Usdt], 9, _data, _instaData)
     })
   })
 })
