@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 import "./helpers.sol";
-import "hardhat/console.sol";
 
 contract AdvancedRouteImplementation is Helper {
 
@@ -19,11 +18,8 @@ contract AdvancedRouteImplementation is Helper {
         address[] memory _borrowTokens,
         uint256[] memory _borrowAmounts
     ) public {
-        console.log('herereer');
         compoundSupply(_supplyTokens, _supplyAmounts);
-        console.log('compound supply done');
         compoundBorrow(_borrowTokens, _borrowAmounts);
-        console.log('compound borrow done');
     }
 
     /**
@@ -58,11 +54,8 @@ contract AdvancedRouteImplementation is Helper {
         address[] memory _borrowTokens,
         uint256[] memory _borrowAmounts
     ) public {
-        console.log('here7');
         aaveSupply(_supplyTokens, _supplyAmounts);
-        console.log('aave supply done');
         aaveBorrow(_borrowTokens, _borrowAmounts);
-        console.log('aave borrow done');
     }
 
     /**
@@ -79,10 +72,7 @@ contract AdvancedRouteImplementation is Helper {
         address[] memory _withdrawTokens,
         uint256[] memory _withdrawAmounts
     ) public {
-        console.log('here8');
         aavePayback(_paybackTokens, _paybackAmounts);
-        console.log('aave payback done');
         aaveWithdraw(_withdrawTokens, _withdrawAmounts);
-        console.log('aave withdraw done');
     }
 }

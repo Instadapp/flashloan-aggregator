@@ -8,7 +8,6 @@ pragma solidity ^0.8.0;
 
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "hardhat/console.sol";
 
 contract AdminModule is Helper {
     event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
@@ -311,12 +310,10 @@ contract FlashAggregator is Setups {
         );
         validateFlashloan(instaLoanVariables_);
 
-        console.log('validated');
-
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
 
-    struct Helper {
+    struct BalancerHelper {
         uint256 route_;
         address[] tokens_;
         uint256[] amounts_;
@@ -340,7 +337,7 @@ contract FlashAggregator is Setups {
         require(msg.sender == address(balancerLending), "not-balancer-sender");
 
         FlashloanVariables memory instaLoanVariables_;
-        Helper memory helper;
+        BalancerHelper memory helper;
 
         (
             helper.route_,
@@ -561,8 +558,6 @@ contract FlashAggregator is Setups {
         uint256[] memory amounts_ = new uint256[](1);
         tokens_[0] = _token;
         amounts_[0] = _amount;
-
-        console.log('_amount: ', _amount);
 
         bytes memory data_ = abi.encode(
             2,

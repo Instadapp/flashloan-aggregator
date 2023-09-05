@@ -3,39 +3,16 @@ pragma solidity ^0.8.0;
 
 import "./variables.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "hardhat/console.sol";
 
 contract Helper is ConstantVariables {
     using SafeERC20 for IERC20;
 
     function calculateAndReadFromStorage(address key_) public view returns (address result_) {
-        bytes32 slot_ = keccak256(abi.encode(key_, 2));
+        bytes32 slot_ = keccak256(abi.encode(key_, 2)); // Slot for `tokenToCToken` variable
 
         assembly {
             result_ := sload(slot_) // read value from the storage slot
         }
-    }
-
-    function updateDataHashStorage(bytes memory data_) public {
-        bytes32 slot_ = keccak256(abi.encode(0));
-
-        uint result_;
-
-        assembly {
-            result_ := sload(0) // read value from the storage slot
-        }
-        console.log('cuurent hash: ', result_);
-        bytes32 dataHash = bytes32(keccak256(data_));
-
-        assembly {
-            sstore(slot_, dataHash)
-        }
-
-        assembly {
-            result_ := sload(0) // read value from the storage slot
-        }
-
-        console.log('new hash: ', result_);
     }
 
     /**
