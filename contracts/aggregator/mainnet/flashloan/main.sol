@@ -8,6 +8,7 @@ pragma solidity ^0.8.0;
 
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "hardhat/console.sol";
 
 contract AdminModule is Helper {
     event updateOwnerLog(address indexed oldOwner, address indexed newOwner);
@@ -224,11 +225,33 @@ contract FlashAggregator is Setups {
             _daiTokenAmountsList[0] = _amount;
 
             if (route_ == 3) {
-                compoundSupply(_daiTokenList, _daiTokenAmountsList);
-                compoundBorrow(tokens_, amounts_);
+                // compoundSupply(_daiTokenList, _daiTokenAmountsList);
+                // compoundBorrow(tokens_, amounts_);
+
+                spell(
+                    ADVANCED_ROUTES_IMPL,
+                    abi.encodeWithSignature(
+                        "compoundSupplyAndBorrow(address[],uint256[],address[],uint256[])",
+                        _daiTokenList,
+                        _daiTokenAmountsList,
+                        tokens_,
+                        amounts_
+                    )
+                );
             } else {
-                aaveSupply(_daiTokenList, _daiTokenAmountsList);
-                aaveBorrow(tokens_, amounts_);
+                // aaveSupply(_daiTokenList, _daiTokenAmountsList);
+                // aaveBorrow(tokens_, amounts_);
+
+                spell(
+                    ADVANCED_ROUTES_IMPL,
+                    abi.encodeWithSignature(
+                        "aaveSupplyAndBorrow(address[],uint256[],address[],uint256[])",
+                        _daiTokenList,
+                        _daiTokenAmountsList,
+                        tokens_,
+                        amounts_
+                    )
+                );
             }
 
             safeTransfer(instaLoanVariables_, sender_);
@@ -250,11 +273,33 @@ contract FlashAggregator is Setups {
             }
 
             if (route_ == 3) {
-                compoundPayback(tokens_, amounts_);
-                compoundWithdraw(_daiTokenList, _daiTokenAmountsList);
+                // compoundPayback(tokens_, amounts_);
+                // compoundWithdraw(_daiTokenList, _daiTokenAmountsList);
+
+                spell(
+                    ADVANCED_ROUTES_IMPL,
+                    abi.encodeWithSignature(
+                        "compoundPaybackAndWithdraw(address[],uint256[],address[],uint256[])",
+                        tokens_,
+                        amounts_,
+                        _daiTokenList,
+                        _daiTokenAmountsList
+                    )
+                );
             } else {
-                aavePayback(tokens_, amounts_);
-                aaveWithdraw(_daiTokenList, _daiTokenAmountsList);
+                // aavePayback(tokens_, amounts_);
+                // aaveWithdraw(_daiTokenList, _daiTokenAmountsList);
+
+                spell(
+                    ADVANCED_ROUTES_IMPL,
+                    abi.encodeWithSignature(
+                        "aavePaybackAndWithdraw(address[],uint256[],address[],uint256[])",
+                        tokens_,
+                        amounts_,
+                        _daiTokenList,
+                        _daiTokenAmountsList
+                    )
+                );
             }
         } else {
             revert("wrong-route");
@@ -266,7 +311,17 @@ contract FlashAggregator is Setups {
         );
         validateFlashloan(instaLoanVariables_);
 
+        console.log('validated');
+
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
+    }
+
+    struct Helper {
+        uint256 route_;
+        address[] tokens_;
+        uint256[] amounts_;
+        address sender_;
+        bytes data_;
     }
 
     /**
@@ -285,55 +340,56 @@ contract FlashAggregator is Setups {
         require(msg.sender == address(balancerLending), "not-balancer-sender");
 
         FlashloanVariables memory instaLoanVariables_;
+        Helper memory helper;
 
         (
-            uint256 route_,
-            address[] memory tokens_,
-            uint256[] memory amounts_,
-            address sender_,
-            bytes memory data_
+            helper.route_,
+            helper.tokens_,
+            helper.amounts_,
+            helper.sender_,
+            helper.data_
         ) = abi.decode(_data, (uint256, address[], uint256[], address, bytes));
 
-        instaLoanVariables_._tokens = tokens_;
-        instaLoanVariables_._amounts = amounts_;
+        instaLoanVariables_._tokens = helper.tokens_;
+        instaLoanVariables_._amounts = helper.amounts_;
         instaLoanVariables_._iniBals = calculateBalances(
-            tokens_,
+            helper.tokens_,
             address(this)
         );
         instaLoanVariables_._instaFees = calculateFees(
-            amounts_,
-            calculateFeeBPS(route_, sender_)
+            helper.amounts_,
+            calculateFeeBPS(helper.route_, helper.sender_)
         );
 
-        if (route_ == 5) {
-            if (tokens_[0] == stEthTokenAddr) {
+        if (helper.route_ == 5) {
+            if (helper.tokens_[0] == stEthTokenAddr) {
                 wstEthToken.unwrap(_amounts[0]);
             }
-            safeTransfer(instaLoanVariables_, sender_);
-            if (checkIfDsa(sender_)) {
+            safeTransfer(instaLoanVariables_, helper.sender_);
+            if (checkIfDsa(helper.sender_)) {
                 Address.functionCall(
-                    sender_,
-                    data_,
+                    helper.sender_,
+                    helper.data_,
                     "DSA-flashloan-fallback-failed"
                 );
             } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(
-                    tokens_,
-                    amounts_,
+                InstaFlashReceiverInterface(helper.sender_).executeOperation(
+                    helper.tokens_,
+                    helper.amounts_,
                     instaLoanVariables_._instaFees,
-                    sender_,
-                    data_
+                    helper.sender_,
+                    helper.data_
                 );
             }
-            if (tokens_[0] == stEthTokenAddr) {
-                wstEthToken.wrap(amounts_[0]);
+            if (helper.tokens_[0] == stEthTokenAddr) {
+                wstEthToken.wrap(helper.amounts_[0]);
             }
 
             instaLoanVariables_._finBals = calculateBalances(
-                tokens_,
+                helper.tokens_,
                 address(this)
             );
-            if (tokens_[0] == stEthTokenAddr) {
+            if (helper.tokens_[0] == stEthTokenAddr) {
                 // adding 10 wei to avoid any possible decimal errors in final calculations
                 instaLoanVariables_._finBals[0] =
                     instaLoanVariables_._finBals[0] +
@@ -347,47 +403,79 @@ contract FlashAggregator is Setups {
                 _fees,
                 address(balancerLending)
             );
-        } else if (route_ == 6 || route_ == 7) {
+        } else if (helper.route_ == 6 || helper.route_ == 7) {
             require(_fees[0] == 0, "flash-ETH-fee-not-0");
 
             address[] memory wEthTokenList = new address[](1);
             wEthTokenList[0] = address(wethToken);
 
-            if (route_ == 6) {
-                compoundSupply(wEthTokenList, _amounts);
-                compoundBorrow(tokens_, amounts_);
+            if (helper.route_ == 6) {
+                spell(
+                    ADVANCED_ROUTES_IMPL,
+                    abi.encodeWithSignature(
+                        "compoundSupplyAndBorrow(address[],uint256[],address[],uint256[])",
+                        wEthTokenList,
+                        _amounts,
+                        helper.tokens_,
+                        helper.amounts_
+                    )
+                );
             } else {
-                aaveSupply(wEthTokenList, _amounts);
-                aaveBorrow(tokens_, amounts_);
+                 spell(
+                    ADVANCED_ROUTES_IMPL,
+                    abi.encodeWithSignature(
+                        "aaveSupplyAndBorrow(address[],uint256[],address[],uint256[])",
+                        wEthTokenList,
+                        _amounts,
+                        helper.tokens_,
+                        helper.amounts_
+                    )
+                );
             }
 
-            safeTransfer(instaLoanVariables_, sender_);
+            safeTransfer(instaLoanVariables_, helper.sender_);
 
-            if (checkIfDsa(sender_)) {
+            if (checkIfDsa(helper.sender_)) {
                 Address.functionCall(
-                    sender_,
-                    data_,
+                    helper.sender_,
+                    helper.data_,
                     "DSA-flashloan-fallback-failed"
                 );
             } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(
-                    tokens_,
-                    amounts_,
+                InstaFlashReceiverInterface(helper.sender_).executeOperation(
+                    helper.tokens_,
+                    helper.amounts_,
                     instaLoanVariables_._instaFees,
-                    sender_,
-                    data_
+                    helper.sender_,
+                    helper.data_
                 );
             }
 
-            if (route_ == 6) {
-                compoundPayback(tokens_, amounts_);
-                compoundWithdraw(wEthTokenList, _amounts);
+            if (helper.route_ == 6) {
+                spell(
+                    ADVANCED_ROUTES_IMPL,
+                    abi.encodeWithSignature(
+                        "compoundPaybackAndWithdraw(address[],uint256[],address[],uint256[])",
+                        helper.tokens_,
+                        helper.amounts_,
+                        wEthTokenList,
+                        _amounts
+                    )
+                );
             } else {
-                aavePayback(tokens_, amounts_);
-                aaveWithdraw(wEthTokenList, _amounts);
+                spell(
+                    ADVANCED_ROUTES_IMPL,
+                    abi.encodeWithSignature(
+                        "aavePaybackAndWithdraw(address[],uint256[],address[],uint256[])",
+                        helper.tokens_,
+                        helper.amounts_,
+                        wEthTokenList,
+                        _amounts
+                    )
+                );
             }
             instaLoanVariables_._finBals = calculateBalances(
-                tokens_,
+                helper.tokens_,
                 address(this)
             );
             validateFlashloan(instaLoanVariables_);
@@ -404,8 +492,8 @@ contract FlashAggregator is Setups {
     }
 
     /**
-     * @dev Middle function for route 1.
-     * @notice Middle function for route 1.
+     * @dev Middle function for route 1, 9 and 10.
+     * @notice Middle function for route 1, 9 and 10.
      * @param _tokens list of token addresses for flashloan.
      * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
      * @param _data extra data passed.
@@ -457,66 +545,6 @@ contract FlashAggregator is Setups {
         }
     }
 
-    // /**
-    //  * @dev Middle function for route 9.
-    //  * @notice Middle function for route 9.
-    //  * @param _tokens list of token addresses for flashloan.
-    //  * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
-    //  * @param _data extra data passed.
-    //  */
-    // function routeAaveV3(
-    //     address[] memory _tokens,
-    //     uint256[] memory _amounts,
-    //     bytes memory _data
-    // ) internal {
-    //     bytes memory data_ = abi.encode(9, msg.sender, _data);
-    //     uint256 length_ = _tokens.length;
-    //     uint256[] memory _modes = new uint256[](length_);
-    //     for (uint256 i = 0; i < length_; i++) {
-    //         _modes[i] = 0;
-    //     }
-    //     dataHash = bytes32(keccak256(data_));
-    //     aaveV3Lending.flashLoan(
-    //         address(this),
-    //         _tokens,
-    //         _amounts,
-    //         _modes,
-    //         address(0),
-    //         data_,
-    //         3228
-    //     );
-    // }
-
-    // /**
-    //  * @dev Middle function for route 10.
-    //  * @notice Middle function for route 10.
-    //  * @param _tokens list of token addresses for flashloan.
-    //  * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
-    //  * @param _data extra data passed.
-    //  */
-    // function routeSpark(
-    //     address[] memory _tokens,
-    //     uint256[] memory _amounts,
-    //     bytes memory _data
-    // ) internal {
-    //     bytes memory data_ = abi.encode(10, msg.sender, _data);
-    //     uint256 length_ = _tokens.length;
-    //     uint256[] memory _modes = new uint256[](length_);
-    //     for (uint256 i = 0; i < length_; i++) {
-    //         _modes[i] = 0;
-    //     }
-    //     dataHash = bytes32(keccak256(data_));
-    //     sparkLending.flashLoan(
-    //         address(this),
-    //         _tokens,
-    //         _amounts,
-    //         _modes,
-    //         address(0),
-    //         data_,
-    //         3228
-    //     );
-    // }
-
     /**
      * @dev Middle function for route 2.
      * @notice Middle function for route 2.
@@ -533,6 +561,9 @@ contract FlashAggregator is Setups {
         uint256[] memory amounts_ = new uint256[](1);
         tokens_[0] = _token;
         amounts_[0] = _amount;
+
+        console.log('_amount: ', _amount);
+
         bytes memory data_ = abi.encode(
             2,
             tokens_,
@@ -644,6 +675,70 @@ contract FlashAggregator is Setups {
     }
 
     /**
+     * @dev Middle function for route 6.
+     * @notice Middle function for route 6.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _data extra data passed.
+     */
+    function routeBalancerCompound(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal {
+        bytes memory data_ = abi.encode(
+            6,
+            _tokens,
+            _amounts,
+            msg.sender,
+            _data
+        );
+        IERC20[] memory wethTokenList_ = new IERC20[](1);
+        uint256[] memory wethAmountList_ = new uint256[](1);
+        wethTokenList_[0] = IERC20(wethToken);
+        wethAmountList_[0] = getWEthBorrowAmount();
+        dataHash = bytes32(keccak256(data_));
+        balancerLending.flashLoan(
+            InstaFlashReceiverInterface(address(this)),
+            wethTokenList_,
+            wethAmountList_,
+            data_
+        );
+    }
+
+    /**
+     * @dev Middle function for route 7.
+     * @notice Middle helper function for route 7.
+     * @param _tokens token addresses for flashloan.
+     * @param _amounts list of amounts for the corresponding assets.
+     * @param _data extra data passed.
+     */
+    function routeBalancerAave(
+        address[] memory _tokens,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal {
+        bytes memory data_ = abi.encode(
+            7,
+            _tokens,
+            _amounts,
+            msg.sender,
+            _data
+        );
+        IERC20[] memory wethTokenList_ = new IERC20[](1);
+        uint256[] memory wethAmountList_ = new uint256[](1);
+        wethTokenList_[0] = wethToken;
+        wethAmountList_[0] = getWEthBorrowAmount();
+        dataHash = bytes32(keccak256(data_));
+        balancerLending.flashLoan(
+            InstaFlashReceiverInterface(address(this)),
+            wethTokenList_,
+            wethAmountList_,
+            data_
+        );
+    }
+
+    /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @param _tokens token addresses for flashloan.
@@ -664,7 +759,6 @@ contract FlashAggregator is Setups {
         validateTokens(_tokens);
 
         if (_route == 1) {
-            // routeAaveV2(_tokens, _amounts, _data);
             routeAaveAndSpark(1, _tokens, _amounts, _data);
         } else if (_route == 2) {
             routeMaker(_tokens[0], _amounts[0], _data);
@@ -674,11 +768,13 @@ contract FlashAggregator is Setups {
             routeMakerAave(_tokens, _amounts, _data);
         } else if (_route == 5) {
             routeBalancer(_tokens, _amounts, _data);
+        } else if (_route == 6) {
+            routeBalancerCompound(_tokens, _amounts, _data);
+        } else if (_route == 7) {
+            routeBalancerAave(_tokens, _amounts, _data);
         } else if (_route == 9) {
-            // routeAaveV3(_tokens, _amounts, _data);
             routeAaveAndSpark(9, _tokens, _amounts, _data);
         } else if (_route == 10) {
-            // routeSpark(_tokens, _amounts, _data);
             routeAaveAndSpark(10, _tokens, _amounts, _data);
         } 
         else {
@@ -693,14 +789,16 @@ contract FlashAggregator is Setups {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](7);
+        routes_ = new uint16[](9);
         routes_[0] = 1;
         routes_[1] = 2;
         routes_[2] = 3;
         routes_[3] = 4;
         routes_[4] = 5;
-        routes_[5] = 9; // routeAaveV3
-        routes_[6] = 10; // routeSpark
+        routes_[5] = 6;
+        routes_[6] = 7;
+        routes_[7] = 9; // routeAaveV3
+        routes_[8] = 10; // routeSpark
     }
 
     /**
@@ -732,7 +830,7 @@ contract InstaFlashAggregator is FlashAggregator {
     /* 
      Deprecated
     */
-    function initialize(address[] memory _ctokens, address owner_) public {
+    function initialize(address[] memory _ctokens, address owner_, address _advancedRouteImpl) public {
         require(status == 0, "cannot-call-again");
         require(stETHStatus == 0, "only-once");
         require(ownerStatus == 0, "only-once");
@@ -750,7 +848,12 @@ contract InstaFlashAggregator is FlashAggregator {
         ownerStatus = 1;
         stETHStatus = 1;
         status = 1;
+        ADVANCED_ROUTES_IMPL = _advancedRouteImpl;
     }
+
+    // function initialize(address _advancedRouteImpl) public {
+    //     ADVANCED_ROUTES_IMPL = _advancedRouteImpl;
+    // }
 
     receive() external payable {}
 }

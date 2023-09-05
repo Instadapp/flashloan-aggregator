@@ -17,10 +17,10 @@ contract ConstantVariables {
     address public constant sparkLendingAddr =
         0xC13e21B648A5Ee794902342038FF3aDAB66BE987;
     ISparkLending public constant sparkLending =
-        ISparkLending(aaveV3LendingAddr);
+        ISparkLending(sparkLendingAddr);
 
     IERC3156FlashLender internal constant makerLending =
-        IERC3156FlashLender(0x1EB4CF3A948E7D72A198fe073cCb8C7a948cD853);
+        IERC3156FlashLender(0x60744434d6339a6B27d73d9Eda62b6F66a0a04FA);
 
     IBalancerLending internal constant balancerLending =
         IBalancerLending(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
@@ -72,4 +72,6 @@ contract Variables is ConstantVariables {
     uint256 internal ownerStatus;
 
     mapping(address => bool) public isWhitelisted;
+
+    address internal ADVANCED_ROUTES_IMPL;
 }
