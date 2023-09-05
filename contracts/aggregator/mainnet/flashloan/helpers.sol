@@ -157,9 +157,15 @@ contract Helper is Variables {
         pure
     {
         for (uint256 i = 0; i < _instaLoanVariables._iniBals.length; i++) {
+            uint minRequiredBalance_ = _instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i];
+            uint maxRequiredBalance_ = _instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i] + ((_instaLoanVariables._instaFees[i] * 1) / 10);
             require(
-                _instaLoanVariables._iniBals[i] +
-                    _instaLoanVariables._instaFees[i] <=
+                minRequiredBalance_ <=
+                    _instaLoanVariables._finBals[i],
+                "amount-paid-less"
+            );
+            require(
+                maxRequiredBalance_ >
                     _instaLoanVariables._finBals[i],
                 "amount-paid-less"
             );
