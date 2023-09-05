@@ -1,6 +1,11 @@
 # Flashloan Aggregator
 
-## Usage
+## Deployments
+
+### Mainnet
+- Proxy: `0x619Ad2D02dBeE6ebA3CDbDA3F98430410e892882`
+- Implementation: `0xDC365b39e01767E22094CD0C4A67C5B6e5641B18`
+- AdvancedRoute Implementation: `0xeD4DF5d720F5FA036d16C971FdF409c202C3D8F6`
 
 ### Pre Requisites
 
@@ -47,18 +52,3 @@ Deploy the contracts to Hardhat Network:
 ```sh
 $ npm run deploy
 ```
-
-## Syntax Highlighting
-
-If you use VSCode, you can enjoy syntax highlighting for your Solidity code via the
-[vscode-solidity](https://github.com/juanfranblanco/vscode-solidity) extension. The recommended approach to set the
-compiler version is to add the following fields to your VSCode user settings:
-
-```json
-{
-  "solidity.compileUsingRemoteVersion": "v0.8.4+commit.c7e474f2",
-  "solidity.defaultCompiler": "remote"
-}
-```
-
-Where of course `v0.8.4+commit.c7e474f2` can be replaced with any other version.
