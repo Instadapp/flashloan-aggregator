@@ -196,7 +196,7 @@ contract Helper is Variables {
         if (_route == 1) {
             BPS_ = aaveV2Lending.FLASHLOAN_PREMIUM_TOTAL();
         } else if (_route == 2 || _route == 3 || _route == 4) {
-            BPS_ = makerLending.flashFee(daiTokenAddr, 0);
+            BPS_ = 0;
         } else if (_route == 5 || _route == 6 || _route == 7) {
             BPS_ =
                 (
