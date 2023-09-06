@@ -871,11 +871,14 @@ contract InstaFlashAggregator is FlashAggregator {
     //     status = 1;
     // }
 
-    function initialize() public {
-        require(initializeStatus == 0, "cannot-call-again");
-        IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
-        initializeStatus = 1;
-    }
+    /* 
+     Deprecated
+    */
+    // function initialize() public {
+    //     require(initializeStatus == 0, "cannot-call-again");
+    //     IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
+    //     initializeStatus = 1;
+    // }
 
     receive() external payable {}
 }
