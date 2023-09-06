@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import {InstaFlashloanAggregatorInterface, IAaveProtocolDataProvider} from "./interfaces.sol";
+import "./interfaces.sol";
 
 contract Variables {
     address public constant chainToken =
@@ -13,6 +13,21 @@ contract Variables {
         0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d;
     IAaveProtocolDataProvider public constant aaveProtocolDataProvider =
         IAaveProtocolDataProvider(aaveProtocolDataProviderAddr);
+
+
+    address public constant aaveV3LendingAddr =
+        0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2;
+    address public constant aaveV3ProtocolDataProviderAddr =
+        0x7B4EB56E7CD4b454BA8ff71E4518426369a138a3;
+    IAavev3ProtocolDataProvider public constant aaveV3ProtocolDataProvider =
+        IAavev3ProtocolDataProvider(aaveProtocolDataProviderAddr);
+
+    address public constant sparkLendingAddr =
+        0xC13e21B648A5Ee794902342038FF3aDAB66BE987;
+    address public constant sparkProtocolDataProviderAddr =
+        0xFc21d6d146E6086B8359705C8b28512a983db0cb;
+    ISparkProtocolDataProvider public constant sparkProtocolDataProvider =
+        ISparkProtocolDataProvider(sparkProtocolDataProviderAddr);
 
     address public constant balancerLendingAddr =
         0xBA12222222228d8Ba445958a75a0704d566BF2C8;

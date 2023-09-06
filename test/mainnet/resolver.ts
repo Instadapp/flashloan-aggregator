@@ -17,6 +17,9 @@ describe('Resolver', function () {
   const STETH = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
   const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
 
+  const WSTETH = '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0'
+  const Wsteth = ethers.utils.parseUnits('30000', 18)
+
   const Dai = ethers.utils.parseUnits('5000', 18)
   const Usdt = ethers.utils.parseUnits('5000', 6)
 
@@ -40,6 +43,7 @@ describe('Resolver', function () {
       (await resolver.getBestRoutes([STETH, USDC], [Steth, Usdc])).toString(),
     )
     console.log('steth: ', (await resolver.getBestRoutes([STETH], [Steth])).toString())
+    console.log('wsteth: ', (await resolver.getBestRoutes([WSTETH], [Wsteth])).toString())
   })
 
   it('Should be able to return all the data for flashloan', async function () {
