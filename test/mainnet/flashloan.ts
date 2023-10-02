@@ -39,7 +39,7 @@ describe('FlashLoan', function () {
   const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
   const WSTETH = '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0'
   
-  const ACC_DAI = '0xD831B3353Be1449d7131e92c8948539b1F18b86A'
+  const ACC_DAI = '0xbf702ea18BB1AB2A710394993a576eC61476cCf3'
   const ACC_USDT = '0x9723b6d608D4841eB4Ab131687a5D4764eb30138'
   const ACC_USDC = '0x51eDF02152EBfb338e03E30d65C15fBf06cc9ECC'
   const ACC_WETH = '0x57757E3D981446D585Af0D9Ae4d7DF6D64647806'
@@ -162,7 +162,7 @@ describe('FlashLoan', function () {
 
     await hre.network.provider.request({
       method: 'hardhat_stopImpersonatingAccount',
-      params: [ACC_DAI],
+      params: [ACC_USDC],
     })
 
     await hre.network.provider.request({

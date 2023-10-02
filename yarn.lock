@@ -42,11 +42,6 @@
   dependencies:
     "regenerator-runtime" "^0.13.4"
 
-"@chainlink/contracts@^0.2.2":
-  "integrity" "sha512-hf4b8OEfEqfjC9addvXCrE2SEybNwN1r971vxFYhL/l/yDTTMAk0jmGZYtfUPDOB/qY7FfrOXuxlEVQ+ojZgZw=="
-  "resolved" "https://registry.npmjs.org/@chainlink/contracts/-/contracts-0.2.3.tgz"
-  "version" "0.2.3"
-
 "@chainsafe/as-sha256@^0.3.1":
   "integrity" "sha512-hldFFYuf49ed7DAakWVXSJODuq3pzJEguD8tQ7h+sGkM18vja+OFoJI9krnGmgzyuZC2ETX0NOIcCTy31v2Mtg=="
   "resolved" "https://registry.npmjs.org/@chainsafe/as-sha256/-/as-sha256-0.3.1.tgz"

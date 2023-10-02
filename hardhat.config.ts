@@ -71,7 +71,7 @@ function getBlockNumber(networkType: string) {
   else if (networkType === "arbitrum") return 10350332;
   else if (networkType === "optimism") return 6261116;
   else if (networkType === "base") return 3173891;
-  else return 14637205;
+  else return 18164626;
 }
 
 const config: HardhatUserConfig = {

@@ -48,8 +48,8 @@ contract ConstantVariables {
         ListInterface(0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb);
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 
-    address internal constant ADVANCED_ROUTES_IMPL =
-        0xeD4DF5d720F5FA036d16C971FdF409c202C3D8F6;
+    // address internal constant ADVANCED_ROUTES_IMPL =
+    //     0xeD4DF5d720F5FA036d16C971FdF409c202C3D8F6;
 }
 
 contract Variables is ConstantVariables {
@@ -78,4 +78,6 @@ contract Variables is ConstantVariables {
 
     // Initialize status to initialize again to give approval to updated Maker flashloan.
     uint256 internal initializeStatus;
+
+    address internal ADVANCED_ROUTES_IMPL;
 }
