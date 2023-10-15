@@ -50,4 +50,8 @@ contract Variables is ConstantVariables {
         address token1;
         uint24 fee;
     }
+
+    address public owner = address(0); // TODO: update this before deploying
+
+    mapping(address => bool) public isWhitelisted;
 }
