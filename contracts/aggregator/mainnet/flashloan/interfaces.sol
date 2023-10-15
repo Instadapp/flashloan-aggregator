@@ -13,38 +13,6 @@ interface InstaFlashReceiverInterface {
     ) external returns (bool);
 }
 
-interface IndexInterface {
-    function master() external view returns (address);
-
-    function list() external view returns (address);
-}
-
-interface ListInterface {
-    function accountID(address) external view returns (uint64);
-}
-
-interface TokenInterface {
-    function approve(address, uint256) external;
-
-    function transfer(address, uint256) external;
-
-    function transferFrom(
-        address,
-        address,
-        uint256
-    ) external;
-
-    function deposit() external payable;
-
-    function withdraw(uint256) external;
-
-    function balanceOf(address) external view returns (uint256);
-
-    function decimals() external view returns (uint256);
-
-    function totalSupply() external view returns (uint256);
-}
-
 interface CTokenInterface {
     function mint(uint256) external returns (uint256);
 
@@ -189,4 +157,13 @@ interface IWstETH {
     function wrap(uint256 _stETHAmount) external returns (uint256);
 
     function unwrap(uint256 _wstETHAmount) external returns (uint256);
+}
+
+interface IUniswapV3Pool {
+    function flash(
+        address recipient,
+        uint256 amount0,
+        uint256 amount1,
+        bytes calldata data
+    ) external;
 }

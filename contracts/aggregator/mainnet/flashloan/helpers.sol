@@ -2,9 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "./variables.sol";
+import "../../common/helpers.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract Helper is Variables {
+contract Helper is HelpersCommon, Variables {
     using SafeERC20 for IERC20;
 
     /**
@@ -13,14 +14,12 @@ contract Helper is Variables {
      * @param token_ token for which allowance is to be given.
      * @param spender_ the address to which the allowance is to be given.
      * @param amount_ amount of token.
-     */
-    function approve(
-        address token_,
-        address spender_,
-        uint256 amount_
-    ) internal {
+    */
+    function approve(address token_, address spender_, uint256 amount_) internal {
         TokenInterface tokenContract_ = TokenInterface(token_);
-        try tokenContract_.approve(spender_, amount_) {} catch {
+        try tokenContract_.approve(spender_, amount_) {
+            
+        } catch {
             IERC20 token = IERC20(token_);
             token.safeApprove(spender_, 0);
             token.safeApprove(spender_, amount_);
@@ -103,26 +102,6 @@ contract Helper is Variables {
     }
 
     /**
-     * @dev Calculates the balances..
-     * @notice Calculates the balances of the account passed for the tokens.
-     * @param _tokens list of token addresses to calculate balance for.
-     * @param _account account to calculate balance for.
-     */
-    function calculateBalances(address[] memory _tokens, address _account)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        uint256 _length = _tokens.length;
-        uint256[] memory balances_ = new uint256[](_length);
-        for (uint256 i = 0; i < _length; i++) {
-            IERC20 token = IERC20(_tokens[i]);
-            balances_[i] = token.balanceOf(_account);
-        }
-        return balances_;
-    }
-
-    /**
      * @dev Validates if the receiver sent the correct amounts of funds.
      * @notice Validates if the receiver sent the correct amounts of funds.
      * @param _instaLoanVariables struct which includes list of initial balances, final balances and fees for the respective tokens.
@@ -138,17 +117,6 @@ contract Helper is Variables {
                     _instaLoanVariables._finBals[i],
                 "amount-paid-less"
             );
-        }
-    }
-
-    /**
-     * @dev Validates if token addresses are unique. Just need to check adjacent tokens as the array was sorted first
-     * @notice Validates if token addresses are unique.
-     * @param _tokens list of token addresses.
-     */
-    function validateTokens(address[] memory _tokens) internal pure {
-        for (uint256 i = 0; i < _tokens.length - 1; i++) {
-            require(_tokens[i] != _tokens[i + 1], "non-unique-tokens");
         }
     }
 
@@ -364,56 +332,6 @@ contract Helper is Variables {
     }
 
     /**
-     * @dev Calculate fees for the respective amounts and fee in BPS passed.
-     * @notice Calculate fees for the respective amounts and fee in BPS passed. 1 BPS == 0.01%.
-     * @param _amounts list of amounts.
-     * @param _BPS fee in BPS.
-     */
-    function calculateFees(uint256[] memory _amounts, uint256 _BPS)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
-        uint256 length_ = _amounts.length;
-        uint256[] memory InstaFees = new uint256[](length_);
-        for (uint256 i = 0; i < length_; i++) {
-            InstaFees[i] = (_amounts[i] * _BPS) / (10**4);
-        }
-        return InstaFees;
-    }
-
-    /**
-     * @dev Sort the tokens and amounts arrays according to token addresses.
-     * @notice Sort the tokens and amounts arrays according to token addresses.
-     * @param _tokens list of token addresses.
-     * @param _amounts list of respective amounts.
-     */
-    function bubbleSort(address[] memory _tokens, uint256[] memory _amounts)
-        internal
-        pure
-        returns (address[] memory, uint256[] memory)
-    {
-        for (uint256 i = 0; i < _tokens.length - 1; i++) {
-            for (uint256 j = 0; j < _tokens.length - i - 1; j++) {
-                if (_tokens[j] > _tokens[j + 1]) {
-                    (
-                        _tokens[j],
-                        _tokens[j + 1],
-                        _amounts[j],
-                        _amounts[j + 1]
-                    ) = (
-                        _tokens[j + 1],
-                        _tokens[j],
-                        _amounts[j + 1],
-                        _amounts[j]
-                    );
-                }
-            }
-        }
-        return (_tokens, _amounts);
-    }
-
-    /**
      * @dev Returns to wEth amount to be borrowed.
      * @notice Returns to wEth amount to be borrowed.
      */
@@ -429,6 +347,36 @@ contract Helper is Variables {
      */
     function checkIfDsa(address _account) internal view returns (bool) {
         return instaList.accountID(_account) > 0;
+    }
+
+    /**
+     * @notice Deterministically computes the pool address given the factory and PoolKey
+     * @param factory The Uniswap V3 factory contract address
+     * @param key The PoolKey
+     * @return pool The contract address of the V3 pool
+     */
+    function computeAddress(address factory, PoolKey memory key)
+        internal
+        pure
+        returns (address pool)
+    {
+        require(key.token0 < key.token1, "Token not sorted");
+        pool = address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            hex"ff",
+                            factory,
+                            keccak256(
+                                abi.encode(key.token0, key.token1, key.fee)
+                            ),
+                            POOL_INIT_CODE_HASH
+                        )
+                    )
+                )
+            )
+        );
     }
 
     /**

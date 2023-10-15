@@ -1,17 +1,9 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
+import "./variables.sol";
+import "../../common/helpers.sol";
 
-import {Variables} from "./variables.sol";
-
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
-import { 
-    TokenInterface,
-    InstaFlashReceiverInterface
-} from "./interfaces.sol";
-
-contract Helper is Variables {
+contract Helper is HelpersCommon, Variables {
     using SafeERC20 for IERC20;
 
     /**
@@ -71,25 +63,6 @@ contract Helper is Variables {
     }
 
     /**
-     * @dev Calculates the balances..
-     * @notice Calculates the balances of the account passed for the tokens.
-     * @param _tokens list of token addresses to calculate balance for.
-     * @param _account account to calculate balance for.
-    */
-    function calculateBalances(
-        address[] memory _tokens,
-        address _account
-    ) internal view returns (uint256[] memory) {
-        uint256 _length = _tokens.length;
-        uint256[] memory balances_ = new uint256[](_length);
-        for (uint i = 0; i < _length; i++) {
-            IERC20 token = IERC20(_tokens[i]);
-            balances_[i] = token.balanceOf(_account);
-        }
-        return balances_;
-    }
-
-    /**
      * @dev Validates if the receiver sent the correct amounts of funds.
      * @notice Validates if the receiver sent the correct amounts of funds.
      * @param _instaLoanVariables struct which includes list of initial balances, final balances and fees for the respective tokens.
@@ -99,17 +72,6 @@ contract Helper is Variables {
     ) internal pure {
         for (uint i = 0; i < _instaLoanVariables._iniBals.length; i++) {
             require(_instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i] <= _instaLoanVariables._finBals[i], "amount-paid-less");
-        }
-    }
-
-    /**
-     * @dev Validates if token addresses are unique. Just need to check adjacent tokens as the array was sorted first
-     * @notice Validates if token addresses are unique.
-     * @param _tokens list of token addresses.
-    */
-    function validateTokens(address[] memory _tokens) internal pure {
-        for (uint i = 0; i < _tokens.length - 1; i++) {
-            require(_tokens[i] != _tokens[i+1], "non-unique-tokens");
         }
     }
 
@@ -129,38 +91,6 @@ contract Helper is Variables {
             BPS_ = InstaFeeBPS;
         }
     }
-
-    /**
-     * @dev Calculate fees for the respective amounts and fee in BPS passed.
-     * @notice Calculate fees for the respective amounts and fee in BPS passed. 1 BPS == 0.01%.
-     * @param _amounts list of amounts.
-     * @param _BPS fee in BPS.
-    */
-    function calculateFees(uint256[] memory _amounts, uint256 _BPS) internal pure returns (uint256[] memory) {
-        uint256 length_ = _amounts.length;
-        uint256[] memory InstaFees = new uint256[](length_);
-        for (uint i = 0; i < length_; i++) {
-            InstaFees[i] = (_amounts[i] * _BPS) / (10 ** 4);
-        }
-        return InstaFees;
-    }
-
-    /**
-     * @dev Sort the tokens and amounts arrays according to token addresses.
-     * @notice Sort the tokens and amounts arrays according to token addresses.
-     * @param _tokens list of token addresses.
-     * @param _amounts list of respective amounts.
-    */
-    function bubbleSort(address[] memory _tokens, uint256[] memory _amounts) internal pure returns (address[] memory, uint256[] memory) {
-        for (uint256 i = 0; i < _tokens.length - 1; i++) {
-            for( uint256 j = 0; j < _tokens.length - i - 1 ; j++) {
-                if(_tokens[j] > _tokens[j+1]) {
-                    (_tokens[j], _tokens[j+1], _amounts[j], _amounts[j+1]) = (_tokens[j+1], _tokens[j], _amounts[j+1], _amounts[j]);
-                }
-            }
-        }
-        return (_tokens, _amounts);
-    }  
 
     /**
      * @dev Returns to true if the passed address is a DSA else returns false.

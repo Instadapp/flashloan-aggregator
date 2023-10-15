@@ -1,11 +1,8 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import { 
-    IndexInterface,
-    ListInterface,
-    IAaveLending
-} from "./interfaces.sol";
+import "./interfaces.sol";
+import "../../common/interface.sol";
 
 contract ConstantVariables {
 
@@ -33,5 +30,7 @@ contract Variables is ConstantVariables {
         uint256[] _finBals;
         uint256[] _instaFees;
     }
+
+    address internal AAVE_IMPL;
 
 }
