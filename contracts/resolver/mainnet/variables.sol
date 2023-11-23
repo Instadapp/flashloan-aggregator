@@ -20,7 +20,7 @@ contract Variables {
     address public constant aaveV3ProtocolDataProviderAddr =
         0x7B4EB56E7CD4b454BA8ff71E4518426369a138a3;
     IAavev3ProtocolDataProvider public constant aaveV3ProtocolDataProvider =
-        IAavev3ProtocolDataProvider(aaveProtocolDataProviderAddr);
+        IAavev3ProtocolDataProvider(aaveV3ProtocolDataProviderAddr);
 
     address public constant sparkLendingAddr =
         0xC13e21B648A5Ee794902342038FF3aDAB66BE987;
