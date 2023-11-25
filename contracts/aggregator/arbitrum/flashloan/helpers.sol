@@ -45,12 +45,16 @@ contract Helper is Variables {
             "Lengths of parameters not same"
         );
         require(length_ == _fees.length, "Lengths of parameters not same");
-        for (uint256 i = 0; i < length_; i++) {
+        for (uint256 i; i < length_;) {
             approve(
                 _instaLoanVariables._tokens[i],
                 _receiver,
                 _instaLoanVariables._amounts[i] + _fees[i]
             );
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -69,9 +73,13 @@ contract Helper is Variables {
             length_ == _instaLoanVariables._amounts.length,
             "Lengths of parameters not same"
         );
-        for (uint256 i = 0; i < length_; i++) {
+        for (uint256 i; i < length_;) {
             IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
             token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -93,12 +101,16 @@ contract Helper is Variables {
             "Lengths of parameters not same"
         );
         require(length_ == _fees.length, "Lengths of parameters not same");
-        for (uint256 i = 0; i < length_; i++) {
+        for (uint256 i; i < length_;) {
             IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
             token.safeTransfer(
                 _receiver,
                 _instaLoanVariables._amounts[i] + _fees[i]
             );
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -115,9 +127,13 @@ contract Helper is Variables {
     {
         uint256 _length = _tokens.length;
         uint256[] memory balances_ = new uint256[](_length);
-        for (uint256 i = 0; i < _length; i++) {
+        for (uint256 i; i < _length;) {
             IERC20 token = IERC20(_tokens[i]);
             balances_[i] = token.balanceOf(_account);
+
+            unchecked {
+                ++i;
+            }
         }
         return balances_;
     }
@@ -131,13 +147,17 @@ contract Helper is Variables {
         internal
         pure
     {
-        for (uint256 i = 0; i < _instaLoanVariables._iniBals.length; i++) {
+        for (uint256 i; i < _instaLoanVariables._iniBals.length;) {
             require(
                 _instaLoanVariables._iniBals[i] +
                     _instaLoanVariables._instaFees[i] <=
                     _instaLoanVariables._finBals[i],
                 "amount-paid-less"
             );
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -147,8 +167,11 @@ contract Helper is Variables {
      * @param _tokens list of token addresses.
      */
     function validateTokens(address[] memory _tokens) internal pure {
-        for (uint256 i = 0; i < _tokens.length - 1; i++) {
+        for (uint256 i; i < _tokens.length - 1;) {
             require(_tokens[i] != _tokens[i + 1], "non-unique-tokens");
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -192,8 +215,12 @@ contract Helper is Variables {
     {
         uint256 length_ = _amounts.length;
         uint256[] memory InstaFees = new uint256[](length_);
-        for (uint256 i = 0; i < length_; i++) {
+        for (uint256 i; i < length_;) {
             InstaFees[i] = (_amounts[i] * _BPS) / (10**4);
+
+            unchecked {
+                ++i;
+            }
         }
         return InstaFees;
     }
@@ -209,8 +236,8 @@ contract Helper is Variables {
         pure
         returns (address[] memory, uint256[] memory)
     {
-        for (uint256 i = 0; i < _tokens.length - 1; i++) {
-            for (uint256 j = 0; j < _tokens.length - i - 1; j++) {
+        for (uint256 i; i < _tokens.length - 1;) {
+            for (uint256 j; j < _tokens.length - i - 1;) {
                 if (_tokens[j] > _tokens[j + 1]) {
                     (
                         _tokens[j],
@@ -224,6 +251,14 @@ contract Helper is Variables {
                         _amounts[j]
                     );
                 }
+
+                unchecked {
+                    ++j;
+                }
+            }
+
+            unchecked {
+                ++i;
             }
         }
         return (_tokens, _amounts);
@@ -267,7 +302,7 @@ contract Helper is Variables {
     }
 
     /**
-     * @dev  better checking by double encoding the data.
+     * @dev  better check by double encoding the data.
      * @notice better checking by double encoding the data.
      * @param data_ data passed.
      */
@@ -284,8 +319,8 @@ contract Helper is Variables {
     }
 
     /**
-     * @dev reentrancy gaurd.
-     * @notice reentrancy gaurd.
+     * @dev reentrancy guard.
+     * @notice reentrancy guard.
      */
     modifier reentrancy() {
         require(status == 1, "already-entered");
