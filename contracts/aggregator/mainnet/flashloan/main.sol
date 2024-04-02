@@ -498,62 +498,6 @@ contract FlashAggregator is Setups {
         }
     }
 
-    // Fallback function for morpho route
-    function onMorphoFlashLoan(uint256 _assets, bytes calldata _data) external verifyDataHash(_data) returns (bool){
-        require(msg.sender == address(morpho), "not-morpho-sender");
-
-         FlashloanVariables memory instaLoanVariables_;
-
-        (
-            uint256 route_,
-            address[] memory tokens_,
-            uint256[] memory amounts_,
-            address sender_,
-            bytes memory data_
-        ) = abi.decode(_data, (uint256, address[], uint256[], address, bytes));
-
-            instaLoanVariables_._tokens = tokens_;
-            instaLoanVariables_._amounts = amounts_;
-            instaLoanVariables_._iniBals = calculateBalances(
-            tokens_,
-            address(this)
-        );
-            instaLoanVariables_._instaFees = calculateFees(
-            amounts_,
-            calculateFeeBPS(route_, sender_)
-        );
-
-        if (route_ == 11){
-            safeTransfer(instaLoanVariables_, sender_);
-
-            if (checkIfDsa(sender_)) {
-                Address.functionCall(
-                    sender_,
-                    data_,
-                    "DSA-flashloan-fallback-failed"
-                );
-            } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(
-                    tokens_,
-                    amounts_,
-                    instaLoanVariables_._instaFees,
-                    sender_,
-                    data_
-                );
-            }
-        } else {
-            revert("wrong-route");
-        }
-
-        instaLoanVariables_._finBals = calculateBalances(
-            tokens_,
-            address(this)
-        );
-
-        validateFlashloan(instaLoanVariables_);
-        return true;
-    }
-
     /**
      * @dev Middle function for route 1, 9 and 10.
      * @notice Middle function for route 1, 9 and 10.
@@ -816,37 +760,6 @@ contract FlashAggregator is Setups {
     }
 
     /**
-     * @dev Middle function for route 11.
-     * @notice Middle function for route 11.
-     * @param _token token addresses for flashloan.
-     * @param _amount list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeMorpho(
-        address _token,
-        uint256 _amount,
-        bytes memory _data
-    ) internal {
-        address[] memory tokens_ = new address[](1);
-        uint256[] memory amounts_ = new uint256[](1);
-        tokens_[0] = _token;
-        amounts_[0] = _amount;
-        bytes memory data_ = abi.encode(
-            11,
-            tokens_,
-            amounts_,
-            msg.sender,
-            _data
-        );
-        dataHash = bytes32(keccak256(data_));
-        morpho.flashLoan(
-            _token,
-            _amount,
-            data_
-        );
-    }
-
-    /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @param _tokens token addresses for flashloan.
@@ -884,11 +797,11 @@ contract FlashAggregator is Setups {
             routeAaveAndSpark(9, _tokens, _amounts, _data);
         } else if (_route == 10) {
             routeAaveAndSpark(10, _tokens, _amounts, _data);
-        } else if (_route == 11) {
-            routeMorpho(_tokens[0], _amounts[0], _data);
-        } else {
+        } 
+        else {
             revert("route-does-not-exist");
         }
+
         emit LogFlashloan(msg.sender, _route, _tokens, _amounts);
     }
 
@@ -907,7 +820,6 @@ contract FlashAggregator is Setups {
         routes_[6] = 7; // routeBalancerAave
         routes_[7] = 9; // routeAaveV3
         routes_[8] = 10; // routeSpark
-        routes_[9] = 11; // routeMorpho
     }
 
     /**

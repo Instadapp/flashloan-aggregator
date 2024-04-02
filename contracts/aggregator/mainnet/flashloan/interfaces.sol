@@ -171,10 +171,6 @@ interface IBalancerLending {
         returns (ProtocolFeesCollector);
 }
 
-interface IMorpho {
-    function flashLoan(address token, uint256 assets, bytes calldata data) external;
-}
-
 interface IWstETH {
     function getWstETHByStETH(uint256 _stETHAmount)
         external
