@@ -262,6 +262,9 @@ describe('FlashLoan', function () {
     it('Should be able to take flashLoan of a wsteth token from SPARK', async function () {
       await receiver.flashBorrow([WSTETH], [Wsteth], 10, _data, _instaData)
     })
+    it('Should be able to take flashLoan of a wsteth token from MORPHO', async function () {
+      await receiver.flashBorrow([WSTETH], [Wsteth], 11, _data, _instaData)
+    })
   })
 
   describe('Multi token', async function () {
@@ -453,6 +456,9 @@ describe('FlashLoan', function () {
     })
     it('Should be able to take flashLoan of multiple tokens together from SPARK', async function () {
       await receiver.flashBorrow([DAI, WETH, WSTETH], [Dai, Weth, Wsteth], 10, _data, _instaData)
+    })
+    it('Should be able to take flashLoan of multiple tokens together from MORPHO', async function () {
+      await receiver.flashBorrow([DAI, WETH, WSTETH], [Dai, Weth, Wsteth], 11, _data, _instaData)
     })
   })
 })
