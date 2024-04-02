@@ -499,17 +499,18 @@ contract FlashAggregator is Setups {
     }
 
     // Fallback function for morpho route
-    function onMorphoFlashLoan(uint256 _assets, bytes calldata _data) external verifyDataHash(_data) {
+    function onMorphoFlashLoan(uint256 _assets, bytes calldata _data) external verifyDataHash(_data) returns (bool){
         require(msg.sender == address(morpho), "not-morpho-sender");
 
          FlashloanVariables memory instaLoanVariables_;
-         (
+
+        (
             uint256 route_,
             address[] memory tokens_,
             uint256[] memory amounts_,
             address sender_,
-            bytes memory data_,
-         ) = abi.decode(_data, (uint256, address[], uint256[], address, bytes));
+            bytes memory data_
+        ) = abi.decode(_data, (uint256, address[], uint256[], address, bytes));
 
             instaLoanVariables_._tokens = tokens_;
             instaLoanVariables_._amounts = amounts_;
@@ -817,13 +818,13 @@ contract FlashAggregator is Setups {
     /**
      * @dev Middle function for route 11.
      * @notice Middle function for route 11.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
+     * @param _token token addresses for flashloan.
+     * @param _amount list of amounts for the corresponding assets.
      * @param _data extra data passed.
      */
     function routeMorpho(
-        address memory _token,
-        uint256 memory _amount,
+        address _token,
+        uint256 _amount,
         bytes memory _data
     ) internal {
         address[] memory tokens_ = new address[](1);
@@ -884,7 +885,7 @@ contract FlashAggregator is Setups {
         } else if (_route == 10) {
             routeAaveAndSpark(10, _tokens, _amounts, _data);
         } else if (_route == 11) {
-            routeMorpho(_tokens, _amounts, _data);
+            routeMorpho(_tokens[0], _amounts[0], _data);
         } else {
             revert("route-does-not-exist");
         }
