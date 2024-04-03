@@ -13,7 +13,7 @@ import {
   InstaFlashReceiver,
   InstaFlashAggregatorProxy,
   InstaFlashAggregatorProxy__factory,
-} from '../../typechain'
+} from '../../typechain-types'
 
 describe('FlashLoan', function () {
   let AdvancedRouteImpl, 
@@ -30,7 +30,7 @@ describe('FlashLoan', function () {
   const master = '0xa8c31E39e40E6765BEdBd83D92D6AA0B33f1CCC5'
   const aaveLendingAddr = '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9'
 
-  let ABI = ['function initialize(address[],address,address)']
+  let ABI = ['function initialize(address[],address)']
   let iface = new ethers.utils.Interface(ABI)
 
   const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f'
@@ -90,8 +90,7 @@ describe('FlashLoan', function () {
         '0x80a2ae356fc9ef4305676f7a3e2ed04e12c33946', // YFI
         '0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407', // ZRX
       ],
-      master,
-      advancedRouteImpl.address
+      master
     ])
 
     Aggregator = new InstaFlashAggregator__factory(signer)
