@@ -13,7 +13,7 @@ import {
   InstaFlashReceiver,
   InstaFlashAggregatorProxy,
   InstaFlashAggregatorProxy__factory,
-} from '../../typechain-types'
+} from '../../typechain'
 
 describe('FlashLoan', function () {
   let AdvancedRouteImpl, 
