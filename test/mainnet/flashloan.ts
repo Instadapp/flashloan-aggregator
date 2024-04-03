@@ -39,11 +39,11 @@ describe('FlashLoan', function () {
   const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
   const WSTETH = '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0'
   
-  const ACC_DAI = '0xD831B3353Be1449d7131e92c8948539b1F18b86A'
+  const ACC_DAI = '0x1819EDe3B8411EbC613F3603813Bf42aE09bA5A5'
   const ACC_USDT = '0x9723b6d608D4841eB4Ab131687a5D4764eb30138'
   const ACC_USDC = '0x51eDF02152EBfb338e03E30d65C15fBf06cc9ECC'
   const ACC_WETH = '0x57757E3D981446D585Af0D9Ae4d7DF6D64647806'
-  const ACC_WSTETH = '0xBCb742AAdb031dE5de937108799e89A392f07df1'
+  const ACC_WSTETH = '0x04B35d8Eb17729b2C4a4224d07727e2F71283b73'
 
   const STETH = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
   const ACC_STETH = '0xFF4606bd3884554CDbDabd9B6e25E2faD4f6fc54'
@@ -96,14 +96,17 @@ describe('FlashLoan', function () {
     Aggregator = new InstaFlashAggregator__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
+    console.log('aggregator address: ', aggregator.address)
 
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
     proxy = await Proxy.deploy(aggregator.address, master, data)
     await proxy.deployed()
+    console.log('proxy address: ', proxy.address)
 
     Receiver = new InstaFlashReceiver__factory(signer)
     receiver = await Receiver.deploy(proxy.address)
     await receiver.deployed()
+    console.log('receiver address: ', receiver.address)
 
     const token_steth = new ethers.Contract(
       STETH,
@@ -262,7 +265,7 @@ describe('FlashLoan', function () {
       await receiver.flashBorrow([WSTETH], [Wsteth], 10, _data, _instaData)
     })
     it('Should be able to take flashLoan of a wsteth token from MORPHO', async function () {
-      await receiver.flashBorrow([WSTETH], [Wsteth], 11, _data, _instaData)
+      await receiver.flashBorrow([WSTETH], [wsteth], 11, _data, _instaData)
     })
   })
 
