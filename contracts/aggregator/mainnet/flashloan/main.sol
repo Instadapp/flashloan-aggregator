@@ -499,7 +499,10 @@ contract FlashAggregator is Setups {
     }
 
     // Fallback function for morpho route
-    function onMorphoFlashLoan(uint256 _assets, bytes calldata _data) external verifyDataHash(_data) returns (bool){
+    function onMorphoFlashLoan(
+        uint256 _assets,
+        bytes calldata _data
+    ) external verifyDataHash(_data) returns (bool) {
         require(msg.sender == address(morpho), "not-morpho-sender");
 
          FlashloanVariables memory instaLoanVariables_;
@@ -515,13 +518,14 @@ contract FlashAggregator is Setups {
             instaLoanVariables_._tokens = tokens_;
             instaLoanVariables_._amounts = amounts_;
             instaLoanVariables_._iniBals = calculateBalances(
-            tokens_,
-            address(this)
-        );
+                tokens_,
+                address(this)
+            );
+
             instaLoanVariables_._instaFees = calculateFees(
-            amounts_,
-            calculateFeeBPS(route_, sender_)
-        );
+                amounts_,
+                calculateFeeBPS(route_, sender_)
+            );
 
         if (route_ == 11){
             safeTransfer(instaLoanVariables_, sender_);
@@ -551,6 +555,10 @@ contract FlashAggregator is Setups {
         );
 
         validateFlashloan(instaLoanVariables_);
+
+        // Final approval to transfer tokens to MORPHO
+        IERC20(tokens_[0]).approve(address(morpho), _assets);
+
         return true;
     }
 
