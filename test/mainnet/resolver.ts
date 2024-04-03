@@ -19,7 +19,8 @@ describe('Resolver', function () {
   const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
 
   const WSTETH = '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0'
-  const USDE = '0x9D39A5DE30e57443BfF2A8307A4256c8797A3497'
+  const USDE = '0x4c9EDD5852cd905f086C759E8383e09bff1E68B3'
+  const SUSDE = '0x9D39A5DE30e57443BfF2A8307A4256c8797A3497'
 
   const Wsteth = ethers.utils.parseUnits('30000', 18)
 
@@ -30,6 +31,7 @@ describe('Resolver', function () {
   const Steth = ethers.utils.parseUnits('500', 18)
   const Usdc = ethers.utils.parseUnits('5000', 6)
   const Usde = ethers.utils.parseUnits('5000', 18)
+  const Susde = ethers.utils.parseUnits('5000', 18)
 
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
@@ -51,6 +53,7 @@ describe('Resolver', function () {
     console.log('steth: ', (await resolver.getBestRoutes([STETH], [Steth])).toString())
     console.log('wsteth: ', (await resolver.getBestRoutes([WSTETH], [Wsteth])).toString())
     console.log('usde: ', (await resolver.getBestRoutes([USDE], [Usde])).toString())
+    console.log('susde: ', (await resolver.getBestRoutes([SUSDE], [Susde])).toString())
   })
 
   it('Should be able to return all the data for flashloan', async function () {
