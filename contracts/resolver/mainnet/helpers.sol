@@ -102,6 +102,19 @@ contract Helper is Variables {
         return true;
     }
 
+    function getMorphoAvailability(
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) internal view returns (bool) {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            if (token_.balanceOf(morphoAddr) < _amounts[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     function getRoutesWithAvailability(
         uint16[] memory _routes,
         address[] memory _tokens,
@@ -140,7 +153,12 @@ contract Helper is Variables {
                     routesWithAvailability_[j] = _routes[i];
                     j++;
                 }
-            }
+            } else if (_routes[i] == 11) {
+                if (getMorphoAvailability(_tokens, _amounts)) {
+                    routesWithAvailability_[j] = _routes[i];
+                    j++;
+                }
+            } 
         }
         return routesWithAvailability_;
     }
