@@ -905,7 +905,7 @@ contract FlashAggregator is Setups {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](9);
+        routes_ = new uint16[](10);
         routes_[0] = 1; // routeAaveV2
         routes_[1] = 2; // routeMaker
         routes_[2] = 3; // routeMakerCompound
