@@ -4,7 +4,7 @@
 
 ### Mainnet
 - Proxy: `0x619Ad2D02dBeE6ebA3CDbDA3F98430410e892882`
-- Implementation: `0xf52AE7868e01074EaAd587060d75e996baed9aEF`
+- Implementation: `0xd7D746eC940Ad263b65926f5b19eaB385ac1018f`
 - AdvancedRoute Implementation: `0xeD4DF5d720F5FA036d16C971FdF409c202C3D8F6`
 
 ### Pre Requisites
