@@ -58,12 +58,12 @@ describe('FlashLoan', function () {
   const usdt = ethers.utils.parseUnits('100', 6)
   const usdc = ethers.utils.parseUnits('100', 6)
   const weth = ethers.utils.parseUnits('100', 18)
-  const wsteth = ethers.utils.parseUnits('1000', 18)
-  const Dai = ethers.utils.parseUnits('5000', 18)
-  const Usdt = ethers.utils.parseUnits('5000', 6)
-  const Usdc = ethers.utils.parseUnits('5000', 6)
-  const Weth = ethers.utils.parseUnits('1000', 18)
-  const Wsteth = ethers.utils.parseUnits('30000', 18)
+  const wsteth = ethers.utils.parseUnits('100', 18)
+  const Dai = ethers.utils.parseUnits('500', 18)
+  const Usdt = ethers.utils.parseUnits('500', 6)
+  const Usdc = ethers.utils.parseUnits('500', 6)
+  const Weth = ethers.utils.parseUnits('100', 18)
+  const Wsteth = ethers.utils.parseUnits('3000', 18)
   const steth = ethers.utils.parseUnits('1', 18)
   const Steth = ethers.utils.parseUnits('100', 18)
   const susde = ethers.utils.parseUnits('100', 18)
@@ -72,6 +72,7 @@ describe('FlashLoan', function () {
   const _data = '0x'
 
   let _instaData = '0x'
+  let proxyContract: any
 
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
@@ -110,6 +111,8 @@ describe('FlashLoan', function () {
     proxy = await Proxy.deploy(aggregator.address, master, data)
     await proxy.deployed()
     console.log('proxy address: ', proxy.address)
+
+    proxyContract = new ethers.Contract(proxy.address, InstaFlashAggregator__factory.abi, signer)
 
     Receiver = new InstaFlashReceiver__factory(signer)
     receiver = await Receiver.deploy(proxy.address)
@@ -280,6 +283,9 @@ describe('FlashLoan', function () {
   })
 
   describe('Single token', async function () {
+    it('Should be able to get routes', async function () {
+      console.log('routes: ', await proxyContract.getRoutes());
+    })
     it('Should be able to take flashLoan of a single token from AAVE', async function () {
       await receiver.flashBorrow([DAI], [Dai], 1, _data, _instaData)
     })
