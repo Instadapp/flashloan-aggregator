@@ -25,6 +25,9 @@ contract ConstantVariables {
     IBalancerLending internal constant balancerLending =
         IBalancerLending(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
 
+    IMorpho internal constant morpho =
+        IMorpho(0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb);
+
     address internal constant daiTokenAddr =
         0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address internal constant cdaiTokenAddr =

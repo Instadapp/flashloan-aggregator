@@ -32,6 +32,8 @@ contract Variables {
     address public constant balancerLendingAddr =
         0xBA12222222228d8Ba445958a75a0704d566BF2C8;
 
+    address public constant morphoAddr = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
+
     address public constant daiToken =
         0x6B175474E89094C44Da98b954EedeAC495271d0F;
     uint256 public constant daiBorrowAmount = 500000000000000000000000000;

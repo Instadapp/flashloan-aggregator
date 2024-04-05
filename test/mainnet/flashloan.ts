@@ -30,7 +30,7 @@ describe('FlashLoan', function () {
   const master = '0xa8c31E39e40E6765BEdBd83D92D6AA0B33f1CCC5'
   const aaveLendingAddr = '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9'
 
-  let ABI = ['function initialize(address[],address,address)']
+  let ABI = ['function initialize(address[],address)']
   let iface = new ethers.utils.Interface(ABI)
 
   const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f'
@@ -39,31 +39,40 @@ describe('FlashLoan', function () {
   const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
   const WSTETH = '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0'
   
-  const ACC_DAI = '0xD831B3353Be1449d7131e92c8948539b1F18b86A'
-  const ACC_USDT = '0x9723b6d608D4841eB4Ab131687a5D4764eb30138'
+  const ACC_DAI = '0x1819EDe3B8411EbC613F3603813Bf42aE09bA5A5'
+  const ACC_USDT = '0xF977814e90dA44bFA03b6295A0616a897441aceC'
   const ACC_USDC = '0x51eDF02152EBfb338e03E30d65C15fBf06cc9ECC'
-  const ACC_WETH = '0x57757E3D981446D585Af0D9Ae4d7DF6D64647806'
-  const ACC_WSTETH = '0xBCb742AAdb031dE5de937108799e89A392f07df1'
+  const ACC_WETH = '0xF04a5cC80B1E94C69B48f5ee68a08CD2F09A7c3E'
+  const ACC_WSTETH = '0x04B35d8Eb17729b2C4a4224d07727e2F71283b73'
 
   const STETH = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
   const ACC_STETH = '0xFF4606bd3884554CDbDabd9B6e25E2faD4f6fc54'
+
+  const SUSDE = '0x9D39A5DE30e57443BfF2A8307A4256c8797A3497'
+  const ACC_SUSDE = '0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb'
+
+  const USDE = '0x4c9EDD5852cd905f086C759E8383e09bff1E68B3'
+  const ACC_USDE = '0x8707f238936c12c309bfc2B9959C35828AcFc512'
 
   const dai = ethers.utils.parseUnits('1000', 18)
   const usdt = ethers.utils.parseUnits('100', 6)
   const usdc = ethers.utils.parseUnits('100', 6)
   const weth = ethers.utils.parseUnits('100', 18)
-  const wsteth = ethers.utils.parseUnits('1000', 18)
-  const Dai = ethers.utils.parseUnits('5000', 18)
-  const Usdt = ethers.utils.parseUnits('5000', 6)
-  const Usdc = ethers.utils.parseUnits('5000', 6)
-  const Weth = ethers.utils.parseUnits('1000', 18)
-  const Wsteth = ethers.utils.parseUnits('30000', 18)
+  const wsteth = ethers.utils.parseUnits('100', 18)
+  const Dai = ethers.utils.parseUnits('500', 18)
+  const Usdt = ethers.utils.parseUnits('500', 6)
+  const Usdc = ethers.utils.parseUnits('500', 6)
+  const Weth = ethers.utils.parseUnits('100', 18)
+  const Wsteth = ethers.utils.parseUnits('3000', 18)
   const steth = ethers.utils.parseUnits('1', 18)
   const Steth = ethers.utils.parseUnits('100', 18)
+  const susde = ethers.utils.parseUnits('100', 18)
+  const usde = ethers.utils.parseUnits('100', 18)
 
   const _data = '0x'
 
   let _instaData = '0x'
+  let proxyContract: any
 
   beforeEach(async function () {
     ;[signer] = await ethers.getSigners()
@@ -90,21 +99,25 @@ describe('FlashLoan', function () {
         '0x80a2ae356fc9ef4305676f7a3e2ed04e12c33946', // YFI
         '0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407', // ZRX
       ],
-      master,
-      advancedRouteImpl.address
+      master
     ])
 
     Aggregator = new InstaFlashAggregator__factory(signer)
     aggregator = await Aggregator.deploy()
     await aggregator.deployed()
+    console.log('aggregator address: ', aggregator.address)
 
     Proxy = new InstaFlashAggregatorProxy__factory(signer)
     proxy = await Proxy.deploy(aggregator.address, master, data)
     await proxy.deployed()
+    console.log('proxy address: ', proxy.address)
+
+    proxyContract = new ethers.Contract(proxy.address, InstaFlashAggregator__factory.abi, signer)
 
     Receiver = new InstaFlashReceiver__factory(signer)
     receiver = await Receiver.deploy(proxy.address)
     await receiver.deployed()
+    console.log('receiver address: ', receiver.address)
 
     const token_steth = new ethers.Contract(
       STETH,
@@ -204,6 +217,56 @@ describe('FlashLoan', function () {
         params: [ACC_WSTETH],
       })
 
+      const token_susde = new ethers.Contract(
+        SUSDE,
+        IERC20__factory.abi,
+        ethers.provider,
+      )
+  
+      await hre.network.provider.send('hardhat_setBalance', [
+        ACC_SUSDE,
+        ethers.utils.parseEther('10.0').toHexString(),
+      ])
+
+      await hre.network.provider.request({
+        method: 'hardhat_impersonateAccount',
+        params: [ACC_SUSDE],
+      })
+  
+      const signer_susde = await ethers.getSigner(ACC_SUSDE)
+      await token_susde.connect(signer_susde).transfer(receiver.address, susde)
+      await token_susde.connect(signer_susde).transfer(proxy.address, susde)
+      
+      await hre.network.provider.request({
+        method: 'hardhat_stopImpersonatingAccount',
+        params: [ACC_SUSDE],
+      })
+
+      const token_usde = new ethers.Contract(
+        USDE,
+        IERC20__factory.abi,
+        ethers.provider,
+      )
+
+      await hre.network.provider.send('hardhat_setBalance', [
+        ACC_USDE,
+        ethers.utils.parseEther('10.0').toHexString(),
+      ])
+
+      await hre.network.provider.request({
+        method: 'hardhat_impersonateAccount',
+        params: [ACC_USDE],
+      })
+
+      const signer_usde = await ethers.getSigner(ACC_USDE)
+      await token_usde.connect(signer_usde).transfer(receiver.address, usde)
+      await token_usde.connect(signer_usde).transfer(proxy.address, usde)
+
+      await hre.network.provider.request({
+        method: 'hardhat_stopImpersonatingAccount',
+        params: [ACC_USDE],
+      })
+
     await hre.network.provider.request({
       method: 'hardhat_impersonateAccount',
       params: [proxy.address],
@@ -220,6 +283,9 @@ describe('FlashLoan', function () {
   })
 
   describe('Single token', async function () {
+    it('Should be able to get routes', async function () {
+      console.log('routes: ', await proxyContract.getRoutes());
+    })
     it('Should be able to take flashLoan of a single token from AAVE', async function () {
       await receiver.flashBorrow([DAI], [Dai], 1, _data, _instaData)
     })
@@ -261,6 +327,12 @@ describe('FlashLoan', function () {
     })
     it('Should be able to take flashLoan of a wsteth token from SPARK', async function () {
       await receiver.flashBorrow([WSTETH], [Wsteth], 10, _data, _instaData)
+    })
+    it('Should be able to take flashLoan of a susde token from MORPHO', async function () {
+      await receiver.flashBorrow([SUSDE], [susde], 11, _data, _instaData)
+    })
+    it('Should be able to take flashLoan of a usde token from MORPHO', async function () {
+      await receiver.flashBorrow([USDE], [usde], 11, _data, _instaData)
     })
   })
 

@@ -204,6 +204,8 @@ contract Helper is Variables {
             BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
         } else if (_route == 10) {
             BPS_ = sparkLending.FLASHLOAN_PREMIUM_TOTAL();
+        } else if (_route == 11) {
+            BPS_ = 0;
         } else {
             revert("Invalid source");
         }
