@@ -120,7 +120,7 @@ contract Helper is Variables {
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal view returns (uint16[] memory) {
-        uint16[] memory routesWithAvailability_ = new uint16[](10);
+        uint16[] memory routesWithAvailability_ = new uint16[](11);
         uint256 j = 0;
         for (uint256 i = 0; i < _routes.length; i++) {
             if (_routes[i] == 1 || _routes[i] == 4 || _routes[i] == 7) {
