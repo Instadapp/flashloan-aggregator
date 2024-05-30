@@ -108,7 +108,7 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
       chainId: 1,
-      gasPrice: 36010000000,
+      gasPrice: 9010000000,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
     },
     avalanche_mainnet: {
@@ -150,6 +150,18 @@ const config: HardhatUserConfig = {
   },
   solidity: {
     compilers: [
+      {
+        version: "0.8.17",
+        settings: {
+          metadata: {
+            bytecodeHash: "none",
+          },
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
       {
         version: "0.8.4",
         settings: {
