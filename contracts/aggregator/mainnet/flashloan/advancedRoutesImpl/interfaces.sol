@@ -1,5 +1,6 @@
-//SPDX-License-Identifier: MIT
+//SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface InstaFlashReceiverInterface {
@@ -10,16 +11,6 @@ interface InstaFlashReceiverInterface {
         address initiator,
         bytes calldata _data
     ) external returns (bool);
-}
-
-interface IndexInterface {
-    function master() external view returns (address);
-
-    function list() external view returns (address);
-}
-
-interface ListInterface {
-    function accountID(address) external view returns (uint64);
 }
 
 interface TokenInterface {
@@ -42,6 +33,34 @@ interface TokenInterface {
     function decimals() external view returns (uint256);
 
     function totalSupply() external view returns (uint256);
+}
+
+interface CTokenInterface {
+    function mint(uint256) external returns (uint256);
+
+    function redeemUnderlying(uint256) external returns (uint256);
+
+    function borrow(uint256) external returns (uint256);
+
+    function repayBorrow(uint256) external returns (uint256);
+
+    function underlying() external view returns (address);
+}
+
+interface CEthInterface {
+    function mint() external payable;
+
+    function redeemUnderlying(uint256) external returns (uint256);
+
+    function borrow(uint256) external returns (uint256);
+
+    function repayBorrow() external payable;
+}
+
+interface IWeth is IERC20 {
+    function deposit() external payable;
+
+    function withdraw(uint256 amount) external;
 }
 
 interface IAaveLending {
@@ -89,18 +108,22 @@ interface IAaveLending {
         external;
 }
 
-interface IAaveV3Lending {
-    function flashLoan(
-        address receiverAddress,
-        address[] calldata assets,
-        uint256[] calldata amounts,
-        uint256[] calldata modes,
-        address onBehalfOf,
-        bytes calldata params,
-        uint16 referralCode
-    ) external;
+interface IERC3156FlashLender {
+    function maxFlashLoan(address token) external view returns (uint256);
 
-    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128);
+    function flashFee(address token, uint256 amount)
+        external
+        view
+        returns (uint256);
+
+    function flashLoan(
+        InstaFlashReceiverInterface receiver,
+        address token,
+        uint256 amount,
+        bytes calldata data
+    ) external returns (bool);
+
+    function toll() external view returns (uint256);
 }
 
 interface ProtocolFeesCollector {
@@ -119,13 +142,4 @@ interface IBalancerLending {
         external
         view
         returns (ProtocolFeesCollector);
-}
-
-interface IUniswapV3Pool {
-    function flash(
-        address recipient,
-        uint256 amount0,
-        uint256 amount1,
-        bytes calldata data
-    ) external;
 }

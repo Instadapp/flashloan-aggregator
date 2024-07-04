@@ -152,6 +152,27 @@ contract Helper is Variables {
         }
     }
 
+     /**
+     * @dev Returns fee for the passed route in BPS.
+     * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
+     * @param _route route number for flashloan.
+     */
+    function calculateFeeBPS(uint256 _route)
+        public
+        view
+        returns (uint256 BPS_)
+    {
+        if (_route == 9) {
+            BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
+        } else {
+            revert("Invalid source");
+        }
+
+        if (BPS_ < InstaFeeBPS) {
+            BPS_ = InstaFeeBPS;
+        }
+    }
+
     /**
      * @dev Calculate fees for the respective amounts and fee in BPS passed.
      * @notice Calculate fees for the respective amounts and fee in BPS passed. 1 BPS == 0.01%.

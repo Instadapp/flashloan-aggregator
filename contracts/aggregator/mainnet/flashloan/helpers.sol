@@ -8,6 +8,31 @@ contract Helper is Variables {
     using SafeERC20 for IERC20;
 
     /**
+     * @dev Delegate the calls to implementation.
+     * @param _target Target address
+     * @param _data CallData of function.
+    */
+    function spell(address _target, bytes memory _data) internal returns (bytes memory response) {
+        require(_target != address(0), "target-invalid");
+        assembly {
+            let succeeded := delegatecall(gas(), _target, add(_data, 0x20), mload(_data), 0, 0)
+            let size := returndatasize()
+
+            response := mload(0x40)
+            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
+            mstore(response, size)
+            returndatacopy(add(response, 0x20), 0, size)
+
+            switch iszero(succeeded)
+                case 1 {
+                    // throw if delegatecall failed
+                    returndatacopy(0x00, 0x00, size)
+                    revert(0x00, size)
+                }
+        }
+    }
+
+    /**
      * @dev Approves the token to the spender address with allowance amount.
      * @notice Approves the token to the spender address with allowance amount.
      * @param token_ token for which allowance is to be given.
@@ -131,10 +156,11 @@ contract Helper is Variables {
         internal
         pure
     {
-        for (uint256 i = 0; i < _instaLoanVariables._iniBals.length; i++) {
+        for (uint256 i; i < _instaLoanVariables._iniBals.length; i++) {
+            uint minRequiredBalance_ = _instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i];
+
             require(
-                _instaLoanVariables._iniBals[i] +
-                    _instaLoanVariables._instaFees[i] <=
+                minRequiredBalance_ <=
                     _instaLoanVariables._finBals[i],
                 "amount-paid-less"
             );
@@ -153,186 +179,6 @@ contract Helper is Variables {
     }
 
     /**
-     * @dev Supply tokens for the amounts to compound.
-     * @notice Supply tokens for the amounts to compound.
-     * @param _tokens token addresses.
-     * @param _amounts amounts of tokens.
-     */
-    function compoundSupply(address[] memory _tokens, uint256[] memory _amounts)
-        internal
-    {
-        uint256 length_ = _tokens.length;
-        require(_amounts.length == length_, "array-lengths-not-same");
-        address[] memory cTokens_ = new address[](length_);
-        for (uint256 i = 0; i < length_; i++) {
-            if (_tokens[i] == address(wethToken)) {
-                wethToken.withdraw(_amounts[i]);
-                CEthInterface cEth_ = CEthInterface(cethTokenAddr);
-                cEth_.mint{value: _amounts[i]}();
-                cTokens_[i] = cethTokenAddr;
-            } else {
-                CTokenInterface cToken_ = CTokenInterface(
-                    tokenToCToken[_tokens[i]]
-                );
-                // Approved already in addTokenToctoken function
-                require(cToken_.mint(_amounts[i]) == 0, "mint failed");
-                cTokens_[i] = tokenToCToken[_tokens[i]];
-            }
-        }
-    }
-
-    /**
-     * @dev Borrow tokens for the amounts to compound.
-     * @notice Borrow tokens for the amounts to compound.
-     * @param _tokens list of token addresses.
-     * @param _amounts amounts of respective tokens.
-     */
-    function compoundBorrow(address[] memory _tokens, uint256[] memory _amounts)
-        internal
-    {
-        uint256 length_ = _tokens.length;
-        require(_amounts.length == length_, "array-lengths-not-same");
-        for (uint256 i = 0; i < length_; i++) {
-            if (_tokens[i] == address(wethToken)) {
-                CEthInterface cEth = CEthInterface(cethTokenAddr);
-                require(cEth.borrow(_amounts[i]) == 0, "borrow failed");
-                wethToken.deposit{value: _amounts[i]}();
-            } else {
-                CTokenInterface cToken = CTokenInterface(
-                    tokenToCToken[_tokens[i]]
-                );
-                require(cToken.borrow(_amounts[i]) == 0, "borrow failed");
-            }
-        }
-    }
-
-    /**
-     * @dev Payback tokens for the amounts to compound.
-     * @notice Payback tokens for the amounts to compound.
-     * @param _tokens list of token addresses.
-     * @param _amounts amounts of respective tokens.
-     */
-    function compoundPayback(
-        address[] memory _tokens,
-        uint256[] memory _amounts
-    ) internal {
-        uint256 length_ = _tokens.length;
-        require(_amounts.length == length_, "array-lengths-not-same");
-        for (uint256 i = 0; i < length_; i++) {
-            if (_tokens[i] == address(wethToken)) {
-                wethToken.withdraw(_amounts[i]);
-                CEthInterface cToken = CEthInterface(cethTokenAddr);
-                cToken.repayBorrow{value: _amounts[i]}();
-            } else {
-                CTokenInterface cToken = CTokenInterface(
-                    tokenToCToken[_tokens[i]]
-                );
-                // Approved already in addTokenToctoken function
-                require(cToken.repayBorrow(_amounts[i]) == 0, "repay failed");
-            }
-        }
-    }
-
-    /**
-     * @dev Withdraw tokens from compound.
-     * @notice Withdraw tokens from compound.
-     * @param _tokens token addresses.
-     * @param _amounts amounts of tokens.
-     */
-    function compoundWithdraw(
-        address[] memory _tokens,
-        uint256[] memory _amounts
-    ) internal {
-        uint256 length_ = _tokens.length;
-        require(_amounts.length == length_, "array-lengths-not-same");
-        for (uint256 i = 0; i < length_; i++) {
-            if (_tokens[i] == address(wethToken)) {
-                CEthInterface cEth_ = CEthInterface(cethTokenAddr);
-                require(
-                    cEth_.redeemUnderlying(_amounts[i]) == 0,
-                    "redeem failed"
-                );
-                wethToken.deposit{value: _amounts[i]}();
-            } else {
-                CTokenInterface cToken_ = CTokenInterface(
-                    tokenToCToken[_tokens[i]]
-                );
-                require(
-                    cToken_.redeemUnderlying(_amounts[i]) == 0,
-                    "redeem failed"
-                );
-            }
-        }
-    }
-
-    /**
-     * @dev Supply tokens to aave.
-     * @notice Supply tokens to aave.
-     * @param _tokens token addresses.
-     * @param _amounts amounts of tokens.
-     */
-    function aaveSupply(address[] memory _tokens, uint256[] memory _amounts)
-        internal
-    {
-        uint256 length_ = _tokens.length;
-        require(_amounts.length == length_, "array-lengths-not-same");
-        for (uint256 i = 0; i < length_; i++) {
-            approve(_tokens[i], address(aaveLending), _amounts[i]);
-            aaveLending.deposit(_tokens[i], _amounts[i], address(this), 3228);
-            aaveLending.setUserUseReserveAsCollateral(_tokens[i], true);
-        }
-    }
-
-    /**
-     * @dev Borrow tokens from aave.
-     * @notice Borrow tokens from aave.
-     * @param _tokens list of token addresses.
-     * @param _amounts list of amounts for respective tokens.
-     */
-    function aaveBorrow(address[] memory _tokens, uint256[] memory _amounts)
-        internal
-    {
-        uint256 length_ = _tokens.length;
-        require(_amounts.length == length_, "array-lengths-not-same");
-        for (uint256 i = 0; i < length_; i++) {
-            aaveLending.borrow(_tokens[i], _amounts[i], 2, 3228, address(this));
-        }
-    }
-
-    /**
-     * @dev Payback tokens to aave.
-     * @notice Payback tokens to aave.
-     * @param _tokens list of token addresses.
-     * @param _amounts list of amounts for respective tokens.
-     */
-    function aavePayback(address[] memory _tokens, uint256[] memory _amounts)
-        internal
-    {
-        uint256 length_ = _tokens.length;
-        require(_amounts.length == length_, "array-lengths-not-same");
-        for (uint256 i = 0; i < length_; i++) {
-            approve(_tokens[i], address(aaveLending), _amounts[i]);
-            aaveLending.repay(_tokens[i], _amounts[i], 2, address(this));
-        }
-    }
-
-    /**
-     * @dev Withdraw tokens from aave.
-     * @notice Withdraw tokens from aave.
-     * @param _tokens token addresses.
-     * @param _amounts amounts of tokens.
-     */
-    function aaveWithdraw(address[] memory _tokens, uint256[] memory _amounts)
-        internal
-    {
-        uint256 length_ = _tokens.length;
-        require(_amounts.length == length_, "array-lengths-not-same");
-        for (uint256 i = 0; i < length_; i++) {
-            aaveLending.withdraw(_tokens[i], _amounts[i], address(this));
-        }
-    }
-
-    /**
      * @dev Returns fee for the passed route in BPS.
      * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
      * @param _route route number for flashloan.
@@ -343,9 +189,9 @@ contract Helper is Variables {
         returns (uint256 BPS_)
     {
         if (_route == 1) {
-            BPS_ = aaveLending.FLASHLOAN_PREMIUM_TOTAL();
+            BPS_ = aaveV2Lending.FLASHLOAN_PREMIUM_TOTAL();
         } else if (_route == 2 || _route == 3 || _route == 4) {
-            BPS_ = (makerLending.toll()) / (10**14);
+            BPS_ = 0;
         } else if (_route == 5 || _route == 6 || _route == 7) {
             BPS_ =
                 (
@@ -354,6 +200,12 @@ contract Helper is Variables {
                         .getFlashLoanFeePercentage()
                 ) *
                 100;
+        } else if (_route == 9) {
+            BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
+        } else if (_route == 10) {
+            BPS_ = sparkLending.FLASHLOAN_PREMIUM_TOTAL();
+        } else if (_route == 11) {
+            BPS_ = 0;
         } else {
             revert("Invalid source");
         }

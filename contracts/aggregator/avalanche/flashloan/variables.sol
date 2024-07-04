@@ -1,16 +1,15 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import { 
-    IndexInterface,
-    ListInterface,
-    IAaveLending
-} from "./interfaces.sol";
+import "./interfaces.sol";
 
 contract ConstantVariables {
 
-    address public constant aaveLendingAddr = 0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
-    IAaveLending public constant aaveLending = IAaveLending(aaveLendingAddr);
+    address public constant aaveV2LendingAddr = 0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
+    IAaveV2Lending public constant aaveV2Lending = IAaveV2Lending(aaveV2LendingAddr);
+
+    address public constant aaveV3LendingAddr = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
+    IAaveV3Lending public constant aaveV3Lending = IAaveV3Lending(aaveV3LendingAddr);
 
     address public constant treasuryAddr = 0xE06d0b1752E60687C0EA5ABBe006d3368fdCDCC1;
     address private constant instaListAddr = 0x9926955e0Dd681Dc303370C52f4Ad0a4dd061687;

@@ -1,4 +1,4 @@
-import "@nomiclabs/hardhat-waffle";
+// import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-etherscan";
 import '@openzeppelin/hardhat-upgrades';
 import "@typechain/hardhat";
@@ -11,7 +11,9 @@ import "./tasks/clean";
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
 import { NetworkUserConfig } from "hardhat/types";
+import "hardhat-contract-sizer";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
@@ -71,7 +73,7 @@ function getBlockNumber(networkType: string) {
   else if (networkType === "arbitrum") return 10350332;
   else if (networkType === "optimism") return 6261116;
   else if (networkType === "base") return 3173891;
-  else return 14637205;
+  else return 19567465;
 }
 
 const config: HardhatUserConfig = {
@@ -106,7 +108,7 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
       chainId: 1,
-      gasPrice: 52101000000,
+      gasPrice: 9010000000,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
     },
     avalanche_mainnet: {
@@ -148,6 +150,18 @@ const config: HardhatUserConfig = {
   },
   solidity: {
     compilers: [
+      {
+        version: "0.8.17",
+        settings: {
+          metadata: {
+            bytecodeHash: "none",
+          },
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
       {
         version: "0.8.4",
         settings: {
