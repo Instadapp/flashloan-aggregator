@@ -13,16 +13,6 @@ interface InstaFlashReceiverInterface {
     ) external returns (bool);
 }
 
-interface IndexInterface {
-    function master() external view returns (address);
-
-    function list() external view returns (address);
-}
-
-interface ListInterface {
-    function accountID(address) external view returns (uint64);
-}
-
 interface TokenInterface {
     function approve(address, uint256) external;
 
@@ -71,23 +61,6 @@ interface IWeth is IERC20 {
     function deposit() external payable;
 
     function withdraw(uint256 amount) external;
-}
-
-interface Comptroller {
-    function enterMarkets(address[] calldata)
-        external
-        returns (uint256[] memory);
-
-    function markets(address)
-        external
-        view
-        returns (
-            bool,
-            uint256,
-            bool
-        );
-
-    function getAllMarkets() external view returns (CTokenInterface[] memory);
 }
 
 interface IAaveLending {
@@ -169,56 +142,4 @@ interface IBalancerLending {
         external
         view
         returns (ProtocolFeesCollector);
-}
-
-interface IMorpho {
-    function flashLoan(address token, uint256 assets, bytes calldata data) external;
-}
-
-interface IWstETH {
-    function getWstETHByStETH(uint256 _stETHAmount)
-        external
-        view
-        returns (uint256);
-
-    function getStETHByWstETH(uint256 _wstETHAmount)
-        external
-        view
-        returns (uint256);
-
-    function stEthPerToken() external view returns (uint256);
-
-    function tokensPerStEth() external view returns (uint256);
-
-    function wrap(uint256 _stETHAmount) external returns (uint256);
-
-    function unwrap(uint256 _wstETHAmount) external returns (uint256);
-}
-
-interface IAaveV3Lending {
-    function flashLoan(
-        address receiverAddress,
-        address[] calldata assets,
-        uint256[] calldata amounts,
-        uint256[] calldata modes,
-        address onBehalfOf,
-        bytes calldata params,
-        uint16 referralCode
-    ) external;
-
-    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128);
-}
-
-interface ISparkLending {
-    function flashLoan(
-        address receiverAddress,
-        address[] calldata assets,
-        uint256[] calldata amounts,
-        uint256[] calldata modes,
-        address onBehalfOf,
-        bytes calldata params,
-        uint16 referralCode
-    ) external;
-
-    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128);
 }

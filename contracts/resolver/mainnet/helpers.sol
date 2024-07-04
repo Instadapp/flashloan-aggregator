@@ -8,13 +8,47 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Helper is Variables {
     function getAaveAvailability(
         address[] memory _tokens,
+        uint256[] memory _amounts,
+        uint256 _route
+    ) internal view returns (bool) {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            (, , , , , , bool isBorrowingEnabled, , bool isActive, ) = aaveProtocolDataProvider
+                .getReserveConfigurationData(_tokens[i]);
+            (address aTokenAddr, , ) = aaveProtocolDataProvider
+                .getReserveTokensAddresses(_tokens[i]);
+            if (isActive == false) return false;
+            if (token_.balanceOf(aTokenAddr) < _amounts[i]) return false;
+            if ((_route == 4 || _route == 7) && !isBorrowingEnabled) return false;
+        }
+        return true;
+    }
+
+    function getAaveV3Availability(
+        address[] memory _tokens,
         uint256[] memory _amounts
     ) internal view returns (bool) {
         for (uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
-            (, , , , , , , , bool isActive, ) = aaveProtocolDataProvider
+            (, , , , , , , , bool isActive, ) = aaveV3ProtocolDataProvider
                 .getReserveConfigurationData(_tokens[i]);
-            (address aTokenAddr, , ) = aaveProtocolDataProvider
+            (address aTokenAddr, , ) = aaveV3ProtocolDataProvider
+                .getReserveTokensAddresses(_tokens[i]);
+            if (isActive == false) return false;
+            if (token_.balanceOf(aTokenAddr) < _amounts[i]) return false;
+        }
+        return true;
+    }
+
+    function getSparkAvailability(
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) internal view returns (bool) {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            (, , , , , , , , bool isActive, ) = sparkProtocolDataProvider
+                .getReserveConfigurationData(_tokens[i]);
+            (address aTokenAddr, , ) = sparkProtocolDataProvider
                 .getReserveTokensAddresses(_tokens[i]);
             if (isActive == false) return false;
             if (token_.balanceOf(aTokenAddr) < _amounts[i]) return false;
@@ -64,16 +98,19 @@ contract Helper is Variables {
             if (token_.balanceOf(balancerLendingAddr) < _amounts[i]) {
                 return false;
             }
-            // console.log("hello");
-            // if ((balancerWeightedPoolFactory.isPoolFromFactory(_tokens[i]) ||
-            //     balancerWeightedPool2TokensFactory.isPoolFromFactory(_tokens[i]) ||
-            //     balancerStablePoolFactory.isPoolFromFactory(_tokens[i]) ||
-            //     balancerLiquidityBootstrappingPoolFactory.isPoolFromFactory(_tokens[i]) ||
-            //     balancerMetaStablePoolFactory.isPoolFromFactory(_tokens[i]) ||
-            //     balancerInvestmentPoolFactory.isPoolFromFactory(_tokens[i])
-            //     ) == false) {
-            //     return false;
-            // }
+        }
+        return true;
+    }
+
+    function getMorphoAvailability(
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) internal view returns (bool) {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            IERC20 token_ = IERC20(_tokens[i]);
+            if (token_.balanceOf(morphoAddr) < _amounts[i]) {
+                return false;
+            }
         }
         return true;
     }
@@ -83,11 +120,11 @@ contract Helper is Variables {
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal view returns (uint16[] memory) {
-        uint16[] memory routesWithAvailability_ = new uint16[](7);
+        uint16[] memory routesWithAvailability_ = new uint16[](11);
         uint256 j = 0;
         for (uint256 i = 0; i < _routes.length; i++) {
             if (_routes[i] == 1 || _routes[i] == 4 || _routes[i] == 7) {
-                if (getAaveAvailability(_tokens, _amounts)) {
+                if (getAaveAvailability(_tokens, _amounts, _routes[i])) {
                     routesWithAvailability_[j] = _routes[i];
                     j++;
                 }
@@ -106,9 +143,22 @@ contract Helper is Variables {
                     routesWithAvailability_[j] = _routes[i];
                     j++;
                 }
-            } else {
-                require(false, "invalid-route");
-            }
+            } else if (_routes[i] == 9) {
+                if (getAaveV3Availability(_tokens, _amounts)) {
+                    routesWithAvailability_[j] = _routes[i];
+                    j++;
+                }
+            } else if (_routes[i] == 10) {
+                if (getSparkAvailability(_tokens, _amounts)) {
+                    routesWithAvailability_[j] = _routes[i];
+                    j++;
+                }
+            } else if (_routes[i] == 11) {
+                if (getMorphoAvailability(_tokens, _amounts)) {
+                    routesWithAvailability_[j] = _routes[i];
+                    j++;
+                }
+            } 
         }
         return routesWithAvailability_;
     }

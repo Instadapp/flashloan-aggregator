@@ -1,4 +1,4 @@
-import "@nomiclabs/hardhat-waffle";
+// import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-etherscan";
 import '@openzeppelin/hardhat-upgrades';
 import "@typechain/hardhat";
@@ -11,7 +11,9 @@ import "./tasks/clean";
 import { resolve } from "path";
 import { config as dotenvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
 import { NetworkUserConfig } from "hardhat/types";
+import "hardhat-contract-sizer";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
@@ -27,6 +29,7 @@ const chainIds = {
   polygon: 137,
   optimism: 10,
   arbitrum: 42161,
+  base: 8453,
 };
 
 // Ensure that we have all the environment variables we need.
@@ -60,6 +63,7 @@ function getNetworkUrl(networkType: string) {
   else if (networkType === "polygon") return `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "arbitrum") return `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "optimism") return `https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
+  else if (networkType === "base") return `https://1rpc.io/base`;
   else return `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`;
 }
 
@@ -68,7 +72,8 @@ function getBlockNumber(networkType: string) {
   else if (networkType === "polygon") return 27300159;
   else if (networkType === "arbitrum") return 10350332;
   else if (networkType === "optimism") return 6261116;
-  else return 14637205;
+  else if (networkType === "base") return 3173891;
+  else return 19567465;
 }
 
 const config: HardhatUserConfig = {
@@ -103,7 +108,7 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
       chainId: 1,
-      gasPrice: 52101000000,
+      gasPrice: 9010000000,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
     },
     avalanche_mainnet: {
@@ -129,6 +134,12 @@ const config: HardhatUserConfig = {
       chainId: 10,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
       gasPrice: 1000000,
+    },
+    base: {
+      url: `https://1rpc.io/base`,
+      chainId: 8453,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 1000000000,
     }
   },
   paths: {
@@ -139,6 +150,18 @@ const config: HardhatUserConfig = {
   },
   solidity: {
     compilers: [
+      {
+        version: "0.8.17",
+        settings: {
+          metadata: {
+            bytecodeHash: "none",
+          },
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
       {
         version: "0.8.4",
         settings: {
@@ -170,8 +193,18 @@ const config: HardhatUserConfig = {
     timeout: 10000 * 10000,
   },
   etherscan: {
-    apiKey: `${process.env.SCAN_API_KEY}`
-  }
+    apiKey: `${process.env.SCAN_API_KEY}`,
+    customChains: [
+      {
+        network: "base",
+        chainId: 8453,
+        urls: {
+         apiURL: "https://api.basescan.org/api",
+         browserURL: "https://basescan.org"
+        }
+      }
+    ]
+  },
 };
 
 export default config;

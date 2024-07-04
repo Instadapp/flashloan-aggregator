@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "./variables.sol";
@@ -6,31 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract Helper is Variables {
     using SafeERC20 for IERC20;
-
-    /**
-     * @dev Delegate the calls to implementation.
-     * @param _target Target address
-     * @param _data CallData of function.
-    */
-    function spell(address _target, bytes memory _data) internal returns (bytes memory response) {
-        require(_target != address(0), "target-invalid");
-        assembly {
-            let succeeded := delegatecall(gas(), _target, add(_data, 0x20), mload(_data), 0, 0)
-            let size := returndatasize()
-
-            response := mload(0x40)
-            mstore(0x40, add(response, and(add(add(size, 0x20), 0x1f), not(0x1f))))
-            mstore(response, size)
-            returndatacopy(add(response, 0x20), 0, size)
-
-            switch iszero(succeeded)
-                case 1 {
-                    // throw if delegatecall failed
-                    returndatacopy(0x00, 0x00, size)
-                    revert(0x00, size)
-                }
-        }
-    }
 
     /**
      * @dev Approves the token to the spender address with allowance amount.
@@ -95,8 +70,8 @@ contract Helper is Variables {
             "Lengths of parameters not same"
         );
         for (uint256 i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-            token.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
+            IERC20 token_ = IERC20(_instaLoanVariables._tokens[i]);
+            token_.safeTransfer(_receiver, _instaLoanVariables._amounts[i]);
         }
     }
 
@@ -119,8 +94,8 @@ contract Helper is Variables {
         );
         require(length_ == _fees.length, "Lengths of parameters not same");
         for (uint256 i = 0; i < length_; i++) {
-            IERC20 token = IERC20(_instaLoanVariables._tokens[i]);
-            token.safeTransfer(
+            IERC20 token_ = IERC20(_instaLoanVariables._tokens[i]);
+            token_.safeTransfer(
                 _receiver,
                 _instaLoanVariables._amounts[i] + _fees[i]
             );
@@ -131,7 +106,7 @@ contract Helper is Variables {
      * @dev Calculates the balances..
      * @notice Calculates the balances of the account passed for the tokens.
      * @param _tokens list of token addresses to calculate balance for.
-     * @param _account account to calculate balance for.
+     * @param _account account to calculate balances for.
      */
     function calculateBalances(address[] memory _tokens, address _account)
         internal
@@ -156,11 +131,10 @@ contract Helper is Variables {
         internal
         pure
     {
-        for (uint256 i; i < _instaLoanVariables._iniBals.length; i++) {
-            uint minRequiredBalance_ = _instaLoanVariables._iniBals[i] + _instaLoanVariables._instaFees[i];
-
+        for (uint256 i = 0; i < _instaLoanVariables._iniBals.length; i++) {
             require(
-                minRequiredBalance_ <=
+                _instaLoanVariables._iniBals[i] +
+                    _instaLoanVariables._instaFees[i] <=
                     _instaLoanVariables._finBals[i],
                 "amount-paid-less"
             );
@@ -178,39 +152,23 @@ contract Helper is Variables {
         }
     }
 
-    /**
+     /**
      * @dev Returns fee for the passed route in BPS.
      * @notice Returns fee for the passed route in BPS. 1 BPS == 0.01%.
      * @param _route route number for flashloan.
      */
-    function calculateFeeBPS(uint256 _route, address account_)
+    function calculateFeeBPS(uint256 _route)
         public
         view
         returns (uint256 BPS_)
     {
-        if (_route == 1) {
-            BPS_ = aaveV2Lending.FLASHLOAN_PREMIUM_TOTAL();
-        } else if (_route == 2 || _route == 3 || _route == 4) {
-            BPS_ = 0;
-        } else if (_route == 5 || _route == 6 || _route == 7) {
-            BPS_ =
-                (
-                    balancerLending
-                        .getProtocolFeesCollector()
-                        .getFlashLoanFeePercentage()
-                ) *
-                100;
-        } else if (_route == 9) {
+        if (_route == 9) {
             BPS_ = aaveV3Lending.FLASHLOAN_PREMIUM_TOTAL();
-        } else if (_route == 10) {
-            BPS_ = sparkLending.FLASHLOAN_PREMIUM_TOTAL();
-        } else if (_route == 11) {
-            BPS_ = 0;
         } else {
             revert("Invalid source");
         }
 
-        if (!isWhitelisted[account_] && BPS_ < InstaFeeBPS) {
+        if (BPS_ < InstaFeeBPS) {
             BPS_ = InstaFeeBPS;
         }
     }
@@ -266,21 +224,42 @@ contract Helper is Variables {
     }
 
     /**
-     * @dev Returns to wEth amount to be borrowed.
-     * @notice Returns to wEth amount to be borrowed.
-     */
-    function getWEthBorrowAmount() internal view returns (uint256) {
-        uint256 amount_ = wethToken.balanceOf(address(balancerLending));
-        return (amount_ * wethBorrowAmountPercentage) / 100;
-    }
-
-    /**
      * @dev Returns to true if the passed address is a DSA else returns false.
      * @notice Returns to true if the passed address is a DSA else returns false.
      * @param _account account to check for, if DSA.
      */
     function checkIfDsa(address _account) internal view returns (bool) {
         return instaList.accountID(_account) > 0;
+    }
+
+    /**
+     * @notice Deterministically computes the pool address given the factory and PoolKey
+     * @param factory The Uniswap V3 factory contract address
+     * @param key The PoolKey
+     * @return pool The contract address of the V3 pool
+     */
+    function computeAddress(address factory, PoolKey memory key)
+        internal
+        pure
+        returns (address pool)
+    {
+        require(key.token0 < key.token1, "Token not sorted");
+        pool = address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            hex"ff",
+                            factory,
+                            keccak256(
+                                abi.encode(key.token0, key.token1, key.fee)
+                            ),
+                            POOL_INIT_CODE_HASH
+                        )
+                    )
+                )
+            )
+        );
     }
 
     /**
