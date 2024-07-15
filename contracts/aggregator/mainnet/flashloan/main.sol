@@ -82,6 +82,12 @@ contract FlashAggregator is Setups {
         uint256[] amounts
     );
 
+    event LogCollectRevenue(
+        address to,
+        address[] tokens,
+        uint256[] amounts
+    );
+
     /**
      * @dev Callback function for aave flashloan.
      * @notice Callback function for aave flashloan.
@@ -923,7 +929,8 @@ contract FlashAggregator is Setups {
      * @notice Function to transfer fee to the treasury. Will be called manually.
      * @param _tokens token addresses for transferring fee to treasury.
      */
-    function transferFeeToTreasury(address[] memory _tokens) public {
+    function transferFee(address[] memory _tokens, address _to) public onlyOwner {
+        uint256[] memory _amts = new uint256[](_tokens.length);
         for (uint256 i = 0; i < _tokens.length; i++) {
             IERC20 token_ = IERC20(_tokens[i]);
             uint256 decimals_ = TokenInterface(_tokens[i]).decimals();
@@ -932,12 +939,13 @@ contract FlashAggregator is Setups {
                 : decimals_ > 7
                 ? 100
                 : 10;
-            uint256 amtToTransfer_ = token_.balanceOf(address(this)) > amtToSub_
+            _amts[i] = token_.balanceOf(address(this)) > amtToSub_
                 ? (token_.balanceOf(address(this)) - amtToSub_)
                 : 0;
-            if (amtToTransfer_ > 0)
-                token_.safeTransfer(treasuryAddr, amtToTransfer_);
+            if (_amts[i] > 0)
+                token_.safeTransfer(_to, _amts[i]);
         }
+        emit LogCollectRevenue(_to, _tokens, _amts);
     }
 }
 
