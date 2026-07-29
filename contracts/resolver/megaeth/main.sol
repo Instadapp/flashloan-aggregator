@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./helpers.sol";
 
-contract FlashResolverPlasma is Helper {
+contract FlashResolverMegaEth is Helper {
     function getRoutes() public view returns (uint16[] memory) {
         return flashloanAggregator.getRoutes();
     }
@@ -91,6 +91,6 @@ contract FlashResolverPlasma is Helper {
     }
 }
 
-contract InstaFlashResolverPlasma is FlashResolverPlasma {
+contract InstaFlashResolverMegaEth is FlashResolverMegaEth {
     receive() external payable {}
 }

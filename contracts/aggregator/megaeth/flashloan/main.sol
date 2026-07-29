@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-contract FlashAggregatorPlasma is Helper {
+contract FlashAggregatorMegaEth is Helper {
     using SafeERC20 for IERC20;
 
     event LogFlashloan(
@@ -307,7 +307,7 @@ contract FlashAggregatorPlasma is Helper {
     }
 }
 
-contract InstaFlashAggregatorPlasma is FlashAggregatorPlasma {
+contract InstaFlashAggregatorMegaEth is FlashAggregatorMegaEth {
     function initialize() public {
         require(status == 0, "cannot-call-again");
         status = 1;
