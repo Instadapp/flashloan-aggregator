@@ -51,6 +51,11 @@ contract FlashAggregatorAvalanche is Helper {
         instaLoanVariables_._tokens = _assets;
         instaLoanVariables_._amounts = _amounts;
         instaLoanVariables_._instaFees = calculateFees(_amounts, calculateFeeBPS(route_));
+        for (uint256 i = 0; i < _amounts.length; i++) {
+            if (instaLoanVariables_._instaFees[i] < _premiums[i]) {
+                instaLoanVariables_._instaFees[i] = _premiums[i];
+            }
+        }
         instaLoanVariables_._iniBals = calculateBalances(_assets, address(this));
         if (route_ == 1) {
             safeApprove(instaLoanVariables_, _premiums, aaveV2LendingAddr);
@@ -59,12 +64,8 @@ contract FlashAggregatorAvalanche is Helper {
         }
         safeTransfer(instaLoanVariables_, sender_);
 
-        if (checkIfDsa(sender_)) {
-            Address.functionCall(sender_, data_, "DSA-flashloan-fallback-failed");
-        } else {
-            InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
-        }
-
+        InstaFlashReceiverInterface(sender_).executeOperation(_assets, _amounts, instaLoanVariables_._instaFees, sender_, data_);
+        
         instaLoanVariables_._finBals = calculateBalances(_assets, address(this));
         validateFlashloan(instaLoanVariables_);
 
@@ -86,7 +87,7 @@ contract FlashAggregatorAvalanche is Helper {
             _modes[i]=0;
         }
         dataHash = bytes32(keccak256(data_));
-        aaveV2Lending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
+        aaveV2Lending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 0);
     }
 
     /**
@@ -104,7 +105,7 @@ contract FlashAggregatorAvalanche is Helper {
             _modes[i]=0;
         }
         dataHash = bytes32(keccak256(data_));
-        aaveV3Lending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 3228);
+        aaveV3Lending.flashLoan(address(this), _tokens, _amounts, _modes, address(0), data_, 0);
     }
 
     /**
@@ -171,13 +172,10 @@ contract FlashAggregatorAvalanche is Helper {
 }
 
 contract InstaFlashAggregatorAvalanche is FlashAggregatorAvalanche {
-    /* 
-     Deprecated
-    */
-    // function initialize() public {
-    //     require(status == 0, "cannot-call-again");
-    //     status = 1;
-    // }
+    function initialize() public {
+        require(status == 0, "cannot-call-again");
+        status = 1;
+    }
 
     receive() external payable {}
 }

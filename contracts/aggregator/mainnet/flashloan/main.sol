@@ -121,6 +121,11 @@ contract FlashAggregator is Setups {
             helper.amounts_,
             calculateFeeBPS(helper.route_, helper.sender_)
         );
+        for (uint256 i = 0; i < helper.amounts_.length; i++) {
+            if (instaLoanVariables_._instaFees[i] < _premiums[i]) {
+                instaLoanVariables_._instaFees[i] = _premiums[i];
+            }
+        }
 
         for (uint i; i < _assets.length; i++) {
             if (helper.route_ == 1) {
@@ -147,21 +152,15 @@ contract FlashAggregator is Setups {
 
         safeTransfer(instaLoanVariables_, helper.sender_);
 
-        if (checkIfDsa(helper.sender_)) {
-            Address.functionCall(
-                helper.sender_,
-                helper.data_,
-                "DSA-flashloan-fallback-failed"
-            );
-        } else {
-            InstaFlashReceiverInterface(helper.sender_).executeOperation(
-                helper.tokens_,
-                helper.amounts_,
-                instaLoanVariables_._instaFees,
-                helper.sender_,
-                helper.data_
-            );
-        }
+    
+        InstaFlashReceiverInterface(helper.sender_).executeOperation(
+            helper.tokens_,
+            helper.amounts_,
+            instaLoanVariables_._instaFees,
+            helper.sender_,
+            helper.data_
+        );
+        
 
         instaLoanVariables_._finBals = calculateBalances(
             helper.tokens_,
@@ -222,21 +221,14 @@ contract FlashAggregator is Setups {
         if (route_ == 2) {
             safeTransfer(instaLoanVariables_, sender_);
 
-            if (checkIfDsa(sender_)) {
-                Address.functionCall(
-                    sender_,
-                    data_,
-                    "DSA-flashloan-fallback-failed"
-                );
-            } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(
-                    tokens_,
-                    amounts_,
-                    instaLoanVariables_._instaFees,
-                    sender_,
-                    data_
-                );
-            }
+            InstaFlashReceiverInterface(sender_).executeOperation(
+                tokens_,
+                amounts_,
+                instaLoanVariables_._instaFees,
+                sender_,
+                data_
+            );
+            
         } else if (route_ == 3 || route_ == 4) {
             require(_fee == 0, "flash-DAI-fee-not-0");
 
@@ -271,21 +263,14 @@ contract FlashAggregator is Setups {
 
             safeTransfer(instaLoanVariables_, sender_);
 
-            if (checkIfDsa(sender_)) {
-                Address.functionCall(
-                    sender_,
-                    data_,
-                    "DSA-flashloan-fallback-failed"
-                );
-            } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(
-                    tokens_,
-                    amounts_,
-                    instaLoanVariables_._instaFees,
-                    sender_,
-                    data_
-                );
-            }
+          
+            InstaFlashReceiverInterface(sender_).executeOperation(
+                tokens_,
+                amounts_,
+                instaLoanVariables_._instaFees,
+                sender_,
+                data_
+            );
 
             if (route_ == 3) {
                 spell(
@@ -373,21 +358,15 @@ contract FlashAggregator is Setups {
                 wstEthToken.unwrap(_amounts[0]);
             }
             safeTransfer(instaLoanVariables_, helper.sender_);
-            if (checkIfDsa(helper.sender_)) {
-                Address.functionCall(
-                    helper.sender_,
-                    helper.data_,
-                    "DSA-flashloan-fallback-failed"
-                );
-            } else {
-                InstaFlashReceiverInterface(helper.sender_).executeOperation(
-                    helper.tokens_,
-                    helper.amounts_,
-                    instaLoanVariables_._instaFees,
-                    helper.sender_,
-                    helper.data_
-                );
-            }
+         
+            InstaFlashReceiverInterface(helper.sender_).executeOperation(
+                helper.tokens_,
+                helper.amounts_,
+                instaLoanVariables_._instaFees,
+                helper.sender_,
+                helper.data_
+            );
+            
             if (helper.tokens_[0] == stEthTokenAddr) {
                 wstEthToken.wrap(helper.amounts_[0]);
             }
@@ -442,21 +421,14 @@ contract FlashAggregator is Setups {
 
             safeTransfer(instaLoanVariables_, helper.sender_);
 
-            if (checkIfDsa(helper.sender_)) {
-                Address.functionCall(
-                    helper.sender_,
-                    helper.data_,
-                    "DSA-flashloan-fallback-failed"
-                );
-            } else {
-                InstaFlashReceiverInterface(helper.sender_).executeOperation(
-                    helper.tokens_,
-                    helper.amounts_,
-                    instaLoanVariables_._instaFees,
-                    helper.sender_,
-                    helper.data_
-                );
-            }
+            InstaFlashReceiverInterface(helper.sender_).executeOperation(
+                helper.tokens_,
+                helper.amounts_,
+                instaLoanVariables_._instaFees,
+                helper.sender_,
+                helper.data_
+            );
+            
 
             if (helper.route_ == 6) {
                 spell(
@@ -529,22 +501,15 @@ contract FlashAggregator is Setups {
 
         if (route_ == 11){
             safeTransfer(instaLoanVariables_, sender_);
-
-            if (checkIfDsa(sender_)) {
-                Address.functionCall(
-                    sender_,
-                    data_,
-                    "DSA-flashloan-fallback-failed"
-                );
-            } else {
-                InstaFlashReceiverInterface(sender_).executeOperation(
-                    tokens_,
-                    amounts_,
-                    instaLoanVariables_._instaFees,
-                    sender_,
-                    data_
-                );
-            }
+           
+        InstaFlashReceiverInterface(sender_).executeOperation(
+            tokens_,
+            amounts_,
+            instaLoanVariables_._instaFees,
+            sender_,
+            data_
+        );
+            
         } else {
             revert("wrong-route");
         }
@@ -597,7 +562,7 @@ contract FlashAggregator is Setups {
                 _modes,
                 address(0),
                 data_,
-                3228
+                0
             );
         } else if (route == 9) {
             if (_tokens[0] == stEthTokenAddr) {
@@ -612,7 +577,7 @@ contract FlashAggregator is Setups {
                 _modes,
                 address(0),
                 data_,
-                3228
+                0
             );
         } else if (route == 10) {
             if (_tokens[0] == stEthTokenAddr) {
@@ -627,7 +592,7 @@ contract FlashAggregator is Setups {
                 _modes,
                 address(0),
                 data_,
-                3228
+                0
             );
         }
     }
@@ -944,28 +909,25 @@ contract FlashAggregator is Setups {
 contract InstaFlashAggregator is FlashAggregator {
     using SafeERC20 for IERC20;
 
-    /* 
-     Deprecated
-    */
-    // function initialize(address[] memory _ctokens, address owner_) public {
-    //     require(status == 0, "cannot-call-again");
-    //     require(stETHStatus == 0, "only-once");
-    //     require(ownerStatus == 0, "only-once");
-    //     IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
-    //     addTokenToCToken(_ctokens);
-    //     address[] memory cTokens_ = new address[](2);
-    //     cTokens_[0] = cethTokenAddr;
-    //     cTokens_[1] = cdaiTokenAddr;
-    //     uint256[] memory errors_ = troller.enterMarkets(cTokens_);
-    //     for(uint256 j = 0; j < errors_.length; j++){
-    //         require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
-    //     }
-    //     IERC20(stEthTokenAddr).safeApprove(address(wstEthToken), type(uint256).max);
-    //     owner = owner_;
-    //     ownerStatus = 1;
-    //     stETHStatus = 1;
-    //     status = 1;
-    // }
+    function initialize(address[] memory _ctokens, address owner_) public {
+        require(status == 0, "cannot-call-again");
+        require(stETHStatus == 0, "only-once");
+        require(ownerStatus == 0, "only-once");
+        IERC20(daiTokenAddr).safeApprove(address(makerLending), type(uint256).max);
+        addTokenToCToken(_ctokens);
+        address[] memory cTokens_ = new address[](2);
+        cTokens_[0] = cethTokenAddr;
+        cTokens_[1] = cdaiTokenAddr;
+        uint256[] memory errors_ = troller.enterMarkets(cTokens_);
+        for(uint256 j = 0; j < errors_.length; j++){
+            require(errors_[j] == 0, "Comptroller.enterMarkets failed.");
+        }
+        IERC20(stEthTokenAddr).safeApprove(address(wstEthToken), type(uint256).max);
+        owner = owner_;
+        ownerStatus = 1;
+        stETHStatus = 1;
+        status = 1;
+    }
 
     /* 
      Deprecated

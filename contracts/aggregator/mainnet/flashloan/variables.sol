@@ -46,9 +46,7 @@ contract ConstantVariables {
         Comptroller(0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B);
 
     address internal constant treasuryAddr =
-        0x28849D2b63fA8D361e5fc15cB8aBB13019884d09;
-    ListInterface internal constant instaList =
-        ListInterface(0x4c8a1BEb8a87765788946D6B19C6C6355194AbEb);
+        0x0842FdFB5940ef6a4EA6c5DEE024EEC1dDc6977d;
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
 
     address internal constant ADVANCED_ROUTES_IMPL =

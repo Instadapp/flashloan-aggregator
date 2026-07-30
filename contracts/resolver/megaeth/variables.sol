@@ -5,18 +5,18 @@ import "./interfaces.sol";
 
 contract Variables {
     IAaveV3DataProvider public constant aaveV3DataProvider =
-        IAaveV3DataProvider(0x2d8A3C5677189723C4cB8873CfC9C8976FDF38Ac);
+        IAaveV3DataProvider(0x9588b453A4EE24a420830CB3302195cA7aA3b403);
 
     address private flashloanAggregatorAddr =
-        0xa153C80e908c5Eb80875a1489b4b122b3D61fd27;
+        0x52b4c5908E8E033BD58A2F815973013B596D9005;
     
     InstaFlashloanAggregatorInterface internal flashloanAggregator =
         InstaFlashloanAggregatorInterface(flashloanAggregatorAddr);
     
     address public constant wethAddr = 0x4200000000000000000000000000000000000006;
-    address public constant usdbcAddr = 0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA;
+    address public constant usdt0Addr = 0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb;
    
-    address public constant uniswapFactoryAddr = 0x33128a8fC17869897dcE68Ed026d694621f6FDfD; 
+    address public constant uniswapFactoryAddr = 0x3a5F0CD7d62452b7f899B2A5758BFa57be0dE478; 
     bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
 
     struct PoolKey {

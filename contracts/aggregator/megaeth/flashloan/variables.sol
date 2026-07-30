@@ -5,7 +5,7 @@ import "./interfaces.sol";
 
 contract ConstantVariables {
     address public constant aaveV3LendingAddr =
-        0xA238Dd80C259a72e81d7e4664a9801593F98d1c5;
+        0x7e324AbC5De01d112AfC03a584966ff199741C28;
     IAaveV3Lending public constant aaveV3Lending =
         IAaveV3Lending(aaveV3LendingAddr);
 
@@ -17,7 +17,7 @@ contract ConstantVariables {
 
     uint256 public constant InstaFeeBPS = 5; // in BPS; 1 BPS = 0.01%
     address public constant uniswapFactoryAddr =
-        0x33128a8fC17869897dcE68Ed026d694621f6FDfD;
+        0x3a5F0CD7d62452b7f899B2A5758BFa57be0dE478;
 }
 
 contract Variables is ConstantVariables {

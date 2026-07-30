@@ -161,7 +161,7 @@ contract Helper is ConstantVariables {
         require(_amounts.length == length_, "array-lengths-not-same");
         for (uint256 i = 0; i < length_; i++) {
             approve(_tokens[i], aaveV2LendingAddr, _amounts[i]);
-            aaveV2Lending.deposit(_tokens[i], _amounts[i], address(this), 3228);
+            aaveV2Lending.deposit(_tokens[i], _amounts[i], address(this), 0);
             aaveV2Lending.setUserUseReserveAsCollateral(_tokens[i], true);
         }
     }
@@ -178,7 +178,7 @@ contract Helper is ConstantVariables {
         uint256 length_ = _tokens.length;
         require(_amounts.length == length_, "array-lengths-not-same");
         for (uint256 i = 0; i < length_; i++) {
-            aaveV2Lending.borrow(_tokens[i], _amounts[i], 2, 3228, address(this));
+            aaveV2Lending.borrow(_tokens[i], _amounts[i], 2, 0, address(this));
         }
     }
 

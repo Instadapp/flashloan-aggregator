@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-contract FlashAggregatorArbitrum is Helper {
+contract FlashAggregatorBSC is Helper {
     using SafeERC20 for IERC20;
 
     event LogFlashloan(
@@ -14,104 +14,43 @@ contract FlashAggregatorArbitrum is Helper {
         uint256[] amounts
     );
 
-    /**
-     * @dev Callback function for balancer flashloan.
-     * @notice Fallback function for balancer flashloan.
-     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
-     * @param _fees list of fees for the corresponding addresses for flashloan.
-     * @param _data extra data passed.
-     */
-    function receiveFlashLoan(
-        IERC20[] memory _tokens,
-        uint256[] memory _amounts,
-        uint256[] memory _fees,
-        bytes memory _data
-    ) external verifyDataHash(_data) {
-        require(msg.sender == balancerLendingAddr, "not-balancer-sender");
-
-        FlashloanVariables memory instaLoanVariables_;
-
-        uint256 length_ = _tokens.length;
-        instaLoanVariables_._tokens = new address[](length_);
-        for (uint256 i = 0; i < length_; i++) {
-            instaLoanVariables_._tokens[i] = address(_tokens[i]);
-        }
-
-        (address sender_, bytes memory data_) = abi.decode(
-            _data,
-            (address, bytes)
-        );
-
-        instaLoanVariables_._amounts = _amounts;
-        instaLoanVariables_._iniBals = calculateBalances(
-            instaLoanVariables_._tokens,
-            address(this)
-        );
-        instaLoanVariables_._instaFees = calculateFees(
-            _amounts,
-            calculateFeeBPS(5)
-        );
-
-        safeTransfer(instaLoanVariables_, sender_);
-
-        InstaFlashReceiverInterface(sender_).executeOperation(
-            instaLoanVariables_._tokens,
-            _amounts,
-            instaLoanVariables_._instaFees,
-            sender_,
-            data_
-        );
-        
-        instaLoanVariables_._finBals = calculateBalances(
-            instaLoanVariables_._tokens,
-            address(this)
-        );
-        validateFlashloan(instaLoanVariables_);
-
-        safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
-    }
-
-    struct UniswapFlashInfo {
+    struct PancakeSwapFlashInfo {
         address sender;
-        PoolKey key;
+        address pairAddr;
         bytes data;
     }
 
     /**
-     * @dev Callback function for uniswap flashloan.
-     * @notice Callback function for uniswap flashloan.
-     * @param fee0 The fee from calling flash for token0
-     * @param fee1 The fee from calling flash for token1
-     * @param data extra data passed(includes route info aswell).
+     * @dev Callback function for PancakeSwap flashloan.
+     * @notice Callback function for PancakeSwap flashloan.
+     * @param sender The address that initiated the swap on PancakeSwap
+     * @param amount0 The amount of token0 that was borrowed
+     * @param amount1 The amount of token1 that was borrowed
+     * @param data Extra data passed (includes route info as well)
      */
-    function uniswapV3FlashCallback(
-        uint256 fee0,
-        uint256 fee1,
-        bytes memory data
-    ) external verifyDataHash(data) {
+    function pancakeCall(
+        address sender,
+        uint256 amount0,
+        uint256 amount1,
+        bytes calldata data
+    ) external {
         FlashloanVariables memory instaLoanVariables_;
-        UniswapFlashInfo memory uniswapFlashData_;
-
+        PancakeSwapFlashInfo memory pancakeSwapInfo_;
         (
             instaLoanVariables_._tokens,
             instaLoanVariables_._amounts,
-            uniswapFlashData_.sender,
-            uniswapFlashData_.key,
-            uniswapFlashData_.data
-        ) = abi.decode(data, (address[], uint256[], address, PoolKey, bytes));
+            pancakeSwapInfo_.sender,
+            pancakeSwapInfo_.pairAddr,
+            pancakeSwapInfo_.data
+        ) = abi.decode(data, (address[], uint256[], address, address, bytes));
 
-        address pool = computeAddress(
-            uniswapFactoryAddr,
-            uniswapFlashData_.key
-        );
-        require(msg.sender == pool, "invalid-sender");
-
+        require(msg.sender == pancakeSwapInfo_.pairAddr, "invalid-sender");
         instaLoanVariables_._iniBals = calculateBalances(
             instaLoanVariables_._tokens,
             address(this)
         );
 
-        uint256 feeBPS = uint256(uniswapFlashData_.key.fee / 100);
+        uint256 feeBPS = 25; // fixed Pancake swap fee BPS
         if (feeBPS < InstaFeeBPS) {
             feeBPS = InstaFeeBPS;
         }
@@ -121,17 +60,17 @@ contract FlashAggregatorArbitrum is Helper {
             feeBPS
         );
 
-        safeTransfer(instaLoanVariables_, uniswapFlashData_.sender);
+        safeTransfer(instaLoanVariables_, pancakeSwapInfo_.sender);
 
-        InstaFlashReceiverInterface(uniswapFlashData_.sender)
+        InstaFlashReceiverInterface(pancakeSwapInfo_.sender)
             .executeOperation(
                 instaLoanVariables_._tokens,
                 instaLoanVariables_._amounts,
                 instaLoanVariables_._instaFees,
-                uniswapFlashData_.sender,
-                uniswapFlashData_.data
+                pancakeSwapInfo_.sender,
+                pancakeSwapInfo_.data
             );
-    
+        
         instaLoanVariables_._finBals = calculateBalances(
             instaLoanVariables_._tokens,
             address(this)
@@ -139,21 +78,8 @@ contract FlashAggregatorArbitrum is Helper {
 
         validateFlashloan(instaLoanVariables_);
 
-        uint256[] memory fees_;
-        if (instaLoanVariables_._tokens.length == 2) {
-            fees_ = new uint256[](2);
-            fees_[0] = fee0;
-            fees_[1] = fee1;
-        } else if (
-            instaLoanVariables_._tokens[0] == uniswapFlashData_.key.token0
-        ) {
-            fees_ = new uint256[](1);
-            fees_[0] = fee0;
-        } else {
-            fees_ = new uint256[](1);
-            fees_[0] = fee1;
-        }
-        safeTransferWithFee(instaLoanVariables_, fees_, msg.sender);
+        // Use the already calculated fees (which include PancakeSwap's 25 BPS)
+        safeTransferWithFee(instaLoanVariables_, instaLoanVariables_._instaFees, msg.sender);
     }
 
     /**
@@ -217,66 +143,35 @@ contract FlashAggregatorArbitrum is Helper {
 
         return true;
     }
-
-    /**
-     * @dev Middle function for route 5.
-     * @notice Middle function for route 5.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeBalancer(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        bytes memory data_ = abi.encode(msg.sender, _data);
-        uint256 length_ = _tokens.length;
-        IERC20[] memory tokens_ = new IERC20[](length_);
-        for (uint256 i = 0; i < length_; i++) {
-            tokens_[i] = IERC20(_tokens[i]);
-        }
-        dataHash = bytes32(keccak256(data_));
-        balancerLending.flashLoan(
-            InstaFlashReceiverInterface(address(this)),
-            tokens_,
-            _amounts,
-            data_
-        );
-    }
-
-    /**
-     * @dev Middle function for route 8.
-     * @notice Middle function for route 8.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     * @param _instadata pool key encoded
-     */
-    function routeUniswap(
+   
+    function routePancakeSwap(
         address[] memory _tokens,
         uint256[] memory _amounts,
         bytes memory _data,
         bytes memory _instadata
     ) internal {
-        PoolKey memory key = abi.decode(_instadata, (PoolKey));
+        address pairAddr = abi.decode(_instadata, (address));
+        IPancakePair pair = IPancakePair(pairAddr);
 
         uint256 amount0_;
         uint256 amount1_;
 
+        address pairToken0 = pair.token0();
+        address pairToken1 = pair.token1();
+
         if (_tokens.length == 1) {
             require(
-                (_tokens[0] == key.token0 || _tokens[0] == key.token1),
+                (_tokens[0] == pairToken0 || _tokens[0] == pairToken1),
                 "tokens-do-not-match-pool"
             );
-            if (_tokens[0] == key.token0) {
+            if (_tokens[0] == pairToken0) {
                 amount0_ = _amounts[0];
             } else {
                 amount1_ = _amounts[0];
             }
         } else if (_tokens.length == 2) {
             require(
-                (_tokens[0] == key.token0 && _tokens[1] == key.token1),
+                (_tokens[0] == pairToken0 && _tokens[1] == pairToken1),
                 "tokens-do-not-match-pool"
             );
             amount0_ = _amounts[0];
@@ -285,19 +180,15 @@ contract FlashAggregatorArbitrum is Helper {
             revert("Number of tokens do not match");
         }
 
-        IUniswapV3Pool pool = IUniswapV3Pool(
-            computeAddress(uniswapFactoryAddr, key)
-        );
-
         bytes memory data_ = abi.encode(
             _tokens,
             _amounts,
             msg.sender,
-            key,
+            pairAddr,
             _data
         );
         dataHash = bytes32(keccak256(data_));
-        pool.flash(address(this), amount0_, amount1_, data_);
+        pair.swap(amount0_, amount1_, address(this), data_);
     }
 
     /**
@@ -343,17 +234,15 @@ contract FlashAggregatorArbitrum is Helper {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes memory _instadata
+        bytes calldata _instadata
     ) external reentrancy {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
 
-        if (_route == 5) {
-            routeBalancer(_tokens, _amounts, _data);
-        } else if (_route == 8) {
-            routeUniswap(_tokens, _amounts, _data, _instadata);
+        if (_route == 12) {
+            routePancakeSwap(_tokens, _amounts, _data, _instadata);
         } else if (_route == 9) {
             routeAaveV3(_tokens, _amounts, _data);
         } else {
@@ -368,10 +257,9 @@ contract FlashAggregatorArbitrum is Helper {
      * @notice Function to get the list of available routes.
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
-        routes_ = new uint16[](3);
-        routes_[0] = 5;
-        routes_[1] = 8;
-        routes_[2] = 9;
+        routes_ = new uint16[](2);
+        routes_[0] = 12; // PancakeSwap
+        routes_[1] = 9; // Aave V3
     }
 
     /**
@@ -397,7 +285,7 @@ contract FlashAggregatorArbitrum is Helper {
     }
 }
 
-contract InstaFlashAggregatorArbitrum is FlashAggregatorArbitrum {
+contract InstaFlashAggregatorBSC is FlashAggregatorBSC {
     function initialize() public {
         require(status == 0, "cannot-call-again");
         status = 1;

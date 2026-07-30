@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./helpers.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-contract FlashAggregatorArbitrum is Helper {
+contract FlashAggregatorSepolia is Helper {
     using SafeERC20 for IERC20;
 
     event LogFlashloan(
@@ -13,63 +13,6 @@ contract FlashAggregatorArbitrum is Helper {
         address[] tokens,
         uint256[] amounts
     );
-
-    /**
-     * @dev Callback function for balancer flashloan.
-     * @notice Fallback function for balancer flashloan.
-     * @param _amounts list of amounts for the corresponding assets or amount of ether to borrow as collateral for flashloan.
-     * @param _fees list of fees for the corresponding addresses for flashloan.
-     * @param _data extra data passed.
-     */
-    function receiveFlashLoan(
-        IERC20[] memory _tokens,
-        uint256[] memory _amounts,
-        uint256[] memory _fees,
-        bytes memory _data
-    ) external verifyDataHash(_data) {
-        require(msg.sender == balancerLendingAddr, "not-balancer-sender");
-
-        FlashloanVariables memory instaLoanVariables_;
-
-        uint256 length_ = _tokens.length;
-        instaLoanVariables_._tokens = new address[](length_);
-        for (uint256 i = 0; i < length_; i++) {
-            instaLoanVariables_._tokens[i] = address(_tokens[i]);
-        }
-
-        (address sender_, bytes memory data_) = abi.decode(
-            _data,
-            (address, bytes)
-        );
-
-        instaLoanVariables_._amounts = _amounts;
-        instaLoanVariables_._iniBals = calculateBalances(
-            instaLoanVariables_._tokens,
-            address(this)
-        );
-        instaLoanVariables_._instaFees = calculateFees(
-            _amounts,
-            calculateFeeBPS(5)
-        );
-
-        safeTransfer(instaLoanVariables_, sender_);
-
-        InstaFlashReceiverInterface(sender_).executeOperation(
-            instaLoanVariables_._tokens,
-            _amounts,
-            instaLoanVariables_._instaFees,
-            sender_,
-            data_
-        );
-        
-        instaLoanVariables_._finBals = calculateBalances(
-            instaLoanVariables_._tokens,
-            address(this)
-        );
-        validateFlashloan(instaLoanVariables_);
-
-        safeTransferWithFee(instaLoanVariables_, _fees, balancerLendingAddr);
-    }
 
     struct UniswapFlashInfo {
         address sender;
@@ -91,7 +34,6 @@ contract FlashAggregatorArbitrum is Helper {
     ) external verifyDataHash(data) {
         FlashloanVariables memory instaLoanVariables_;
         UniswapFlashInfo memory uniswapFlashData_;
-
         (
             instaLoanVariables_._tokens,
             instaLoanVariables_._amounts,
@@ -105,7 +47,6 @@ contract FlashAggregatorArbitrum is Helper {
             uniswapFlashData_.key
         );
         require(msg.sender == pool, "invalid-sender");
-
         instaLoanVariables_._iniBals = calculateBalances(
             instaLoanVariables_._tokens,
             address(this)
@@ -123,6 +64,7 @@ contract FlashAggregatorArbitrum is Helper {
 
         safeTransfer(instaLoanVariables_, uniswapFlashData_.sender);
 
+       
         InstaFlashReceiverInterface(uniswapFlashData_.sender)
             .executeOperation(
                 instaLoanVariables_._tokens,
@@ -131,14 +73,14 @@ contract FlashAggregatorArbitrum is Helper {
                 uniswapFlashData_.sender,
                 uniswapFlashData_.data
             );
-    
+        
+
         instaLoanVariables_._finBals = calculateBalances(
             instaLoanVariables_._tokens,
             address(this)
         );
 
         validateFlashloan(instaLoanVariables_);
-
         uint256[] memory fees_;
         if (instaLoanVariables_._tokens.length == 2) {
             fees_ = new uint256[](2);
@@ -200,7 +142,7 @@ contract FlashAggregatorArbitrum is Helper {
 
         safeApprove(instaLoanVariables_, _premiums, aaveV3LendingAddr);
         safeTransfer(instaLoanVariables_, sender_);
-
+  
         InstaFlashReceiverInterface(sender_).executeOperation(
             _assets,
             _amounts,
@@ -216,33 +158,6 @@ contract FlashAggregatorArbitrum is Helper {
         validateFlashloan(instaLoanVariables_);
 
         return true;
-    }
-
-    /**
-     * @dev Middle function for route 5.
-     * @notice Middle function for route 5.
-     * @param _tokens token addresses for flashloan.
-     * @param _amounts list of amounts for the corresponding assets.
-     * @param _data extra data passed.
-     */
-    function routeBalancer(
-        address[] memory _tokens,
-        uint256[] memory _amounts,
-        bytes memory _data
-    ) internal {
-        bytes memory data_ = abi.encode(msg.sender, _data);
-        uint256 length_ = _tokens.length;
-        IERC20[] memory tokens_ = new IERC20[](length_);
-        for (uint256 i = 0; i < length_; i++) {
-            tokens_[i] = IERC20(_tokens[i]);
-        }
-        dataHash = bytes32(keccak256(data_));
-        balancerLending.flashLoan(
-            InstaFlashReceiverInterface(address(this)),
-            tokens_,
-            _amounts,
-            data_
-        );
     }
 
     /**
@@ -331,6 +246,100 @@ contract FlashAggregatorArbitrum is Helper {
     }
 
     /**
+     * @dev Fallback function for morpho flashloan.
+     * @notice Fallback function for morpho flashloan.
+     * @param _assets The amount of assets to be repaid.
+     * @param _data extra data passed (includes route info as well).
+     */
+    function onMorphoFlashLoan(
+        uint256 _assets,
+        bytes calldata _data
+    ) external verifyDataHash(_data) returns (bool) {
+        require(msg.sender == address(morpho), "not-morpho-sender");
+
+        FlashloanVariables memory instaLoanVariables_;
+
+        (
+            uint256 route_,
+            address[] memory tokens_,
+            uint256[] memory amounts_,
+            address sender_,
+            bytes memory data_
+        ) = abi.decode(_data, (uint256, address[], uint256[], address, bytes));
+
+        instaLoanVariables_._tokens = tokens_;
+        instaLoanVariables_._amounts = amounts_;
+        instaLoanVariables_._iniBals = calculateBalances(
+            tokens_,
+            address(this)
+        );
+
+        instaLoanVariables_._instaFees = calculateFees(
+            amounts_,
+            calculateFeeBPS(route_)
+        );
+
+        if (route_ == 11) {
+            safeTransfer(instaLoanVariables_, sender_);
+
+        
+            InstaFlashReceiverInterface(sender_).executeOperation(
+                tokens_,
+                amounts_,
+                instaLoanVariables_._instaFees,
+                sender_,
+                data_
+            );
+            
+        } else {
+            revert("wrong-route");
+        }
+
+        instaLoanVariables_._finBals = calculateBalances(
+            tokens_,
+            address(this)
+        );
+
+        validateFlashloan(instaLoanVariables_);
+
+        // Final approval to transfer tokens to MORPHO
+        IERC20(tokens_[0]).approve(address(morpho), _assets);
+
+        return true;
+    }
+
+    /**
+     * @dev Middle function for route 11.
+     * @notice Middle function for route 11.
+     * @param _token token address for flashloan.
+     * @param _amount amount for flashloan.
+     * @param _data extra data passed.
+     */
+    function routeMorpho(
+        address _token,
+        uint256 _amount,
+        bytes memory _data
+    ) internal {
+        address[] memory tokens_ = new address[](1);
+        uint256[] memory amounts_ = new uint256[](1);
+        tokens_[0] = _token;
+        amounts_[0] = _amount;
+        bytes memory data_ = abi.encode(
+            11,
+            tokens_,
+            amounts_,
+            msg.sender,
+            _data
+        );
+        dataHash = bytes32(keccak256(data_));
+        morpho.flashLoan(
+            _token,
+            _amount,
+            data_
+        );
+    }
+
+    /**
      * @dev Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @notice Main function for flashloan for all routes. Calls the middle functions according to routes.
      * @param _tokens token addresses for flashloan.
@@ -343,19 +352,19 @@ contract FlashAggregatorArbitrum is Helper {
         uint256[] memory _amounts,
         uint256 _route,
         bytes calldata _data,
-        bytes memory _instadata
+        bytes calldata _instadata
     ) external reentrancy {
         require(_tokens.length == _amounts.length, "array-lengths-not-same");
 
         (_tokens, _amounts) = bubbleSort(_tokens, _amounts);
         validateTokens(_tokens);
 
-        if (_route == 5) {
-            routeBalancer(_tokens, _amounts, _data);
-        } else if (_route == 8) {
+        if (_route == 8) {
             routeUniswap(_tokens, _amounts, _data, _instadata);
         } else if (_route == 9) {
             routeAaveV3(_tokens, _amounts, _data);
+        } else if (_route == 11) {
+            routeMorpho(_tokens[0], _amounts[0], _data);
         } else {
             revert("route-does-not-exist");
         }
@@ -369,9 +378,9 @@ contract FlashAggregatorArbitrum is Helper {
      */
     function getRoutes() public pure returns (uint16[] memory routes_) {
         routes_ = new uint16[](3);
-        routes_[0] = 5;
-        routes_[1] = 8;
-        routes_[2] = 9;
+        routes_[0] = 8;
+        routes_[1] = 9;
+        routes_[2] = 11;
     }
 
     /**
@@ -397,10 +406,10 @@ contract FlashAggregatorArbitrum is Helper {
     }
 }
 
-contract InstaFlashAggregatorArbitrum is FlashAggregatorArbitrum {
+contract InstaFlashAggregatorSepolia is FlashAggregatorSepolia {
     function initialize() public {
-        require(status == 0, "cannot-call-again");
-        status = 1;
+         require(status == 0, "cannot-call-again");
+         status = 1;
     }
 
     receive() external payable {}

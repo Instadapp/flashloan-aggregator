@@ -30,13 +30,11 @@ const chainIds = {
   optimism: 10,
   arbitrum: 42161,
   base: 8453,
+  sepolia: 11155111
 };
 
 // Ensure that we have all the environment variables we need.
-const mnemonic = process.env.MNEMONIC;
-if (!mnemonic) {
-  throw new Error("Please set your MNEMONIC in a .env file");
-}
+const mnemonic = process.env.MNEMONIC || "test test test test test test test test test test test junk";
 
 const alchemyApiKey = process.env.ALCHEMY_API_KEY;
 if (!alchemyApiKey) {
@@ -64,6 +62,7 @@ function getNetworkUrl(networkType: string) {
   else if (networkType === "arbitrum") return `https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "optimism") return `https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`;
   else if (networkType === "base") return `https://1rpc.io/base`;
+  else if (networkType === "sepolia") return `https://eth-sepolia.alchemyapi.io/v2/${alchemyApiKey}`;
   else return `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`;
 }
 
@@ -85,20 +84,6 @@ const config: HardhatUserConfig = {
     src: "./contracts",
   },
   networks: {
-    hardhat: {
-      accounts: {
-        mnemonic,
-      },
-      chainId: chainIds.hardhat,
-      forking: {
-        url: String(getNetworkUrl(String(process.env.networkType))),
-        blockNumber: getBlockNumber(String(process.env.networkType)),
-      },
-    },
-    goerli: createTestnetConfig("goerli"),
-    kovan: createTestnetConfig("kovan"),
-    rinkeby: createTestnetConfig("rinkeby"),
-    ropsten: createTestnetConfig("ropsten"),
     // hardhat: {
     //   forking: {
     //     url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
@@ -140,7 +125,13 @@ const config: HardhatUserConfig = {
       chainId: 8453,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
       gasPrice: 1000000000,
-    }
+    },
+    sepolia: {
+      url: `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`,
+      chainId: 11155111,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 20000000000,
+    },
   },
   paths: {
     artifacts: "./artifacts",

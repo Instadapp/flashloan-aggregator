@@ -15,10 +15,7 @@ contract ConstantVariables {
         IBalancerLending(balancerLendingAddr);
 
     address public constant treasuryAddr =
-        0xf81AB897E3940E95d749fF2e1F8D38f9b7cBe3cf;
-    address private constant instaListAddr =
-        0x3565F6057b7fFE36984779A507fC87b31EFb0f09;
-    ListInterface public constant instaList = ListInterface(instaListAddr);
+        0x0842FdFB5940ef6a4EA6c5DEE024EEC1dDc6977d;
 
     bytes32 internal constant POOL_INIT_CODE_HASH =
         0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
